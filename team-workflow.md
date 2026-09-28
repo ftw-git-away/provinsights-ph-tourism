@@ -1,4 +1,4 @@
-# Contributing to Tuklas Pinas
+# GiitAway Team Workflow
 
 These working agreements help GitAway build one reviewable capstone together. The repository is the source of truth for code and project documentation; the GitHub Project is the source of truth for task status and target dates.
 
