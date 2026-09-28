@@ -1,0 +1,50 @@
+name: Team decision
+description: Record a consequential project choice and its evidence.
+title: "[DECISION] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use for choices that affect scope, source selection, schema, architecture, or interpretation. Keep it open until the team agrees and the decision is recorded in the relevant documentation.
+  - type: textarea
+    id: question
+    attributes:
+      label: Decision question
+      description: State the specific question the team needs to resolve.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and evidence
+      description: Link source findings, constraints, and any relevant issues.
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options and trade-offs
+      value: |
+        1. Option:
+           - Benefits:
+           - Costs or limitations:
+        2. Option:
+           - Benefits:
+           - Costs or limitations:
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommendation and unresolved risks
+  - type: input
+    id: owner
+    attributes:
+      label: Decision owner
+      placeholder: "@github-handle"
+    validations:
+      required: true
+  - type: input
+    id: decide-by
+    attributes:
+      label: Target decision date
