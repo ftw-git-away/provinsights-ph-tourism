@@ -1,42 +1,43 @@
-## Summary
+## What changed and why
 
-<!-- What changed and why? -->
+<!-- Summarize the outcome in terms of the linked task. -->
 
 ## Related issue
 
 Closes #
 
-## Change checklist
+## Review evidence
 
-- [ ] This change matches the issue scope and acceptance criteria.
-- [ ] I updated affected documentation or explained why no documentation change is needed.
-- [ ] I did not commit credentials, private data, or unapproved raw datasets.
-- [ ] I stated assumptions, limitations, or follow-up work for the reviewer.
+- Acceptance criteria addressed:
+- Checks or inspection performed:
+- Evidence (links, outputs, sample size/row counts where relevant):
+- Not checked or known limitations:
 
-## Validation and evidence
+Do not report a check as passing unless it was actually run. If the repository has no runnable check for this change yet, say so.
 
-<!-- List the checks or evidence. If this is documentation-only or no runnable checks exist yet, say so. -->
+## Project records
 
-- Checks performed:
-- Evidence (links, sample size/row counts, screenshots or output):
-- Not checked / limitations:
+- [ ] I updated the relevant source inventory, README, architecture, data-model, runbook, or decision record; or this change does not make those records stale.
+- [ ] I kept assumptions, unresolved questions, and exclusions visible to reviewers.
+- [ ] No credentials, private data, or unapproved raw datasets are included.
 
-For data changes, include relevant schema, grain, key, source lineage, quality-check results, and any exclusions.
+## Data changes (complete when relevant)
 
-## Source and data terms
+- Source and retrieval date:
+- Table/output grain and keys:
+- Geography, time coverage, units, and definitions:
+- Lineage or transformation:
+- Quality checks, exclusions, and limitations:
+- Attribution or source terms:
 
-- [ ] If a source or dataset changed, I recorded the source URL, retrieval date, attribution/terms, coverage, and limitations in the shared inventory or documentation.
-- [ ] No data was dropped without a documented reason.
-- [ ] Not applicable.
+## Course handoff evidence (complete when relevant)
+
+Which repository handoff concern does this change improve: purpose, architecture/data flow, data model, exact run instructions, validation, engineering decisions, organization, or traceable history? Link the evidence.
 
 ## AI assistance
 
-- [ ] No AI assistance used.
-- [ ] AI assistance used; I reviewed the output, verified factual and technical claims, and can explain and defend the result.
-
-<!-- Briefly describe material AI assistance when applicable. -->
+<!-- If AI materially helped produce code, SQL, analysis, or claims, describe where. Confirm you verified it and can explain the result. Write "None" when not applicable. -->
 
 ## Reviewer focus
 
-<!-- What should the reviewer pay closest attention to? -->
-
+<!-- What should the reviewer examine most closely? -->
