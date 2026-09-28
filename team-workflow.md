@@ -1,53 +1,73 @@
-# GiitAway Team Workflow
+# GitAway working agreement
 
-These working agreements help GitAway build one reviewable capstone together. The repository is the source of truth for code and project documentation; the GitHub Project is the source of truth for task status and target dates.
+**Version:** 1, proposed for team review  
+**Project:** Tuklas Pinas Data Platform
 
-## Before starting work
+These rules are written for GitAway's capstone, source-first project stage, five-person team, and course handoff rubric. They can change when the team records a decision in an issue and updates this page.
 
-1. Pick an issue or create one using the appropriate form in GitHub.
-2. Check its owner, reviewer, acceptance criteria, and dependencies.
-3. If the work depends on a source or design decision, link that blocker. Do not treat an unverified source assumption as settled.
-4. Keep one person accountable for each issue. Teammates can contribute, pair, or review without obscuring ownership.
+## 1. Source evidence comes before final schema decisions
 
-## Branches and commits
+- Treat DOT, PSA, and PSGC as candidate publishers until a specific dataset has been inspected.
+- For each candidate, one owner records the official URL, measure/definition, geography, time coverage, granularity, access method, metadata, terms, observed quality, limitations, and evidence in the shared source inventory.
+- Mark assumptions as assumptions. A landing page alone is not evidence that a dataset is usable.
+- Before calling a source feasible, inspect a representative sample or file and explain how it could support a project question.
+- Do not lock the MVP, final schema, or join strategy until the team has reviewed the source evidence and agreed on the supported question, geographic unit, time window, and limitations.
+- Keep independent work moving: draft questions, inspect metadata, outline candidate fields, or prepare a mock input while a source access issue is unresolved. Label mock-based work as provisional.
 
-- Do not commit directly to `main`.
-- Branch from the latest `main` using:
-  - `feature/issue-<number>-<short-name>` for implementation
-  - `docs/issue-<number>-<short-name>` for documentation
-  - `fix/issue-<number>-<short-name>` for corrections
-- Keep each change focused and commit in understandable increments.
-- Use commit messages that say what changed, such as `Document tourism source feasibility`.
+## 2. Keep project records in the right place
 
-## Pull requests and review
+- **GitHub Issues** hold task scope, one accountable owner, acceptance criteria, blockers, and evidence links.
+- **The GitHub Project board** shows current status and target dates.
+- **The source inventory sheet** holds one row per candidate dataset and its evidence.
+- **Repository documentation** holds the current project scope, approved decisions, data model, architecture, run instructions, and quality results.
+- When these records disagree, flag the mismatch in the related issue and update the source of truth for that information.
 
-- Open a pull request into `main` and link the issue with `Closes #<number>` when it fully completes that issue.
-- Summarize the change, why it is needed, and how it was checked.
-- Include validation evidence: commands or notebooks run, sample size or row counts where relevant, quality-check results, and anything not checked.
-- Update the relevant documentation in the same PR. Start with [the docs index](docs/README.md) when one is available; current project references are [source guidance](docs/data-sources.md), [architecture](docs/architecture.md), and [run status](docs/runbook.md).
-- Ask the named reviewer to check the change against the issue’s acceptance criteria. Address review comments before merge.
-- Merge only after review and any applicable CI checks pass. The project lead coordinates merges.
+## 3. Share work by outcome, not by pipeline phase
 
-## Data and source handling
+- Give every issue one accountable owner. A reviewer or collaborator can help without splitting accountability.
+- Write issues around reviewable outcomes. State what is included, what is out of scope, how completion will be shown, and what blocks the work.
+- Assign a different reviewer when another teammate is available.
+- A dependency blocks only the work that needs it. Teammates may start independent source research, documentation, mock-input work, or design drafts in parallel.
+- Revisit assignments when a blocker threatens a checkpoint; rebalance work rather than leaving a teammate waiting.
 
-- Use public sources approved for the project and record attribution, license or terms, retrieval date, coverage, and limitations in the [source inventory](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit?gid=1004909730#gid=1004909730).
-- Do not commit credentials, tokens, private data, or raw datasets. Store project data in the approved Databricks workspace or other agreed storage.
-- Do not silently drop records. Document exclusions and retain a reason that can be reviewed.
-- Do not claim comparability across sources until definitions, time periods, geographic levels, and join keys have been checked.
-- Keep sample data synthetic or small and redistributable; verify source terms before including it.
+## 4. Protect the shared branch and make changes reviewable
 
-## AI-assisted work
+- Do not push commits directly to `main`. Use a short-lived branch named `task/<issue-number>-<short-name>`.
+- Keep a pull request focused on its issue. Link the issue; say what changed and why; list evidence checked and anything not checked.
+- Update the README or the relevant source, architecture, model, or run documentation in the same pull request when the change makes it stale.
+- A teammate reviews the change against the issue's acceptance criteria before merge. The author addresses requested changes; the project lead coordinates the merge.
+- Do not claim CI, tests, notebooks, or pipelines passed unless they were run and the result is available. Until CI is implemented, review the evidence that exists and state the limits.
 
-AI tools may help explain concepts, draft boilerplate, review code, and improve documentation. The contributor remains responsible for every change.
+## 5. Keep data traceable and interpretations supportable
 
-- Never send credentials, private data, or information the source terms do not allow you to share.
-- Verify generated facts, SQL, transformations, and quality rules against the source and the project requirements.
-- Make sure you can explain and defend the result before requesting review.
-- State material AI assistance in the PR when it helped produce code or analysis. A human must verify the output and evidence.
+- Use sources the team has reviewed for the capstone. Record source URL, retrieval date, attribution/terms, coverage, definitions, and limitations.
+- Never commit credentials, tokens, private data, or raw source files whose terms do not allow redistribution. Use only a small, permitted sample when a sample is needed.
+- Preserve source lineage through transformations. Do not silently discard rows; document exclusions and their reasons.
+- Before joining or comparing datasets, check their definitions, time periods, geographic levels, identifiers, and units. Keep unsupported comparisons out of the public-facing claims.
+- For each table or published dataset, document its grain, keys, important fields, and known gaps before asking another engineer to rely on it.
+
+## 6. Make capstone work explainable
+
+- Use AI tools for assistance if useful, but check generated code, SQL, facts, and interpretations against the source and project requirements.
+- Mention material AI assistance in the pull request. The contributor must understand the result and be able to explain and defend it.
+- Keep decisions, validation evidence, assumptions, limitations, and failed checks in reviewable project records. The team should be able to demonstrate what was done and what remains uncertain.
+
+## 7. Work toward the team's checkpoints
+
+These are the current planning targets from the team's capstone plan; the GitHub Project board carries task status and dates.
+
+- **September 30, 2026:** source feasibility and scope recommendation
+- **October 3, 2026:** schema design informed by inspected sources
+- **October 10, 2026:** Gold marts
+- **October 17, 2026:** analytics/dashboard and certification exam
+- **October 24, 2026:** presentation and defense
+
+The team wants to finish earlier where feasible. Replan openly on the board when source evidence or implementation changes a date. Keep each checkpoint tied to reviewable evidence, not only a date or a folder existing.
 
 ## Project references
 
-- [README: current scope and project status](README.md)
+- [Current scope and project status](README.md)
 - [Source discovery guidance](docs/data-sources.md)
 - [Proposed architecture and open choices](docs/architecture.md)
 - [Current run status and future runbook](docs/runbook.md)
+- [Shared source inventory and scope feasibility sheet](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit?gid=1004909730#gid=1004909730)
