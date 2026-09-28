@@ -1,0 +1,69 @@
+name: Source investigation
+description: Inspect one candidate dataset and record evidence in the shared inventory.
+title: "[SOURCE] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use one issue per specific dataset. Fill in the matching row in the [Source Inventory and Scope Feasibility sheet](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit?gid=1004909730#gid=1004909730). Record evidence and distinguish verified facts from assumptions.
+  - type: input
+    id: publisher
+    attributes:
+      label: Source organization
+      placeholder: DOT, PSA, PSGC, or other publisher
+    validations:
+      required: true
+  - type: input
+    id: dataset
+    attributes:
+      label: Dataset name
+      description: Name the specific dataset, not only the organization.
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Official source URL
+      placeholder: https://
+    validations:
+      required: true
+  - type: textarea
+    id: investigation
+    attributes:
+      label: What to investigate
+      value: |
+        - [ ] What does it measure and how is it defined?
+        - [ ] Geographic level and coverage
+        - [ ] Time coverage and data granularity
+        - [ ] Format and access method; can Databricks access it?
+        - [ ] Metadata, methodology, update frequency
+        - [ ] Key fields, identifiers, units, missing values, duplicates
+        - [ ] Attribution/license and redistribution limits
+        - [ ] Sample inspected and evidence linked in the inventory
+        - [ ] Feasibility status and key limitations recorded
+    validations:
+      required: true
+  - type: textarea
+    id: project-fit
+    attributes:
+      label: Potential project use
+      description: Which project question could this dataset support? Keep this tentative until evidence is reviewed.
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies or blockers
+      description: Note access, permissions, geographic matching, or other issues that could block the review.
+  - type: input
+    id: owner
+    attributes:
+      label: Accountable owner
+      placeholder: "@github-handle"
+    validations:
+      required: true
+  - type: input
+    id: reviewer
+    attributes:
+      label: Reviewer
+      placeholder: "@github-handle"
+    validations:
+      required: true
