@@ -1,4 +1,3 @@
-```yaml
 name: CI
 
 on:
@@ -282,4 +281,3 @@ jobs:
           if failed:
               sys.exit(1)
           PY
-```
