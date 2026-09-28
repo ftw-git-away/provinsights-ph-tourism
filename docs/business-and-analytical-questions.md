@@ -112,6 +112,13 @@ Partly answerable as a screening exercise. The data can flag patterns for follow
 
 - [GitAway - Scope and Source Feasibility](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit?usp=sharing&ouid=109728975218616355743&rtpof=true&sd=true)
 
+## Candidate Public Sources
+
+- [DOT tourism data and dashboard](https://www.tourism.gov.ph/dot/data/)
+- [DOT regional tourism statistics request and information](https://www.foi.gov.ph/agencies/dot/tourism-density-per-region/)
+- [PSA Gross Regional Domestic Product data series](https://psa.gov.ph/statistics/grdp/data-series)
+- [PSA Philippine Tourism Satellite Accounts](https://psa.gov.ph/publication/philippine-tourism-satellite-accounts-report)
+
 ## Initial Scope
 
 The following scope is also **subject to team review and source verification**.
