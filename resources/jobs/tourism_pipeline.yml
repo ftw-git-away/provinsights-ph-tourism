@@ -57,6 +57,16 @@ resources:
             notebook_path: ../../notebooks/01-ingestion/00_ingestion_setup.ipynb
 
         # ---------- 01 Ingestion (active; notebooks must be moved into notebooks/01-ingestion) ----------
+        - task_key: ingest_psa
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01-ingestion/01_ingest_psa.ipynb
+
         - task_key: ingest_psgc
           timeout_seconds: 900
           max_retries: 2
@@ -76,27 +86,6 @@ resources:
             - task_key: ingestion_setup
           notebook_task:
             notebook_path: ../../notebooks/01-ingestion/03_ingest_dot.ipynb
-
-        # Planned ingestion for the other capstone sources:
-        # - task_key: ingest_population
-        #   timeout_seconds: 900
-        #   max_retries: 2
-        #   min_retry_interval_millis: 30000
-        #   retry_on_timeout: true
-        #   depends_on:
-        #     - task_key: ingestion_setup
-        #   notebook_task:
-        #     notebook_path: ../../notebooks/01-ingestion/<file name>.ipynb
-        #
-        # - task_key: ingest_grdp
-        #   timeout_seconds: 900
-        #   max_retries: 2
-        #   min_retry_interval_millis: 30000
-        #   retry_on_timeout: true
-        #   depends_on:
-        #     - task_key: ingestion_setup
-        #   notebook_task:
-        #     notebook_path: ../../notebooks/01-ingestion/<file name>.ipynb
 
         # ---------- 02 Bronze (planned) ----------
         # If the ingestion notebooks already write the Bronze tables,
