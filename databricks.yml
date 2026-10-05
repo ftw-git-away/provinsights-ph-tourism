@@ -1,5 +1,5 @@
 bundle:
-  name: tuklas-pinas-data-platform
+  name: provinsights-ph-tourism
 
 include:
   - resources/jobs/*.yml
