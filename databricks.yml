@@ -1,0 +1,10 @@
+bundle:
+  name: tuklas-pinas-data-platform
+
+include:
+  - resources/jobs/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
