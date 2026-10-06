@@ -217,4 +217,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Personal Databricks VS Code extension setup (not shared)
 .databricks
+databricks.yml
+pyproject.toml
+uv.lock
+.vscode/
