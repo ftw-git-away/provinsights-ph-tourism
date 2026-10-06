@@ -8,27 +8,11 @@ ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Departme
 
 **Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. Accommodation and food service GVA is an economic proxy that includes spending unrelated to tourism. Findings support descriptive comparisons and further investigation, not causal or investment-return claims.
 
-## Current repository state
-
-Verified against `main` on October 6, 2026.
-
-| Component | State |
-| --- | --- |
-| Analytical scope | Three finalized BQs/AQs documented in [Business and analytical questions](docs/business-and-analytical-questions.md). Core comparison period: 2019–2023. |
-| Source assessment | Reviewed sources, source roles, caveats, and downstream decisions documented in [Consolidated data sources](docs/consolidated-data-sources.md). |
-| DOT Bronze | [DOT ingestion notebook](notebooks/01_ingestion/03_ingest_dot.ipynb) merged in PR #40 and moved under `notebooks/01_ingestion/` in PR #44. Reads annual DS_05 PDFs for 2019–2024, extracts report rows, preserves report text and original PDF bytes, and records ingestion outcomes. |
-| PSA and shared ingestion setup | Proposed in [PR #39](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/39); notebooks are not yet on `main`. |
-| PSGC Bronze | [PSGC ingestion notebook](notebooks/01_ingestion/02_ingest_psgc.ipynb) merged in PR #41. Reads DS_33/DS_34 workbooks and preserves worksheet rows, source text, and original bytes. |
-| Deployment | Bundle and deploy workflow proposed in [PR #42](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/42). No bundle or deployment workflow is merged. |
-| Data model | Proposed in [PR #43](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/43); not yet merged. |
-| Silver, Gold, analytics, dashboard | Folder documentation exists; implementations are not yet committed to `main`. |
-| Architecture and runbook | `docs/architecture.md` and `docs/runbook.md` are placeholders. Independent setup and execution instructions remain incomplete. |
-
-The [Bronze ingestion guide](docs/bronze-ingestion-guide.md) describes workspace work and the shared control pattern. Some of its status statements and notebook paths are ahead of the merged repository. Use the table above to distinguish merged code from work under review. Repository inspection does not verify live Databricks tables or job execution.
+The [Bronze ingestion guide](docs/bronze-ingestion-guide.md) describes workspace work and the shared control pattern.
 
 ## Analytical scope
 
-The canonical questions and definitions are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md), finalized through PR #30:
+The canonical questions and definitions are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md).
 
 1. Distribution of tourism activity: provincial volume, concentration, population-adjusted intensity, and traveler composition.
 2. Post-pandemic change: 2022–2023 compared with 2019, including traveler-type recovery and potential emerging destinations.
@@ -48,7 +32,7 @@ Before comparable results are published, the team must resolve historical PSGC m
 | PSGC — DS_33 and DS_34 | Geographic reference and historical crosswalk input |
 | PSA tourism satellite accounts and regional tables | National context and cross-checks, not interchangeable with provincial tourism measures |
 
-See [Source assessment](docs/consolidated-data-sources.md) and the [Source inventory](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit) for source identifiers and limitations. The source assessment documents reviewed releases; file presence or a Bronze load does not by itself establish analytical comparability.
+See [Source assessment](docs/consolidated-data-sources.md) and the [Source inventory](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit) for source identifiers and limitations.
 
 ## Processing approach
 
@@ -83,7 +67,7 @@ The repository is not yet a self-contained pipeline. The DOT notebook requires:
 
 Import [notebooks/01_ingestion/03_ingest_dot.ipynb](notebooks/01_ingestion/03_ingest_dot.ipynb), review its source URLs and configured years, and execute from the beginning. Inspect extraction checks, Bronze validation, and current-run control records. Writes refresh the selected years; coordinate execution with teammates to avoid overlapping writes.
 
-Complete setup instructions and a verified combined job run remain handoff requirements.
+To be accomplished: Complete setup instructions and a verified combined job run.
 
 ## Repository guide
 
@@ -133,8 +117,7 @@ Stage folders under `src/` currently contain guidance, not implemented transform
 
 Use [Business and analytical questions](docs/business-and-analytical-questions.md) for analytical scope, [Source assessment](docs/consolidated-data-sources.md) for source caveats, [Decision log](docs/project-decision-log.md) for approved choices, and [Bronze guide](docs/bronze-ingestion-guide.md) for ingestion responsibilities. Preserve original source artifacts and keep credentials out of Git.
 
-CI checks repository structure, Python files under `src/`, notebook structure, and syntax in explicitly marked Python/SQL cells. It does not execute Databricks ingestion, validate source data, or currently validate a Databricks bundle. Include relevant Databricks execution evidence in ingestion PRs.
-
+CI checks repository structure, Python files under `src/`, notebook structure, and syntax in explicitly marked Python/SQL cells. It does not execute Databricks ingestion, validate source data, or currently validate a Databricks bundle.
 ## Team and handoff
 
 **GitAway — FTW Batch 12 LT3:** Cole, Nella, Cha, Gab, and Haze.
