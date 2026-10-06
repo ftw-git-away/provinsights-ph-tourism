@@ -16,10 +16,11 @@ Verified against `main` on October 6, 2026.
 | --- | --- |
 | Analytical scope | Three finalized BQs/AQs documented in [Business and analytical questions](docs/business-and-analytical-questions.md). Core comparison period: 2019–2023. |
 | Source assessment | Reviewed sources, source roles, caveats, and downstream decisions documented in [Consolidated data sources](docs/consolidated-data-sources.md). |
-| DOT Bronze | [DOT ingestion notebook](notebooks/03_ingest_dot.ipynb) merged in PR #40. Reads annual DS_05 PDFs for 2019–2024, extracts report rows, preserves report text and original PDF bytes, and records ingestion outcomes. |
+| DOT Bronze | [DOT ingestion notebook](notebooks/01_ingestion/03_ingest_dot.ipynb) merged in PR #40 and moved under `notebooks/01_ingestion/` in PR #44. Reads annual DS_05 PDFs for 2019–2024, extracts report rows, preserves report text and original PDF bytes, and records ingestion outcomes. |
 | PSA and shared ingestion setup | Proposed in [PR #39](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/39); notebooks are not yet on `main`. |
-| PSGC Bronze | Proposed in [PR #41](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/41); notebook is not yet on `main`. |
+| PSGC Bronze | [PSGC ingestion notebook](notebooks/01_ingestion/02_ingest_psgc.ipynb) merged in PR #41. Reads DS_33/DS_34 workbooks and preserves worksheet rows, source text, and original bytes. |
 | Deployment | Bundle and deploy workflow proposed in [PR #42](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/42). No bundle or deployment workflow is merged. |
+| Data model | Proposed in [PR #43](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/43); not yet merged. |
 | Silver, Gold, analytics, dashboard | Folder documentation exists; implementations are not yet committed to `main`. |
 | Architecture and runbook | `docs/architecture.md` and `docs/runbook.md` are placeholders. Independent setup and execution instructions remain incomplete. |
 
@@ -80,7 +81,7 @@ The repository is not yet a self-contained pipeline. The DOT notebook requires:
 3. Shared control tables: `ingestion_run_log`, `file_manifest`, and `ingestion_errors`. Their setup notebook is still in PR #39.
 4. The Python dependency installed by the notebook's package-install cell.
 
-Import [notebooks/03_ingest_dot.ipynb](notebooks/03_ingest_dot.ipynb), review its source URLs and configured years, and execute from the beginning. Inspect extraction checks, Bronze validation, and current-run control records. Writes refresh the selected years; coordinate execution with teammates to avoid overlapping writes.
+Import [notebooks/01_ingestion/03_ingest_dot.ipynb](notebooks/01_ingestion/03_ingest_dot.ipynb), review its source URLs and configured years, and execute from the beginning. Inspect extraction checks, Bronze validation, and current-run control records. Writes refresh the selected years; coordinate execution with teammates to avoid overlapping writes.
 
 Complete setup instructions and a verified combined job run remain handoff requirements.
 
@@ -100,7 +101,9 @@ docs/
   architecture.md                 # placeholder
   runbook.md                      # placeholder
 notebooks/
-  03_ingest_dot.ipynb
+  01_ingestion/
+    02_ingest_psgc.ipynb
+    03_ingest_dot.ipynb
   README.md
 resources/
   jobs/
@@ -136,4 +139,4 @@ CI checks repository structure, Python files under `src/`, notebook structure, a
 
 **GitAway — FTW Batch 12 LT3:** Cole, Nella, Cha, Gab, and Haze.
 
-Use the GitHub Project and issues for assignments and checkpoints. The repository is **Not yet ready** for independent engineering handoff: shared setup and remaining ingestion notebooks must be merged, complete run instructions are needed, and downstream models and analytics remain to be implemented.
+Use the GitHub Project and issues for assignments and checkpoints. The repository is **Not yet ready** for independent engineering handoff: shared setup and PSA ingestion must be merged, complete run instructions are needed, and downstream models and analytics remain to be implemented.
