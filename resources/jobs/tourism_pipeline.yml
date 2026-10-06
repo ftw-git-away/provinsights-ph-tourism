@@ -29,7 +29,7 @@
 resources:
   jobs:
     tourism_pipeline:
-      name: Tuklas Pinas - End-to-End Pipeline
+      name: ProvInsights - End-to-End Pipeline
       description: >-
         Runs setup, source ingestion, Bronze, Silver, Gold, analytics and the
         consolidated data-quality gate for the Tuklas Pinas tourism and local
