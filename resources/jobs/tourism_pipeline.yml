@@ -54,9 +54,9 @@ resources:
         - task_key: ingestion_setup
           timeout_seconds: 600
           notebook_task:
-            notebook_path: ../../notebooks/01-ingestion/00_ingestion_setup.ipynb
+            notebook_path: ../../notebooks/01_ingestion/00_ingestion_setup.ipynb
 
-        # ---------- 01 Ingestion (active; notebooks must be moved into notebooks/01-ingestion) ----------
+        # ---------- 01 Ingestion (active; notebooks must be moved into notebooks/01_ingestion) ----------
         - task_key: ingest_psa
           timeout_seconds: 900
           max_retries: 2
@@ -65,7 +65,7 @@ resources:
           depends_on:
             - task_key: ingestion_setup
           notebook_task:
-            notebook_path: ../../notebooks/01-ingestion/01_ingest_psa.ipynb
+            notebook_path: ../../notebooks/01_ingestion/01_ingest_psa.ipynb
 
         - task_key: ingest_psgc
           timeout_seconds: 900
@@ -75,7 +75,7 @@ resources:
           depends_on:
             - task_key: ingestion_setup
           notebook_task:
-            notebook_path: ../../notebooks/01-ingestion/02_ingest_psgc.ipynb
+            notebook_path: ../../notebooks/01_ingestion/02_ingest_psgc.ipynb
 
         - task_key: ingest_dot
           timeout_seconds: 900
@@ -85,7 +85,7 @@ resources:
           depends_on:
             - task_key: ingestion_setup
           notebook_task:
-            notebook_path: ../../notebooks/01-ingestion/03_ingest_dot.ipynb
+            notebook_path: ../../notebooks/01_ingestion/03_ingest_dot.ipynb
 
         # ---------- 02 Bronze (planned) ----------
         # If the ingestion notebooks already write the Bronze tables,

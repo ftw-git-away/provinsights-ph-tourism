@@ -79,7 +79,7 @@ jobs:
       - name: Install Databricks CLI
         uses: databricks/setup-cli@8821c27b1fe57472264eeb6e50c1f31d69552f28
         with:
-          version: 1.10.0
+          version: 1.19.0
 
       - name: Validate bundle
         run: databricks bundle validate -t dev
