@@ -1,36 +1,103 @@
-name: Deploy
+# PURPOSE
+#   Validates and deploys the Databricks bundle (databricks.yml) to the dev target
+#   whenever pipeline files change on main. Can also be run manually from
+#   GitHub -> Actions -> CD - Deploy ProvInsights PH to Databricks -> Run workflow,
+#   with an option to run the pipeline job right after deploying.
+#
+# REQUIRED GITHUB CONFIGURATION (set once by a repo admin)
+#   Settings -> Environments -> development
+#     - Environment variable  DATABRICKS_HOST   = Databricks workspace URL
+#     - Environment secret    DATABRICKS_TOKEN  = Databricks access token
+#
+#   If either value is missing, the "Check required GitHub configuration" step
+#   fails with a message naming the missing value. An authentication error in
+#   the Validate or Deploy step usually means the token is wrong or has expired.
+#   Never put the token in this file or anywhere else in the repository.
+
+name: CD - Deploy ProvInsights PH to Databricks
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - databricks.yml
+      - resources/**
+      - notebooks/**
+      - src/**
+      - tests/**
+      - dashboard/**
+      - .github/workflows/deploy.yml
+
   workflow_dispatch:
+    inputs:
+      run_pipeline:
+        description: Run the end-to-end pipeline job after deployment
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: deploy-dev
+  group: provinsights-databricks-dev
   cancel-in-progress: false
+
+env:
+  DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}       # environment variable (development)
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}  # environment secret (development)
 
 jobs:
   deploy:
-    name: Deploy bundle to dev
+    name: Validate and deploy Databricks bundle
     runs-on: ubuntu-latest
-    environment: development
 
-    env:
-      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    environment:
+      name: development
+      url: ${{ vars.DATABRICKS_HOST }}
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Set up Databricks CLI
-        uses: databricks/setup-cli@main
+      - name: Check required GitHub configuration
+        shell: bash
+        run: |
+          if [ -z "${DATABRICKS_HOST:-}" ]; then
+            echo "Missing GitHub environment variable: DATABRICKS_HOST (Settings -> Environments -> development)"
+            exit 1
+          fi
+
+          if [ -z "${DATABRICKS_TOKEN:-}" ]; then
+            echo "Missing GitHub environment secret: DATABRICKS_TOKEN (Settings -> Environments -> development)"
+            exit 1
+          fi
+
+          echo "PASS: Databricks configuration found"
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@8821c27b1fe57472264eeb6e50c1f31d69552f28
+        with:
+          version: 1.10.0
 
       - name: Validate bundle
         run: databricks bundle validate -t dev
 
       - name: Deploy bundle
         run: databricks bundle deploy -t dev
+
+      - name: Show deployed Databricks resources
+        shell: bash
+        run: |
+          SUMMARY="$(databricks bundle summary -t dev)"
+          printf '%s\n' "$SUMMARY"
+
+          {
+            echo "## Deployed Databricks resources"
+            printf '%s\n' "$SUMMARY" | sed -E 's/^[[:space:]]+//'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run end-to-end pipeline
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_pipeline }}
+        run: databricks bundle run -t dev tourism_pipeline
