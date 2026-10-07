@@ -1,0 +1,10 @@
+bundle:
+  name: provinsights-ph-tourism
+
+include:
+  - resources/jobs/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true

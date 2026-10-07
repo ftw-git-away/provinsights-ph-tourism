@@ -1,1 +1,192 @@
+# resources/jobs/tourism_pipeline.yml
+#
+# PURPOSE
+#   Defines the Databricks job that runs the ProvInsights PH tourism pipeline.
+#   Run order: setup -> ingestion (writes Bronze) -> silver -> gold -> analytics -> data quality
+#   Each layer is validated before the next one runs (inside the notebook, like
+#   Silver's DQ checks, or as a separate validation task), so problems stop the
+#   run close to where they started (see tests/README.md).
+#
+# ADDING A TASK FOR A NEW NOTEBOOK
+#   1. Merge your notebook into main first. Do not add its task before then.
+#   2. Find the commented block for your layer below.
+#   3. Remove the "#" at the start of each line in that block.
+#   4. Replace <file name> with your notebook's exact file name.
+#   5. Set depends_on to the task(s) your notebook reads from.
+#   6. Open a small PR containing only this change.
+#
+# RULES
+#   - Keep a block commented until its notebook exists on main.
+#     A task that points to a missing notebook will fail the deploy.
+#   - Write paths relative to this file (resources/jobs/).
+#     Always start them with ../../ to reach the repo root.
+#   - Layer folders use underscores: 01_ingestion, 02_bronze, 03_silver, ...
+#   - Use one task per notebook, and give each a unique task_key.
+#   - Give every task a timeout_seconds. Add retries only to tasks that call
+#     external sources (PSA, DOT, Google Drive), where failures are often temporary.
+#
+# CHECK BEFORE OPENING A PR
+#   databricks bundle validate -t dev
 
+resources:
+  jobs:
+    tourism_pipeline:
+      name: ProvInsights PH - End-to-End Pipeline
+      description: >-
+        Runs setup, source ingestion into Bronze, Silver, Gold, analytics and the
+        consolidated data-quality gate for the ProvInsights PH tourism and local
+        economy platform, in dependency order.
+
+      max_concurrent_runs: 1   # never let two runs write the same tables at once
+      timeout_seconds: 7200    # stop the whole run after 2 hours
+
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+
+      # Failure emails (planned). First add an alert_email variable to
+      # databricks.yml and a BUNDLE_VAR_alert_email value to deploy.yml.
+      # email_notifications:
+      #   on_failure:
+      #     - ${var.alert_email}
+
+      tasks:
+
+        # ---------- 01 Setup (active) ----------
+        - task_key: ingestion_setup
+          timeout_seconds: 600
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/00_ingestion_setup.ipynb
+
+        # ---------- 01 Ingestion -> Bronze (active) ----------
+        # Each ingestion notebook loads its source and writes the Bronze tables.
+        - task_key: ingest_psa
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/01_ingest_psa.ipynb
+
+        - task_key: ingest_psgc
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/02_ingest_psgc.ipynb
+
+        - task_key: ingest_dot
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/03_ingest_dot.ipynb
+
+        # ---------- 02 Bronze validation (planned) ----------
+        # Checks the Bronze tables written by all ingestion tasks.
+        # - task_key: bronze_validation
+        #   timeout_seconds: 600
+        #   depends_on:
+        #     - task_key: ingest_psa
+        #     - task_key: ingest_psgc
+        #     - task_key: ingest_dot
+        #   notebook_task:
+        #     notebook_path: ../../tests/validation/bronze/<file name>.ipynb
+
+        # ---------- 03 Silver ----------
+        # Silver notebooks run their own DQ checks before writing. Results go to
+        # 06_data_quality.dq_results, and a failed BLOCK check raises, which fails
+        # the task and stops the job. No separate silver_validation task is needed.
+        #
+        # Uncomment silver_setup and silver_geography once
+        # notebooks/03_silver/ is merged into main.
+        #
+        # - task_key: silver_setup
+        #   timeout_seconds: 600
+        #   depends_on:
+        #     - task_key: ingestion_setup
+        #   notebook_task:
+        #     notebook_path: ../../notebooks/03_silver/00_silver_setup.ipynb
+        #
+        # Builds geo_psgc, geo_reporting_unit and map_dot_area_to_psgc (17 DQ checks).
+        # Every other Silver table joins to these, so later Silver tasks depend on it.
+        # Reads the seed resources/seeds/map_dot_area_to_psgc.csv.
+        # - task_key: silver_geography
+        #   timeout_seconds: 1800
+        #   depends_on:
+        #     - task_key: silver_setup
+        #     - task_key: ingest_psgc
+        #     - task_key: ingest_dot
+        #     - task_key: ingest_psa      # confirm: is PSA population used for census_population_ref?
+        #   notebook_task:
+        #     notebook_path: ../../notebooks/03_silver/01_silver_geography.ipynb
+        #
+        # Next Silver tables (planned), one task per notebook:
+        # - task_key: silver_<table>
+        #   timeout_seconds: 1800
+        #   depends_on:
+        #     - task_key: silver_geography
+        #   notebook_task:
+        #     notebook_path: ../../notebooks/03_silver/<file name>.ipynb
+
+        # ---------- 04 Gold (planned) ----------
+        # Gold joins tourism, economy and geography, so it waits for every Silver task.
+        # - task_key: gold
+        #   timeout_seconds: 1800
+        #   depends_on:
+        #     - task_key: silver_geography
+        #     # - task_key: silver_<table>   (add each Silver task here)
+        #   notebook_task:
+        #     notebook_path: ../../notebooks/04_gold/<file name>.ipynb
+        #
+        # - task_key: gold_validation
+        #   timeout_seconds: 600
+        #   depends_on:
+        #     - task_key: gold
+        #   notebook_task:
+        #     notebook_path: ../../tests/validation/gold/<file name>.ipynb
+
+        # ---------- 05 Analytics (planned) ----------
+        # - task_key: analytics
+        #   timeout_seconds: 900
+        #   depends_on:
+        #     - task_key: gold_validation
+        #   notebook_task:
+        #     notebook_path: ../../notebooks/05_analytics/<file name>.ipynb
+        #
+        # - task_key: analytics_validation
+        #   timeout_seconds: 600
+        #   depends_on:
+        #     - task_key: analytics
+        #   notebook_task:
+        #     notebook_path: ../../tests/validation/analytics/<file name>.ipynb
+
+        # ---------- 06 End-to-end quality gate (planned) ----------
+        # Last task. It must raise an error when a critical check fails,
+        # so the whole job run fails. If the team picks a framework such as
+        # Great Expectations, add an environments: block for its library.
+        # - task_key: data_quality_gate
+        #   timeout_seconds: 900
+        #   depends_on:
+        #     - task_key: analytics_validation
+        #   notebook_task:
+        #     notebook_path: ../../notebooks/06_data_quality/<file name>.ipynb
+
+        # ---------- Dashboard refresh (planned) ----------
+        # Needs a dashboard resource in the bundle and a warehouse_id variable
+        # in databricks.yml first.
+        # - task_key: refresh_dashboard
+        #   timeout_seconds: 900
+        #   depends_on:
+        #     - task_key: data_quality_gate
+        #   dashboard_task:
+        #     dashboard_id: ${resources.dashboards.<dashboard key>.id}
+        #     warehouse_id: ${var.warehouse_id}
