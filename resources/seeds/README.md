@@ -16,7 +16,7 @@ Maps every DOT overnight-traveler row printed at indent level 0 (regions, `GRAND
 | `unit_psgc_code` | Reporting unit the travelers are loaded to |
 | `area_psgc_code` | PSGC code of the printed area itself (e.g. Malay for Boracay) |
 | `exclude_reason` | `double_count`, `no_psgc_unit`, `outside_dot_coverage` |
-| `breaks_comparability` | `true` when DOT changed what the row or its province covers across years |
+| `breaks_comparability` | `true` only on rows that DOT counts differently from 2019 (currently Boracay 2021–2022 and Boracay (Malay) 2023–). The year-level `comparable_to_2019` and the unit-level `dot_breaks_comparability` are derived from it (DL-013, DL-020) |
 | `match_method`, `match_status`, `notes` | How the match was made and why |
 | `reviewed_by`, `reviewed_on` | Filled when the row is reviewed |
 
