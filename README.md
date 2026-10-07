@@ -46,29 +46,6 @@ Government source files in Google Drive
     → Analytics and dashboard
 ```
 
-The merged DOT notebook uses the existing Unity Catalog connection `capstone_gdrive`, catalog `tuklas_dev`, operational schema `01_ingestion`, and Bronze schema `02_bronze`.
-
-For the default six DOT years, it targets:
-
-- `dot_ds_05_2019` through `dot_ds_05_2024`: extracted source table rows;
-- `dot_ds_05_report_text`: source report text with year attribution;
-- `dot_ds_05_pdf`: original source PDF bytes with year attribution.
-
-Bronze preserves source labels, hierarchy, text values, and missing markers. Geography mapping, deduplication, analytical types, and comparison decisions belong downstream. DOT outputs include `_run_id` and `_source_sha256` for run and file provenance.
-
-## Running the merged DOT notebook
-
-The repository is not yet a self-contained pipeline. The DOT notebook requires:
-
-1. A Databricks workspace with access to `capstone_gdrive` and the configured source files.
-2. Existing `tuklas_dev.01_ingestion` and `tuklas_dev.02_bronze` schemas.
-3. Shared control tables: `ingestion_run_log`, `file_manifest`, and `ingestion_errors`. Their setup notebook is still in PR #39.
-4. The Python dependency installed by the notebook's package-install cell.
-
-Import [notebooks/01_ingestion/03_ingest_dot.ipynb](notebooks/01_ingestion/03_ingest_dot.ipynb), review its source URLs and configured years, and execute from the beginning. Inspect extraction checks, Bronze validation, and current-run control records. Writes refresh the selected years; coordinate execution with teammates to avoid overlapping writes.
-
-To be accomplished: Complete setup instructions and a verified combined job run.
-
 ## Repository guide
 
 ```text
