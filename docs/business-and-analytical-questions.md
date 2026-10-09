@@ -1,239 +1,461 @@
-# Tuklas Pinas Business and Analytical Questions
+# ProvInsights Business and Analytical Questions
+---
 
-> **Status: Finalized based on PR #30 team review.**
->
-> The team has agreed on the three core business questions (BQ) and analytical questions (AQ) which will define the project’s analytical scope and will guide data requirements, transformations, validation, and Gold-layer design.
+# Question Overview
 
-## Purpose
+The analysis is organized into two business questions:
 
-BQs and AQs will guide the Tuklas Pinas analytics scope, data requirements, transformations, metrics, and Gold-layer design.
+- [**BQ1 — Tourism Activity and Recovery**](#bq1)
+  - [AQ1.1 — Tourism Activity, Intensity, and Concentration](#aq11)
+    - Which provinces have the highest and lowest tourism activity and tourism intensity, and how concentrated is it across provinces?
+  - [AQ1.2 — Recovery Relative to the 2019 Baseline](#aq12)
+    - Which provinces have returned to or surpassed their pre-pandemic tourism levels, and which remained below them?
+  - [AQ1.3 — Recovery by Traveler Type](#aq13)
+    - Among provinces that remained below their 2019 level, how do recovery patterns differ between domestic, foreign, and overseas Filipino travelers?
 
-Each AQ should directly support its corresponding BQ and be answerable using data the team can verify.
-
-## Overall Question
-
-> **Which provinces stand out in tourism activity, post-pandemic change, and their relationship with local economic conditions, and which patterns merit closer study?**
-
-The project is intended to support descriptive and comparative analysis.
-
-A province or pattern that “merits closer study” is one that stands out in the available evidence and may warrant further investigation. The available data **does not** establish where investment should be directed, where tourism development is inadequate, or where intervention would produce the greatest return.
+- [**BQ2 — Tourism Recovery and Economic Conditions**](#bq2)
+  - [AQ2.1 — Tourism Change and A&F GVA Growth](#aq21)
+    - How does the change in reported tourism activity from 2019 to 2023 compare with growth in Accommodation and Food Services (A&F) GVA across provinces?
+  - [AQ2.2 — Alignment and Divergence](#aq22)
+    - Which provinces show tourism activity and A&F GVA moving in the same direction, and which show divergent patterns?
+  - [AQ2.3 — Economic Significance of A&F Services](#aq23)
+    - How does the economic significance of A&F Services differ among provinces with different tourism recovery patterns?
+  - [Additional Context — GDP per Capita](#additional-context)
+    - How does tourism intensity compare with GDP per capita across provinces?
 
 ---
 
-## Shared Scope and Definitions
+# What Are We Trying to Answer?
 
-| Topic | Agreed definition |
+We want to identify:
+
+- where tourism activity is highest and lowest;
+- where reported tourism activity has returned to or exceeded its 2019 level;
+- where recovery remains incomplete;
+- which traveler groups are contributing to the remaining recovery gap;
+- where tourism activity and tourism-related economic activity move together; and
+- where the indicators tell different stories and deserve further investigation.
+
+Any recommendation from ProvInsights should therefore be treated as a starting point for planning review, local validation, and additional evidence.
+
+---
+
+# Shared Definitions
+
+| Term | What we mean |
 | --- | --- |
-| **Geographic unit** | Province-level analysis, joined using PSGC codes. Regional totals may be derived from normalized province records after geography mapping is validated. |
-| **Time window** | **2019–2023** is the common province-level window. **2019** is the pre-pandemic baseline and **2022–2023** is post-pandemic. Comparisons are 2019 vs. 2022+, not year-over-year growth. |
-| **Tourism activity** | Reported overnight travelers in accommodation establishments (DOT, DS-05), by traveler type (domestic, foreign, overseas Filipino). Counts are check-ins, not unique people or all visitors, and are not interchangeable with border "arrivals". Measured as volume and intensity below. |
-| **Tourism volume** | Total reported overnight travelers for a province and year. Shows how much reported activity occurs in a province. |
-| **Tourism intensity** | Reported overnight travelers per 1,000 residents. Shows how large that activity is relative to the population. |
-| **Economic indicators** | Provincial GDP, GDP per capita, and **accommodation and food service GVA** (PSA). Accommodation and food GVA is an **economic proxy**, not a direct tourism measure, because it includes local and business spending. |
-| **Interpretation** | Findings describe distributions, changes, and associations. They **do not** establish causation, investment returns, or unmet development needs. |
-| **National context** | Philippine Tourism Satellite Account (PTSA) data may provide national context but is not treated as a province-level measure. |
+| **Geographic unit** | Province-level analysis using validated PSGC mapping. Province, HUC, and NCR distinctions are preserved until the team approves comparable analytical units. |
+| **Core period** | 2019–2023. **2019 is the pre-pandemic baseline.** Recovery is calculated separately for **2022 and 2023**, while **2023 is the main endpoint** for economic comparisons. |
+| **Tourism activity** | Reported overnight travelers, as defined by DOT in DS_05. These are reported activity counts, not unique visitors and not all travelers to a province. |
+| **Tourism intensity** | Reported overnight travelers per 1,000 residents for the same province and year. |
+| **Traveler categories** | Domestic, foreign, and overseas Filipino, following the DOT source. **Overseas Filipino is not the same as OFW.** |
+| **Tourism-related economic activity** | Accommodation and Food Services (A&F) GVA. We use this as an economic proxy, but it also includes resident and business spending that is not directly generated by tourism. |
+| **Economic growth** | Change in **constant-price A&F GVA** from 2019 to 2023. |
+| **Economic significance** | **Current-price A&F GVA as a share of current-price provincial GDP** for the same year and geography. The headline year is 2023. |
+| **Interpretation** | The analysis describes patterns and associations. If tourism and economic indicators move together, that does **not** prove that one caused the other. |
+| **National context** | PTSA may be used for national context only. Its national tourism GDP share is not directly comparable with the provincial A&F sector share. |
 
 ---
 
-# Business Problem 1: Distribution of Tourism Activity
+<a id="bq1"></a>
 
-### Business Problem
+# BQ1 — Tourism Activity and Recovery
 
-*Tourism activity is spread unevenly, and there is no single trusted view of where it is concentrated.*
+> **Which provinces stand out in tourism activity and recovery, and which appear to be lagging?**
 
-National and local tourism planners cannot easily see which provinces carry most of the country's tourism and which get very little. The data is published across separate DOT and PSA reports at different geographic levels. Without a combined view, promotion budgets and support tend to follow well-known destinations rather than the evidence.
-
-## Business Question
-
-> **Where should tourism promotion and development be focused, based on how tourism activity is actually distributed across provinces?**
-
-## Analytical Questions
-
-1. Which provinces have the highest and lowest reported overnight travelers, and what share do the top 5 and top 10 account for?
-2. How does the ranking change per 1,000 residents? (This helps smaller provinces with high tourism for their size, such as Camiguin or Siquijor, show up.)
-3. What is each province's domestic, foreign, and overseas Filipino mix?
-
-### Data Needed
-
-- DOT overnight travelers by province, year, and traveler type (DS-05)
-- Population by province and year (DS-24 Table B, and/or GDP ÷ GDP per capita from DS-27 to DS-30)
-- PSGC codes for province identity (DS-33, DS-34)
-
-### Answerability
-
-Answerable for 2019–2023 once the DS-05 extraction is verified. Raw counts show **volume** and per-resident measures show **intensity**; neither means a province is "best".
-
-**Known limits:** DOT counts are check-ins (the same person may be counted more than once), Region II reports overseas Filipinos inside Foreign, and some provinces are blank in some years.
-
-Some DOT records may combine geographic areas, omit certain areas, or use traveler-type categories inconsistently across regional files. Missing, incompatible, or unavailable records must not be interpreted as zero.
+Here, **lagging** only means that reported tourism activity remains below a comparable 2019 baseline. It is not a judgment on the province's overall development or whether it needs intervention.
 
 ---
 
-# Business Question 2: Post-Pandemic Change
+<a id="aq11"></a>
 
-### Business Problem
+## AQ1.1 — Tourism Activity, Intensity, and Concentration
 
-*Planners cannot tell early which destinations are gaining momentum and which are losing it*
+> **Which provinces have the highest and lowest tourism activity and tourism intensity, and how concentrated is it across provinces?**
 
-Tourism figures are released as yearly snapshots in separate reports, so change over time is hard to track. Emerging destinations may not get support until they are already under strain, and declining ones may be noticed too late. The 2020-2021 downturn makes this worse because it is unclear which areas have fully recovered.
+This question gives us two different views of tourism:
 
-Changes in reporting coverage, geographic definitions, and data availability may also create apparent changes that do not represent actual changes in tourism activity.
+- **tourism activity** shows where the largest reported overnight-traveler volumes are; and
+- **tourism intensity** shows where tourism activity is high relative to the local population.
 
-A common pre-pandemic baseline is therefore needed.
+This matters because a province can have a lower total traveler count but still have a large tourism presence relative to its number of residents.
 
-## Business Question
+We use **2023 as the headline year** and clearly show the selected year and source coverage.
 
-> **Which destinations need early attention, either support for growth or intervention for decline, based on how their tourism activity has changed compared with before the pandemic?**
+### Measures
 
-## Analytical Questions
+```text
+Tourism intensity =
+    reported overnight travelers / population × 1,000
 
-1. **How do each province's 2022-2023 traveler counts compare with 2019, in absolute terms and as a percentage of the 2019 level?**
-2. **Which small-base provinces are now above their 2019 level (emerging destinations)?**
-3. **Did domestic or foreign travelers recover faster, and where?** (International borders were closed to tourists until 2022.)
+Top-N concentration =
+    reported activity in top N included provinces
+    / reported activity in all included provinces × 100
+```
 
-### Data Needed
+The concentration view will report the share accounted for by the **top 5** and **top 10** provinces.
 
-- DOT overnight-traveler data by province, year, and traveler type, for 2019 and 2022–2023 (DS-05)
-- Documentation of missing, revised, provisional, or geographically inconsistent records
+The denominator must include only non-overlapping and comparable provincial records. If some provinces are missing, the total should be described as the total for the included coverage rather than as complete national coverage unless this has been verified.
 
-### Answerability
+### What This Should Tell Us
 
-Answerable where a province has reported values in both 2019 and at least one post-pandemic year. Provinces without both are shown as **not comparable**, not as zero recovery. The project should not use labels such as **recovered** or **emerging** until the comparison rules and thresholds are explicitly defined. Known reporting changes, including the Aklan/Boracay series and other unusual records identified during source review, must be investigated, flagged, or excluded from affected comparisons.
-
-The analysis can show **how reported tourism activity changed**. It cannot establish why that change occurred.
-
----
-
-# Business Question 3: Tourism and Local Economic Conditions
-
-### Business Problem
-
-*It is unclear where tourism activity goes together with stronger local economies, and where it does not.*
-
-Tourism and economic data come from separate agencies at different geographic levels. Without combining them at a consistent geographic and temporal grain, it is difficult to examine whether provinces with greater reported tourism activity also show different economic characteristics or whether changes in tourism activity move alongside changes in relevant local economic indicators.
-
-## Business Question
-
-> How does tourism activity relate to local economic conditions, and where is that link strongest or weakest?
-
-## Analytical Questions
-
-1. **How does reported traveler intensity compare with GDP per capita across provinces?**
-2. **How does change in reported traveler activity compare with growth in accommodation and food service GVA over the same period?**
-3. **How does each province's accommodation and food service share compare with the national share?** (PTSA is shown as national context only.)
-
-### Data Needed
-
-- DOT overnight travelers by province and year (DS-05)
-- Provincial GDP, current and constant prices (DS-27, DS-28)
-- Provincial GDP per capita, current and constant (DS-29, DS-30)
-- Provincial accommodation and food service GVA, current and constant (DS-31, DS-32)
-- Population by province and year
-- Regional table (DS-26, Table 3.63) and PTSA (DS-01, DS-04) as cross-checks and context only
-
-### Answerability
-
-The reviewed PSA tables provide provincial accommodation and food service GVA through 2023, excluding BARMM provinces (no DOT data). AP2 compares one 2019-to-2023 change per province across provinces, so it supports a scatter or rank comparison rather than a trend claim. Accommodation and food service GVA is part of GDP, so relating it to GDP is partly circular; if DOT counts cannot be verified, use:
-
-- **current-price values** when calculating economic shares, where relevant;
-- **constant-price values** when comparing economic growth over time.
-
-Accommodation and food service GVA is not equivalent to tourism-generated economic value. It also captures spending by residents and businesses unrelated to tourism.
-
-Any observed relationship should therefore be interpreted as an **association**, not evidence that tourism caused economic growth or that economic conditions caused tourism activity.
+- which provinces have the highest and lowest reported tourism activity;
+- which provinces rank differently after adjusting for population; and
+- whether tourism activity is concentrated in a small number of provinces or distributed more widely.
 
 ---
 
-# Derived Screening Output
+<a id="aq12"></a>
 
-The former fourth question, "Which destinations warrant further investigation?", is no longer a separate business question. It is a **screening output** built from BQ1 to BQ3, flagging provinces that stand out on one or more of:
+## AQ1.2 — Recovery Relative to the 2019 Baseline
 
-- high or low traveler volume or intensity (BQ1)
-- recovery well above or below the 2019 level (BQ2)
-- traveler activity that diverges from local economic indicators (BQ3)
+> **Which provinces have returned to or surpassed their pre-pandemic tourism levels, and which remained below them?**
 
-Screening criteria must be defined before final results are interpreted.
+For this project, **recovery** has a specific meaning:
 
-A flag means:
+> whether a province's reported tourism activity in 2022 or 2023 has returned to, remained below, or exceeded its 2019 pre-pandemic level.
 
-> **This province or pattern merits closer study.**
+This is **recovery in reported overnight tourism activity**. It does not mean that jobs, tourism revenue, business profitability, hotel capacity, or the whole tourism sector have fully recovered.
 
-A flag does **not** mean:
+Recovery is calculated **separately for 2022 and 2023**.
 
-- the province is underserved;
-- tourism investment should be increased;
-- infrastructure should be expanded;
-- the province is performing poorly;
-- tourism caused its economic performance; or
-- a specific intervention should be implemented.
+### Measures
 
-Those conclusions require additional evidence (such as accommodation capacity, infrastructure, environmental conditions, and local plans) beyond the scope of this project.
+```text
+Recovery Index(year) =
+    Tourism Activity(year) / Tourism Activity(2019) × 100
+
+Absolute Change(year) =
+    Tourism Activity(year) − Tourism Activity(2019)
+
+Below 2019:
+    Recovery Index < 100
+
+At or above 2019:
+    Recovery Index ≥ 100
+```
+
+For the headline 2023 comparison:
+
+```text
+Recovery Index(2023) =
+    Tourism Activity(2023) / Tourism Activity(2019) × 100
+```
+
+Examples:
+
+- **80** = activity is still 20% below 2019
+- **100** = activity is back to its 2019 level
+- **125** = activity is 25% above 2019
+
+Use the unrounded value when classifying provinces.
+
+### Important Handling Rules
+
+- a **missing 2019 value** makes the recovery index **not calculable**;
+- a **zero 2019 value** also makes the recovery index **not calculable**;
+- neither case should be treated as zero recovery; and
+- if a geographic or reporting break makes the years incompatible, mark the comparison as **not comparable** unless an approved adjustment exists.
+
+### What This Should Tell Us
+
+- which provinces remained below their 2019 level in 2022 and 2023;
+- which provinces returned to or exceeded their 2019 level; and
+- how large the remaining recovery gap is.
 
 ---
 
-# Our Source Assessment
+<a id="aq13"></a>
 
-- [GitAway - Scope and Source Feasibility](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit?usp=sharing&ouid=109728975218616355743&rtpof=true&sd=true)
-- Findings and verdicts: [PR #33](https://github.com/ftw-git-away/tuklas-pinas-data-platform/pull/33)
+## AQ1.3 — Recovery by Traveler Type
 
-Source IDs (DS-xx) follow the Source Inventory as of Sep 30, 2026.
+> **Among provinces that remained below their 2019 level, how do recovery patterns differ between domestic, foreign, and overseas Filipino travelers?**
+
+For the headline analysis, we focus on provinces with a valid **2023 total Recovery Index below 100**.
+
+This helps us understand whether the remaining gap is more visible in the domestic, foreign, or overseas Filipino segment.
+
+### Measures
+
+```text
+Domestic Recovery(2023) =
+    Domestic(2023) / Domestic(2019) × 100
+
+Foreign Recovery(2023) =
+    Foreign(2023) / Foreign(2019) × 100
+
+Overseas Filipino Recovery(2023) =
+    Overseas Filipino(2023) / Overseas Filipino(2019) × 100
+```
+
+The same comparisons may also be shown for 2022.
+
+Only categories with comparable data and positive 2019 baselines should be used.
+
+If the DOT source combines foreign and overseas Filipino travelers, preserve the combined category. Do not create separate counts that are not present in the source, and do not treat missing overseas Filipino values as zero.
+
+Traveler composition may be shown as additional context, but these differences do not tell us **why** a traveler category recovered faster or slower.
+
+### What This Should Tell Us
+
+A province may still be below its overall 2019 level even if one traveler group has already recovered.
+
+For example, domestic activity may already be above 2019 while foreign activity remains substantially below it. That gives us a clearer picture of what is contributing to the remaining recovery gap.
 
 ---
 
-# Out of Scope
+## Data Needed for BQ1
 
-The following are outside the core scope of the project:
+- **DS_05:** DOT reported overnight travelers by area, year, and traveler type
+- **DS_33 / DS_34:** PSGC references and approved historical mapping
+- **Population:** approved annual province-level denominator
+  - candidate inputs: DS_18 workbook and DS_24 Table B
+  - final choice must confirm year coverage, census/projection basis, and geographic comparability
 
-- claims that tourism caused economic growth or economic growth caused tourism;
-- ROI or investment-return analysis;
-- “best place to invest” rankings;
-- recommendations for tourism infrastructure or capacity expansion;
-- treating accommodation and food service GVA as direct tourism output;
-- treating national PTSA figures as province-level values;
-- municipality- or city-level analysis unless the required sources support a consistent extension; and
-- conclusions about tourism development needs that require evidence not included in the current dataset.
+### Expected Outputs
+
+- tourism activity and intensity rankings
+- top 5 / top 10 concentration measures
+- separate 2022 and 2023 recovery comparisons
+- traveler-type recovery profiles
+- clear coverage and comparability flags
 
 ---
 
-## Implementation and Data Quality Decisions Before Analysis
+<a id="bq2"></a>
 
-The following items do not change the agreed business questions but must be resolved before publishing comparable results.
+# BQ2 — Tourism Recovery and Economic Conditions
 
-### Geographic Mapping
+> **How is recovery in tourism activity associated with changes in local tourism-related economic activity across provinces?**
 
-- Select the PSGC version to be used as the canonical geographic reference.
-- Build and document a crosswalk for historical source labels.
-- Define how highly urbanized cities are handled.
-- Review combined DOT labels that refer to a city and province together.
-- Address geographic changes involving areas such as the Negros provinces, Sulu, Cotabato City, and regional boundaries.
+BQ1 tells us **where tourism activity recovered and where it did not**.
 
-### Missing and Incompatible Records
+BQ2 asks the next question:
 
-Preserve the distinction between:
+> **When visitors returned, did tourism-related economic activity move with them?**
 
-- a true zero;
-- a missing value;
-- unavailable data;
-- suppressed data; and
-- an incompatible geographic record.
+For this project, the available economic proxy is **Accommodation and Food Services (A&F) GVA**.
 
-Missing or unavailable tourism data must not be converted to zero.
+A&F GVA is useful because it captures an important tourism-related part of the local economy, but it is **not a direct measure of tourism-generated value**. It also includes activity from residents and business travelers.
 
-### BARMM
+---
 
-Where DOT regional files do not provide provincial traveler data, the relevant tourism values should be represented as unavailable unless another verified source is adopted.
+<a id="aq21"></a>
 
-### Aklan/Boracay
+## AQ2.1 — Tourism Change and A&F GVA Growth
 
-Periods affected by changes in tourism-reporting methodology must be flagged, excluded, or presented separately until a valid comparison rule is approved.
+> **How does the change in reported tourism activity from 2019 to 2023 compare with growth in Accommodation and Food Services (A&F) GVA across provinces?**
 
-### Comparison Thresholds
+This asks whether reported tourism activity and the tourism-related economic proxy moved together over the same period.
 
-Any labels used in the screening output, including terms such as:
+We use **constant-price A&F GVA** because the goal is to compare real growth over time rather than changes caused only by inflation.
 
-- recovered;
-- small base;
-- emerging; or
-- unusually high or low
+### Measures
 
-must have predefined rules or thresholds before final results are interpreted.
+```text
+Tourism Activity Change (%) =
+    (Tourism Activity(2023) − Tourism Activity(2019))
+    / Tourism Activity(2019) × 100
+
+Real A&F GVA Growth (%) =
+    (Constant-price A&F GVA(2023)
+    − Constant-price A&F GVA(2019))
+    / Constant-price A&F GVA(2019) × 100
+```
+
+Both ratios require positive baseline values, and the tourism and economic data must refer to comparable geographic units.
+
+A scatter plot or comparison table can be used to show the relationship across provinces.
+
+### What This Should Tell Us
+
+- where tourism activity and A&F GVA both increased;
+- where both remained weaker than in 2019; and
+- where the two measures moved differently.
+
+This describes **co-movement**, not causation.
+
+---
+
+<a id="aq22"></a>
+
+## AQ2.2 — Alignment and Divergence
+
+> **Which provinces show tourism activity and A&F GVA moving in the same direction, and which show divergent patterns?**
+
+This uses the same 2019–2023 measures as AQ2.1, but groups provinces into easier-to-read patterns.
+
+| Tourism activity | Real A&F GVA | Descriptive pattern |
+| --- | --- | --- |
+| ↑ | ↑ | **both improved** |
+| ↓ | ↓ | **both remained weaker** |
+| ↑ | ↓ | **tourists returned, economic proxy did not move with them** |
+| ↓ | ↑ | **economic proxy grew despite weaker tourism activity** |
+
+If a value is unchanged, show it separately using the unrounded difference.
+
+If a tourism/economic pair is missing or not geographically comparable, leave it as **not comparable** rather than forcing it into a group.
+
+### What This Should Tell Us
+
+This creates a province-level view of where:
+
+- tourism and the economic proxy tell a similar story; and
+- the indicators diverge and therefore deserve a closer look.
+
+A divergent pattern is a reason for further investigation. It is **not** proof of tourism leakage, weak business performance, or any specific causal explanation.
+
+---
+
+<a id="aq23"></a>
+
+## AQ2.3 — Economic Significance of A&F Services
+
+> **How does the economic significance of A&F Services differ among provinces with different tourism recovery patterns?**
+
+Recovery and growth tell us whether activity changed. This question adds another layer:
+
+> **How important is A&F Services within the local economy?**
+
+### Measure
+
+```text
+A&F Share of Provincial GDP (%) =
+    Current-price A&F GVA
+    / Current-price Provincial GDP × 100
+```
+
+Use **2023** as the headline year.
+
+The numerator and denominator must use the same:
+
+- geography;
+- year;
+- units; and
+- current-price basis.
+
+GDP must also be positive.
+
+### Example
+
+```text
+Province A:
+Visitors ↑, A&F ↑, but A&F = 1% of provincial GDP
+
+Province B:
+Visitors ↑, A&F ↑, and A&F = 12% of provincial GDP
+```
+
+Both provinces show tourism and A&F growth, but the A&F sector has a very different economic weight in each province.
+
+A higher share does **not** automatically mean that a province is tourism-dependent, has more tourism jobs, needs intervention, or should receive greater priority.
+
+### What This Should Tell Us
+
+This adds local economic context to the recovery and alignment profiles.
+
+Two provinces may have similar tourism recovery, but A&F Services may play a much larger role in one province's economy than in the other's.
+
+---
+
+<a id="additional-context"></a>
+
+## Additional Context — GDP per Capita
+
+> **How does tourism intensity compare with GDP per capita across provinces?**
+
+This is a **supporting comparison**, not another core business question.
+
+A 2023 cross-province view can show whether provinces with high tourism intensity also tend to have high GDP per capita, and which provinces depart from the broader pattern.
+
+The GDP-per-capita price basis must be stated clearly.
+
+This comparison does not tell us that tourism caused a province to become economically stronger.
+
+---
+
+## Data Needed for BQ2
+
+- **DS_05:** reported tourism activity
+- **DS_32:** constant-price provincial A&F GVA for growth
+- **DS_31 + DS_27:** current-price A&F GVA and provincial GDP for sector shares
+- **DS_29 or DS_30:** GDP per capita for the supporting comparison; selected price basis must be declared
+- approved population denominator and PSGC mapping
+- **DS_28:** optional broader real-GDP context
+- **DS_26 and DS_01:** regional checks and national context where the definitions support comparison
+
+### Expected Outputs
+
+- tourism activity change vs. real A&F GVA growth
+- province-level alignment and divergence groups
+- 2023 A&F sector shares by tourism recovery pattern
+- contextual tourism-intensity vs. GDP-per-capita comparison
+
+---
+
+# How the Pieces Come Together
+
+The final output of ProvInsights should build a **province-level profile** that combines:
+
+```text
+tourism activity
++ tourism intensity
++ recovery
++ traveler-type recovery
++ economic change
++ economic significance
+    ↓
+province-level assessment
+    ↓
+identify what stands out
+    ↓
+flag provinces that deserve a closer look
+```
+
+A province may stand out because it:
+
+- surpassed its comparable 2019 reported tourism level;
+- has unusually high tourism intensity;
+- shows growth in both tourism activity and real A&F GVA;
+- shows stronger domestic recovery than foreign or overseas Filipino recovery; or
+- shows divergence between traveler recovery and the economic proxy.
+
+The final synthesis should help answer:
+
+> **What appears to be happening in this province, why should decision-makers pay attention, and what should be explored next?**
+
+Any proposed action should be shown together with:
+
+- the observations that support it;
+- the limitations of the available evidence; and
+- any additional information needed before acting.
+
+A **closer-look or priority flag** is therefore a screening result, not an investment ranking and not proof that an intervention will work.
+
+---
+
+# What This Project Does Not Claim
+
+ProvInsights does **not** establish:
+
+- that tourism caused economic growth;
+- that economic conditions caused tourism recovery;
+- job recovery or tourism employment without an additional verified employment source;
+- investment returns or unmet infrastructure needs;
+- whether a specific intervention will work;
+- unique visitor counts from reported overnight travelers;
+- direct tourism-generated value from A&F GVA; or
+- provincial tourism values from national PTSA figures.
+
+Any proposed action should remain conditional on local validation and additional evidence where needed.
+
+---
+
+# References
+
+- [Consolidated source assessment](consolidated-data-sources.md)
+- [Bronze ingestion guide](bronze-ingestion-guide.md)
+- [Project decision log](project-decision-log.md)
+- [Source inventory](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit)
+- [Prior scope review — PR #30](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/30)
+- [Source assessment review — PR #33](https://github.com/ftw-git-away/provinsights-ph-tourism/pull/33)
