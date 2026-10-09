@@ -1,123 +1,102 @@
-# Tuklas Pinas Data Platform
+# ProvInsights
 
-[![CI](https://github.com/ftw-git-away/tuklas-pinas-data-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/tuklas-pinas-data-platform/actions/workflows/ci.yml)
+[![CI](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml)
 
-A public-facing tourism and local economy data platform for exploring tourism activity across Philippine destinations and how it relates to local economic, geographic, and population conditions.
+**Philippine Province-Level Tourism, Recovery, and Economic Analytics Project**
 
-**GitHub organization:** [ftw-git-away](https://github.com/ftw-git-away)  
-**Project status:** Capstone project in development
+ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data to examine provincial tourism activity, recovery relative to 2019, and associations with local economic conditions.
 
-## The problem
+**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. Accommodation and food service GVA is an economic proxy that includes spending unrelated to tourism. Findings support descriptive comparisons and further investigation, not causal or investment-return claims.
 
-What makes tourism and local economic information difficult to compare destinations or understand where tourism opportunities are concentrated is that it's published by multiple agencies, with different geographic levels, reporting periods, and classifications.
+The [Bronze ingestion guide](docs/bronze-ingestion-guide.md) describes workspace work and the shared control pattern.
 
-_Tuklas Pinas_ aims to bring compatible, documented datasets together and make the resulting indicators accessible through a public website. Visitors should be able to explore published data through filters, visualizations, tables, and downloads.
+## Analytical scope
 
-## Questions the platform is designed to explore
+The canonical questions and definitions are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md).
 
-- Which destinations and provinces show tourism activity in the available data?
-- Where are tourism opportunities concentrated?
-- How do tourism indicators relate to local economic and population conditions?
-- How do these patterns change over time?
+1. Distribution of tourism activity: provincial volume, concentration, population-adjusted intensity, and traveler composition.
+2. Post-pandemic change: 2022–2023 compared with 2019, including traveler-type recovery and potential emerging destinations.
+3. Tourism and local economic conditions: traveler intensity versus GDP per capita, traveler change versus accommodation and food service GVA growth, and economic shares.
 
-## Intended users
+The common analytical window is **2019–2023**. The DOT notebook also lands 2024 source data; ingestion coverage does not extend the finalized analytical scope.
 
-- Travelers, researchers, students, and the public looking for accessible tourism information
-- Local planners and tourism stakeholders exploring destination-level indicators
-- Project contributors who need documented, reproducible data models and pipelines
+Before comparable results are published, the team must resolve historical PSGC mapping, province/HUC/NCR treatment, annual population denominators, missing-data rules, reporting breaks such as Aklan/Boracay, and screening thresholds. Missing or unavailable values must not be interpreted as zero.
 
 ## Data sources
 
-These are candidate public sources. The team will confirm dataset availability, definitions, licensing, update frequency, and geographic coverage before integrating them.
-
-| Candidate source | Potential contribution |
+| Source | Role |
 | --- | --- |
-| [Department of Tourism data](https://www.tourism.gov.ph/dot/data/) | Tourism indicators and statistics |
-| Philippine Statistics Authority (PSA) | Population statistics, tourism satellite accounts, and regional GDP/GRDP |
-| Philippine Standard Geographic Code (PSGC) | Standard geographic identifiers and administrative classifications |
+| DOT overnight-traveler reports — DS_05 | Provincial tourism activity and recovery, after source extraction and geographic validation |
+| PSA population sources | Population denominators, subject to the approved annual method |
+| PSA provincial GDP, GDP per capita, and accommodation/food service GVA — DS_27–DS_32 | Economic comparisons; current prices for shares and constant prices for growth |
+| PSGC — DS_33 and DS_34 | Geographic reference and historical crosswalk input |
+| PSA tourism satellite accounts and regional tables | National context and cross-checks, not interchangeable with provincial tourism measures |
 
-Each integrated dataset should have a source record, retrieval date, licensing and attribution notes, coverage description, and transformation history.
+See [Source assessment](docs/consolidated-data-sources.md) and the [Source inventory](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit) for source identifiers and limitations.
 
-## Proposed platform architecture
+## Processing approach
 
-The design separates data processing from the public experience:
+The intended flow is:
 
-```mermaid
-flowchart LR
-    S[DOT, PSA, PSGC and other approved sources] --> I[Ingestion and source validation]
-    I --> B[Databricks: raw and cleaned data]
-    B --> G[Databricks Gold marts]
-    G --> Q[Read-only query API]
-    Q --> W[Public Tuklas Pinas website]
-    W --> V[Filters, charts, maps, tables and downloads]
+```text
+Government source files in Google Drive
+    → Databricks Bronze ingestion and provenance
+    → Silver normalization and quality rules
+    → Gold analytical models
+    → Analytics and dashboard
 ```
-
-- **Databricks** is the planned environment for ingesting, transforming, validating, and serving curated Gold marts.
-- **The public data platform** will present indicators and let visitors explore supported dimensions such as geography, time, and indicator.
-- **GitHub** holds source code, SQL, documentation, issues, project planning, and automation. GitHub Pages can host a static site.
-- Databricks Apps require authenticated Databricks users, so they are not the assumed host for an anonymously accessible public portal. The team will verify hosting and access choices before implementation.
-
-As of September 27, 2026: This is a proposed architecture, not a claim that the pipeline or website is already deployed.
-
-## Data model and quality
-
-Model documentation should identify:
-
-- The grain of every table (what one row represents)
-- Primary and foreign keys, including geographic and date keys
-- Important fields, data types, units, and definitions
-- Source-to-target lineage and transformation rules
-- Known coverage gaps, null handling, and caveats
-
-Planned validation includes checks appropriate to each source, such as required fields, valid dates and codes, uniqueness at the documented grain, accepted value ranges, and reconciliation against source totals where possible. Failed critical checks should stop publication of affected data until reviewed.
 
 ## Repository guide
 
-The repository is being established. As implementation grows, it will hold the project's authoritative code and documentation. Proposed areas include:
+```text
+.github/
+  PULL_REQUEST_TEMPLATE.md
+  workflows/
+    ci.yml
+docs/
+  business-and-analytical-questions.md
+  consolidated-data-sources.md
+  bronze-ingestion-guide.md
+  project-decision-log.md
+  data-sources.md
+  architecture.md                 # placeholder
+  runbook.md                      # placeholder
+notebooks/
+  01_ingestion/
+    02_ingest_psgc.ipynb
+    03_ingest_dot.ipynb
+  README.md
+resources/
+  jobs/
+    tourism_pipeline.yml          # placeholder on main
+src/
+  01-ingestion/                   # folder guidance
+  02-bronze/
+  03-silver/
+  04-gold/
+  05-analytics/
+  06-data-quality/
+tests/
+  README.md                       # validation guidance
+dashboard/
+  README.md                       # dashboard guidance
+```
 
-- `docs/` - architecture, data model, decisions, and operating guides
-- `src/` - ingestion, transformation, API, and website code as those components are selected
-- `notebooks/` - contains the compiled, documented Databricks workflow
-- `tests/` - data and application validation
-- `.github/` - collaboration and automation workflows
+Stage folders under `src/` currently contain guidance, not implemented transformation code. Planned paths described in other documents may differ from the files currently committed.
 
-Numbered folders show execution order; file names use lowercase snake_case.
+## Team workflow
 
-The repository's actual structure and run instructions will be documented here as files are added.
-
-## Project milestones
-
-1. Confirm questions, data sources, licensing, coverage, and project scope.
-2. Design and document the schemas, keys, grains, and source mappings.
-3. Build and validate the Gold marts.
-4. Develop the query experience, analytics, and public website.
-5. Document setup, validation results, engineering decisions, and limitations.
-6. Prepare the demonstration and capstone defense.
-
-Use the organization's GitHub Project as the current source of truth for assignments, status, and target dates.
-
-## Team
-
-GitAway is the FTW Batch 12 Data Engineering capstone team working on Tuklas Pinas.
-
-- Cole
-- Nella
-- Cha
-- Gab
-- Haze
-
-## Contributing
-
-Work should be traceable and reviewable:
-
-1. Pick up or create an issue describing the work and its acceptance criteria.
+1. Link work to an issue and state its acceptance criteria.
 2. Make a focused change on a branch.
-3. Open a pull request that links the issue and explains the change and validation.
-4. Request a teammate review and address feedback before merging.
+3. Open a PR using the [PR template](.github/PULL_REQUEST_TEMPLATE.md), explaining behavior, source or schema changes, and validation evidence.
+4. Request a teammate review and address findings before merging.
+5. Update relevant documentation when implementation or decisions change.
 
-Do not commit credentials, access tokens, private data, or unpublished personal information. Keep commit messages and pull requests specific so the project history shows what changed and why.
+Use [Business and analytical questions](docs/business-and-analytical-questions.md) for analytical scope, [Source assessment](docs/consolidated-data-sources.md) for source caveats, [Decision log](docs/project-decision-log.md) for approved choices, and [Bronze guide](docs/bronze-ingestion-guide.md) for ingestion responsibilities. Preserve original source artifacts and keep credentials out of Git.
 
-## Handoff readiness
+CI checks repository structure, Python files under `src/`, notebook structure, and syntax in explicitly marked Python/SQL cells. It does not execute Databricks ingestion, validate source data, or currently validate a Databricks bundle.
+## Team and handoff
 
-This README describes the intended project and proposed architecture. It does not yet provide complete setup and run instructions or prove that the pipeline and public portal are operational. The project should be considered **Not yet ready** for independent engineering handoff until an engineer can set it up, run it, inspect meaningful validation results, and modify the documented models without clarification.
+**GitAway — FTW Batch 12 LT3:** Cole, Nella, Cha, Gab, and Haze.
 
+Use the GitHub Project and issues for assignments and checkpoints. The repository is **Not yet ready** for independent engineering handoff: shared setup and PSA ingestion must be merged, complete run instructions are needed, and downstream models and analytics remain to be implemented.
