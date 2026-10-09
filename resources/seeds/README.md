@@ -2,6 +2,21 @@
 
 Reviewed reference files that Silver notebooks load as-is. Seeds are changed only through pull requests, like code.
 
+DOT and PSA identify places by **name**, not by PSGC code, and each source names (and groups) places differently. Each seed maps one source's printed labels to the 100 reporting units (DL-010). PSGC itself needs no seed: the units are built from its codes in `01_silver_geography`.
+
+| Seed | Rows | Source | Loaded by | New or renamed label fails |
+| --- | --- | --- | --- | --- |
+| `map_dot_area_to_psgc.csv` | 161 | DOT overnight travelers (DS_05), by year | `01_silver_geography` (used by `02_silver_dot`) | `DQ-DOT-03` |
+| `map_psa_area_to_psgc.csv` | 134 | PSA provincial accounts (DS_27 to DS_32) | `03_silver_psa_economy` | `DQ-PSA-01` |
+| `map_psa_population_area_to_psgc.csv` | 218 | PSA population projections (DS_18, Excel and PDF) | `04_silver_population` | `DQ-POP-01`, `DQ-POP-02` |
+
+**Rules for every seed**
+
+* Labels are kept **exactly as printed** (spelling, case, old names such as `Compostela Valley`); the seed does the matching, so nothing depends on fuzzy name matching.
+* Every row has a `row_role` that says how its value is used, and `notes` that say why.
+* A change is reviewed in a PR like code; fill `reviewed_by` and `reviewed_on` when a row is checked.
+* After editing a seed, rerun the notebook that loads it and check its results in `06_data_quality.dq_results`.
+
 ## `map_dot_area_to_psgc.csv`
 
 Maps every DOT overnight-traveler row printed at indent level 0 (regions, `GRAND TOTAL`) or 1 (provinces, HUCs, cities, zones) to a PSGC 2Q 2026 reporting unit, per validity period. Loaded by `notebooks/03_silver/01_silver_geography` into `03_silver.map_dot_area_to_psgc`.
