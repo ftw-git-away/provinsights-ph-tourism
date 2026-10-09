@@ -287,7 +287,7 @@ Bronze remains as printed. Cleaning and mapping occur in Silver, and the star sc
 
 ### 7.4 DS_18 to `population_total`
 
-Population follows DL-021. Both DS_18 files are mapped through `map_psa_area_to_psgc` (old labels such as `Compostela Valley`, `Zambonga del Sur`, `Samar (Western Samar)` and `Cotabato (North Cotabato)` are mapped there). Each row records `population_source`:
+Population follows DL-021. Both DS_18 files are mapped through their own crosswalk, `map_psa_population_area_to_psgc`, because DS_18 labels cover different areas from the economy tables (DS_18 `Cebu` includes Cebu City, Lapu-Lapu and Mandaue). Old labels such as `Compostela Valley`, `Zambonga del Sur`, `Samar (Western Samar)` and `Cotabato (North Cotabato)` are mapped there. Each row records `population_source`:
 
 | Unit | 2019 | 2020 to 2024 | `population_source` |
 | --- | --- | --- | --- |
@@ -303,8 +303,8 @@ From the Excel, only the `Total` rows are kept (not the age groups or Male/Femal
 | Table | Grain | Key | Main fields |
 | --- | --- | --- | --- |
 | `map_dot_area_to_psgc` | One printed DOT label (region rows at indent level 0, province-level rows at level 1) per validity period | (`dot_indent_level`, `dot_parent_label`, `dot_area_label`, `valid_from_year`) | `valid_to_year` (NULL = still in use), `row_role` (`province_unit`, `add_to_parent`, `exclude`, `region_total`, `national_total`), `unit_psgc_code` (unit the travelers are loaded to), `area_psgc_code` (the printed area itself, e.g. Malay for Boracay), `exclude_reason` (`double_count`, `no_psgc_unit`, `outside_dot_coverage`), `breaks_comparability` (`true` only on rows treated differently from 2019: Boracay 2021–2024), `match_method`, `match_status`, `notes`, `reviewed_by`, `reviewed_on`. Built by `01_silver_geography` from the seed `resources/seeds/map_dot_area_to_psgc.csv` (#47) |
-| `map_psa_area_to_psgc` | One PSA row label, the same 134 labels in DS_27 to DS_32 | (`psa_label`) | `psa_region_code` (region the row is printed under; PSA uses 17 regions in 2019–2023), `row_role` (`unit`, `add_to_unit`, `ncr_component`, `region_total`), `unit_psgc_code`, `area_psgc_code`, `area_psgc_name`, `reviewed_by`, `reviewed_on`, `notes`. Built by `03_silver_psa_economy` from the seed `resources/seeds/map_psa_area_to_psgc.csv`; DS_18 labels are added by the population step |
-| `ref_indicator` | Fact column | `column_name` | Units, price basis, base year, source table title |
+| `map_psa_area_to_psgc` | One PSA row label, the same 134 labels in DS_27 to DS_32 | (`psa_label`) | `psa_region_code` (region the row is printed under; PSA uses 17 regions in 2019–2023), `row_role` (`unit`, `add_to_unit`, `ncr_component`, `region_total`), `unit_psgc_code`, `area_psgc_code`, `area_psgc_name`, `reviewed_by`, `reviewed_on`, `notes`. Built by `03_silver_psa_economy` from the seed `resources/seeds/map_psa_area_to_psgc.csv` |
+| `map_psa_population_area_to_psgc` | One DS_18 label, Excel or PDF | (`source_table`, `block_label`, `area_label`) | `ds18_area` (the Excel label of the same area, to compare Excel and PDF), `row_role` (Excel: `unit`, `not_a_unit`, `region_total`, `national_total`; PDF: `check_total`, `region_total`, `huc`), `unit_psgc_code`, `from_unit_psgc_code` (for an HUC, the province it is subtracted from), `area_psgc_code`, `area_psgc_name`, `notes`, `reviewed_by`, `reviewed_on`. Built by `04_silver_population` from the seed `resources/seeds/map_psa_population_area_to_psgc.csv` | `ref_indicator` | Fact column | `column_name` | Units, price basis, base year, source table title |
 
 ### 7.6 Validation rules
 
