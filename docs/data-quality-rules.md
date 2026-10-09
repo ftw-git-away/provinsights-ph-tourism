@@ -194,10 +194,10 @@ The notebook also stops before any check if a table's year columns are not exact
 | DQ-COM-06, 03, 09 | See 6.1 | BLOCK |
 | DQ-POP-04 | Excel: each region = sum of its rows, and PHILIPPINES = regions + NCR (± rounding), 2015–2025 | BLOCK |
 | DQ-POP-05 | Every PDF area and region total equals the Excel total, 2020–2025 | BLOCK |
-| DQ-POP-06 | PDF: each province with HUCs = sum of the rows printed in its block (± rounding), so its HUCs are inside the province total | REVIEW |
+| DQ-POP-06 | PDF: each province with HUCs = sum of the rows printed in its block (± rounding), so its HUCs are inside the province total; all 14 × 6 province-years must be compared (a missing side fails) | REVIEW |
 | DQ-POP-07 | Every unit-year has a population > 0, except Maguindanao del Norte and del Sur, which are NULL | BLOCK |
-| DQ-POP-08 | Units + rows that are not units (Maguindanao, Cotabato City) = PHILIPPINES, every year | BLOCK |
-| DQ-POP-09 | Each province with HUCs: province + its HUCs = DS_18 province total | BLOCK |
+| DQ-POP-08 | Units + rows that are not units (Maguindanao, Cotabato City) = PHILIPPINES, every year (a missing year fails) | BLOCK |
+| DQ-POP-09 | Each province with HUCs: province + its HUCs = DS_18 province total; all 14 × 6 province-years must be compared | BLOCK |
 | DQ-POP-10 | The 2019 HUC estimates are listed (DL-021) | LOG |
 | DQ-POP-11 | Population vs the population PSA used for its per-capita GDP (GDP × 1,000 ÷ per capita), 2019–2023, within 0.5% | REVIEW |
 
