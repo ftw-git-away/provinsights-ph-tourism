@@ -115,3 +115,17 @@ The three caveat fields carried over from Silver, and `comparable_to_2019`, are 
 - **Population is missing for two units.** Two of the 100 units have no population value in any year. Silver records the reason in `population_note`.
 
 ## Screenshots
+<img width="608" height="247" alt="Screenshot 2026-10-12 083054" src="https://github.com/user-attachments/assets/fc962123-dd1f-4070-8db0-887408bb98d4" />
+<img width="723" height="245" alt="Screenshot 2026-10-12 083109" src="https://github.com/user-attachments/assets/944c928e-1847-439c-a42c-614e81c59f4b" />
+<img width="610" height="247" alt="Screenshot 2026-10-12 083131" src="https://github.com/user-attachments/assets/b180a760-f45f-411e-a5c6-9358266226ed" />
+<img width="1287" height="245" alt="Screenshot 2026-10-12 083309" src="https://github.com/user-attachments/assets/0ff206ff-abd3-4d62-b92d-bbc17d3a546a" />
+<img width="1341" height="245" alt="Screenshot 2026-10-12 083339" src="https://github.com/user-attachments/assets/f58bb7f1-f582-4d14-98cf-74b637bd0c4e" />
+<img width="460" height="216" alt="Screenshot 2026-10-12 083358" src="https://github.com/user-attachments/assets/a105ce4c-a392-4462-bb6b-b3fdb64abd32" />
+<img width="1338" height="587" alt="Screenshot 2026-10-12 083431" src="https://github.com/user-attachments/assets/5f710a5d-0598-441e-9719-82f246dea894" />
+<img width="1337" height="600" alt="Screenshot 2026-10-12 083457" src="https://github.com/user-attachments/assets/98173619-25a7-4330-85ff-28e0f3327925" />
+<img width="1185" height="402" alt="Screenshot 2026-10-12 083525" src="https://github.com/user-attachments/assets/dc517565-cf71-48a8-ba13-c107cd144cda" />
+<img width="1323" height="403" alt="Screenshot 2026-10-12 083546" src="https://github.com/user-attachments/assets/77d67a0d-a827-4381-8d45-fe068b6eb51d" />
+<img width="1157" height="611" alt="Screenshot 2026-10-12 084138" src="https://github.com/user-attachments/assets/200e0e8d-c352-42c6-ada3-f6c2ebfa124b" />
+<img width="1160" height="605" alt="Screenshot 2026-10-12 084212" src="https://github.com/user-attachments/assets/4ccd433c-aedc-42a3-a0ce-5ab1909c2101" />
+
+
