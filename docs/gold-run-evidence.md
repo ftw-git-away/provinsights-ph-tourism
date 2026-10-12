@@ -92,11 +92,20 @@ Province names come from a join to `dim_province`. The fact table carries `provi
 
 The three caveat fields carried over from Silver, and `comparable_to_2019`, are present in the fact table. The table below lists, for each caveat, the provinces it applies to and the years covered.
 
-<paste the Caveat fields table from the evidence notebook here>
+| caveat | province_name | first_year | last_year | example |
+| --- | --- | --- | --- | --- |
+| comparable_to_2019 = false | Aklan | 2021 | 2024 |  |
+| derived_values filled | City of Tacloban | 2019 | 2023 | afs_gva_constant (DS_32) City of Tacloban from region total |
+| foreign_includes_overseas_filipinos = true | Batanes | 2019 | 2024 |  |
+| foreign_includes_overseas_filipinos = true | Cagayan | 2019 | 2024 |  |
+| foreign_includes_overseas_filipinos = true | Isabela | 2019 | 2024 |  |
+| foreign_includes_overseas_filipinos = true | Nueva Vizcaya | 2019 | 2024 |  |
+| foreign_includes_overseas_filipinos = true | Quirino | 2019 | 2024 |  |
+| per_capita_recomputed = true | Quezon | 2019 | 2023 |  |
 
 - `comparable_to_2019` is false for Aklan from 2021 onward, because DOT counts Aklan differently from 2019.
-- `foreign_includes_overseas_filipinos` is true for provinces where DOT prints foreign travelers and overseas Filipinos together, such as Batanes and Cagayan.
-- `derived_values` is filled for units where a value was derived from a printed region total, such as City of Tacloban.
+- `foreign_includes_overseas_filipinos` is true for five Region II provinces (Batanes, Cagayan, Isabela (province), Nueva Vizcaya and Quirino), where DOT prints foreign travelers and overseas Filipinos together.
+- `derived_values` is filled for City of Tacloban, where the `afs_gva_constant` value was derived from a printed region total because DS_32 has no Tacloban row.
 - `per_capita_recomputed` is true for Quezon, where per-capita GDP is recomputed.
 
 ## Notes
@@ -106,5 +115,3 @@ The three caveat fields carried over from Silver, and `comparable_to_2019`, are 
 - **Population is missing for two units.** Two of the 100 units have no population value in any year. Silver records the reason in `population_note`.
 
 ## Screenshots
-
-<attach the screenshots of the run-log table and the check results>
