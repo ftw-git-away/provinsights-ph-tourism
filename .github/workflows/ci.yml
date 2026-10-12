@@ -96,7 +96,8 @@ jobs:
             relative="${path#notebooks/}"
             filename="$(basename "$path")"
 
-            if [[ "$relative" == "README.md" ]]; then
+            # README.md is allowed in notebooks/ and in each layer folder
+            if [[ "$filename" == "README.md" ]]; then
               continue
             fi
 
@@ -251,7 +252,7 @@ jobs:
                                   sql_source,
                                   read="databricks",
                               )
-                          except sqlglot_errors.ParseError as exc:
+                          except sqlglot_errors.SqlglotError as exc:
                               raise ValueError(
                                   f"cell {index} has invalid Databricks SQL syntax: {exc}"
                               ) from exc
@@ -285,3 +286,32 @@ jobs:
           if failed:
               sys.exit(1)
           PY
+
+  # Checks databricks.yml and resources/jobs/*.yml against the files in this branch,
+  # so a renamed or missing notebook is caught on the PR instead of after merge.
+  # Uses the same GitHub "development" environment values as deploy.yml.
+  # Skipped for PRs from forks, which cannot read the environment secrets.
+  bundle-validate:
+    name: Validate Databricks bundle
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
+    environment:
+      name: development
+
+    env:
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      BUNDLE_VAR_alert_email: ${{ vars.DATABRICKS_ALERT_EMAIL }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@8821c27b1fe57472264eeb6e50c1f31d69552f28
+        with:
+          version: 1.19.0
+
+      - name: Validate bundle
+        run: databricks bundle validate -t dev
