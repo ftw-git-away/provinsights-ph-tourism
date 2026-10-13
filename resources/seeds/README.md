@@ -1,6 +1,6 @@
 # Seeds
 
-Reviewed reference files that Silver notebooks load as-is. Seeds are changed only through pull requests, like code.
+Reviewed reference files that the Silver and Gold notebooks load as-is. Seeds are changed only through pull requests, like code.
 
 DOT and PSA identify places by **name**, not by PSGC code, and each source names (and groups) places differently. Each seed maps one source's printed labels to the 100 reporting units (DL-010). PSGC itself needs no seed: the units are built from its codes in `01_silver_geography`.
 
@@ -9,11 +9,12 @@ DOT and PSA identify places by **name**, not by PSGC code, and each source names
 | `map_dot_area_to_psgc.csv` | 161 | DOT overnight travelers (DS_05), by year | `01_silver_geography` (used by `02_silver_dot`) | `DQ-DOT-03` |
 | `map_psa_area_to_psgc.csv` | 134 | PSA provincial accounts (DS_27 to DS_32) | `03_silver_psa_economy` | `DQ-PSA-01` |
 | `map_psa_population_area_to_psgc.csv` | 218 | PSA population projections (DS_18, Excel and PDF) | `04_silver_population` | `DQ-POP-01`, `DQ-POP-02` |
+| `map_unit_coordinates.csv` | 100 | COD-AB administrative boundaries (NAMRIA, PSA; OCHA HDX) | `01_gold_dim_province` | `DQ-GLD-01g` |
 
 **Rules for every seed**
 
 * Labels are kept **exactly as printed** (spelling, case, old names such as `Compostela Valley`); the seed does the matching, so nothing depends on fuzzy name matching.
-* Every row has a `row_role` that says how its value is used, and `notes` that say why.
+* Every row has a `row_role` that says how its value is used, and `notes` that say why. (`map_unit_coordinates.csv` is not a label map, so it has `match_method` and `note` instead.)
 * A change is reviewed in a PR like code; fill `reviewed_by` and `reviewed_on` when a row is checked.
 * After editing a seed, rerun the notebook that loads it and check its results in `06_data_quality.dq_results`.
 
@@ -75,3 +76,32 @@ DS_18 has its own crosswalk because its labels cover different areas from the PS
 Key: (`source_table`, `block_label`, `area_label`).
 
 **When DS_18 is updated**, `04_silver_population` fails check `DQ-POP-01` (Excel) or `DQ-POP-02` (PDF) if a label is new or renamed. Add or fix the row here, then rerun.
+
+## `map_unit_coordinates.csv`
+
+One map point (latitude, longitude, WGS84) per reporting unit, used only to place the unit on the dashboard map. It is not used in any calculation. Loaded by `notebooks/04_gold/01_gold_dim_province` into the `latitude` and `longitude` columns of `04_gold.dim_province`.
+
+**Source:** OCHA HDX, [Philippines - Subnational Administrative Boundaries](https://data.humdata.org/dataset/cod-ab-phl) (COD-AB v03, valid on 2025-02-13; source NAMRIA and PSA; licence CC BY-IGO). File `phl_admin_boundaries.xlsx`, sheets `phl_admin1` to `phl_admin3`, columns `center_lat` and `center_lon`: a point inside each area, so island provinces get a point on land.
+
+| Column | Meaning |
+| --- | --- |
+| `province_psgc`, `province_name`, `unit_type` | The reporting unit (key: `province_psgc`, one row per unit) |
+| `latitude`, `longitude` | Map point, 6 decimals |
+| `codab_pcode`, `codab_name`, `codab_level` | COD-AB record the point comes from: `adm2` province, `adm3` city or municipality, `adm1` region |
+| `match_method` | `psgc_code` (77 provinces: COD-AB code `PH` + first 5 PSGC digits), `listed` (22 units matched by name in the build script), `override` (1, see below) |
+| `note`, `source_version` | What the point is, and the COD-AB release |
+| `reviewed_by`, `reviewed_on` | Filled when the row is reviewed |
+
+**Why 22 units are listed by name.** COD-AB does not follow PSGC 2Q 2026 exactly:
+
+* It keeps the 16 HUCs as cities inside their parent province (e.g. City of Angeles inside Pampanga), so they are matched at city level (`adm3`), using the city's own point.
+* City of Isabela is matched at city level.
+* It has no Negros Island Region, so Negros Occidental, Negros Oriental, Siquijor and City of Bacolod are matched under Regions VI and VII.
+* It places Sulu in BARMM.
+* NCR is one unit, so it uses the region point (`adm1`).
+
+**Override.** COD-AB's point for Palawan lies on Busuanga in the northern islands, about 280 km from the province's area-weighted centre. The seed uses the municipality nearest that centre instead (Aborlan; Puerto Princesa and Kalayaan excluded), so the Palawan and City of Puerto Princesa dots stay separate and on the mainland.
+
+**Limits.** A province's COD-AB area includes any HUC inside it, so the province point can sit slightly differently than it would for the province without the city. This only affects where a dot is drawn.
+
+**Rebuild:** `python resources/seeds/tools/build_map_unit_coordinates.py <phl_admin_boundaries.xlsx> <units file> resources/seeds/map_unit_coordinates.csv`. The script fails unless it produces exactly 100 unique units, all inside the Philippines.
