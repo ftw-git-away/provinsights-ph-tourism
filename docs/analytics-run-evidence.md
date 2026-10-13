@@ -32,9 +32,14 @@ These cover the Issue #60 items for grain and uniqueness (C1–C3, D1, D6, E1–
 
 > `REVIEW | PASS | 1` means the one REVIEW-severity check passed; it is not a REVIEW flag.
 
-[Screenshot: Check summary by severity and status]
+<img width="617" height="226" alt="image" src="https://github.com/user-attachments/assets/7b8a925e-3f65-49ce-85f0-689e6ad57207" />
+<img width="1178" height="407" alt="image" src="https://github.com/user-attachments/assets/efd76b9c-4415-4774-b2f4-bcdf7d0e6a59" />
+<img width="1177" height="412" alt="image" src="https://github.com/user-attachments/assets/5533320a-6bac-4577-ba56-f510351d6795" />
+<img width="1172" height="421" alt="image" src="https://github.com/user-attachments/assets/62f43a75-21f1-4cd4-91f3-fa689a546f4e" />
+<img width="1173" height="400" alt="image" src="https://github.com/user-attachments/assets/d00e5cbe-1bfc-4881-9f1e-09e42cac00e4" />
 
-[Screenshot: All checks from the latest 01_build_analytics run]
+
+
 
 ### 2. Edge cases: Analytics vs source files
 
@@ -53,9 +58,10 @@ Expected values were calculated directly from DOT *Regional Distribution of Over
 | Aurora | Presentation example | 273,906 | 736,339 | 3,145.62 | 188.29 | 268.83 | 168.83 | −25.05 | 1.27 | up / down |
 | Camiguin | Presentation example | 804,745 | 259,010 | 2,744.53 | 15.89 | 32.19 | −67.81 | −15.35 | 11.80 | down / down |
 
-[Screenshot: Edge cases, expected vs actual values]
+<img width="1185" height="452" alt="image" src="https://github.com/user-attachments/assets/de459c3d-ac68-44b7-877b-8520c2a1dee7" />
 
-[Screenshot: Edge cases, tourism–economy patterns]
+<img width="1183" height="316" alt="image" src="https://github.com/user-attachments/assets/763c1a9e-23e1-4798-9ecd-d97759ee3017" />
+
 
 **Sample calculations**
 - **Pampanga, Recovery Index 2023:** (386,868 Pampanga + 1,269,019 Clark Freeport Zone) ÷ 910,666 × 100 = **181.83** (DL-014).
@@ -95,7 +101,8 @@ Expected values were calculated directly from DOT *Regional Distribution of Over
 
 No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not forced into a class.
 
-[Screenshot: Recovery exclusions and recovery classes]
+<img width="1182" height="527" alt="image" src="https://github.com/user-attachments/assets/2164d843-c0d3-462a-83d0-4987e9d7adc2" />
+
 
 **Tourism–economy patterns (2019–2023)**
 
@@ -113,7 +120,7 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 
 **Traveler segments:** `foreign_segment_supported = false` and `overseas_filipino_segment_supported = false` for all 200 rows of `traveler_segment_recovery`.
 
-[Screenshot: Alignment exclusions, patterns, Gold caveat fields and traveler segments]
+<img width="1181" height="588" alt="image" src="https://github.com/user-attachments/assets/9e5c79bc-bb4c-4b66-bb52-f34e8f96cf45" />
 
 ## Notes
 
