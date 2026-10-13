@@ -1,6 +1,6 @@
 # Tuklas Pinas Data Platform
 
-[![CI](https://github.com/ftw-git-away/tuklas-pinas-data-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/tuklas-pinas-data-platform/actions/workflows/ci.yml)
+[![CI](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml)
 
 A public-facing tourism and local economy data platform for exploring tourism activity across Philippine destinations and how it relates to local economic, geographic, and population conditions.
 
@@ -79,11 +79,73 @@ The repository is being established. As implementation grows, it will hold the p
 - `src/` - ingestion, transformation, API, and website code as those components are selected
 - `notebooks/` - contains the compiled, documented Databricks workflow
 - `tests/` - data and application validation
-- `.github/` - collaboration and automation workflows
+- `resources/` - Databricks job definitions and reviewed seed files ([`resources/README.md`](resources/README.md))
+- `.github/` - collaboration and automation workflows ([`.github/workflows/README.md`](.github/workflows/README.md))
+- `databricks.yml` - Databricks bundle definition (see [Databricks deployment](#databricks-deployment))
 
 Numbered folders show execution order; file names use lowercase snake_case.
 
 The repository's actual structure and run instructions will be documented here as files are added.
+
+## Databricks deployment
+
+The pipeline is deployed to Databricks as a **bundle**, defined in [`databricks.yml`](databricks.yml) at the repository root.
+
+```yaml
+bundle:
+  name: provinsights-ph-tourism      # project name in Databricks
+
+include:
+  - resources/jobs/*.yml             # every job definition in resources/jobs/
+
+variables:
+  alert_email:                       # who gets emailed when the pipeline fails
+    description: Email address that receives pipeline failure notifications
+
+targets:
+  dev:                               # the only target for now
+    mode: development
+    default: true
+```
+
+| Part | What it does |
+| --- | --- |
+| `bundle.name` | Names the project; the bundle deploys to `/Workspace/Users/<user>/.bundle/provinsights-ph-tourism/dev` |
+| `include` | Loads the pipeline job from [`resources/jobs/tourism_pipeline.yml`](resources/jobs/tourism_pipeline.yml) (see [`resources/README.md`](resources/README.md)) |
+| `variables.alert_email` | Required. Set by GitHub from `DATABRICKS_ALERT_EMAIL`, or locally with `--var` |
+| `targets.dev` | Development mode: deploys to the user's own folder and prefixes the job name with `[dev <user>]` |
+
+No workspace URL or token is stored in this file. GitHub Actions supplies them from the `development` environment (see [`.github/workflows/README.md`](.github/workflows/README.md)).
+
+### How changes reach Databricks
+
+1. Open a pull request. CI runs **Validate repository** and **Validate Databricks bundle**.
+2. After approval, merge into `main`.
+3. The **CD - Deploy ProvInsights PH to Databricks** workflow validates and deploys the bundle.
+4. The job **ProvInsights PH - End-to-End Pipeline** is updated in Databricks. Deploying does not run it.
+
+### Working with the bundle locally
+
+Install the [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install) and sign in once:
+
+```bash
+databricks auth login --host <workspace URL> --profile <profile>
+```
+
+Then, from the repository root:
+
+```bash
+# Check the bundle (run before every pull request)
+databricks bundle validate -t dev -p <profile> --var="alert_email=<your email>"
+
+# Deploy to your own dev folder
+databricks bundle deploy -t dev -p <profile> --var="alert_email=<your email>"
+
+# Run the pipeline job (writes to the shared tuklas_dev catalog; tell the team first)
+databricks bundle run -t dev -p <profile> tourism_pipeline --var="alert_email=<your email>"
+```
+
+`Validation OK!` means the bundle files and every notebook path in the job are valid.
 
 ## Project milestones
 
@@ -120,4 +182,3 @@ Do not commit credentials, access tokens, private data, or unpublished personal 
 ## Handoff readiness
 
 This README describes the intended project and proposed architecture. It does not yet provide complete setup and run instructions or prove that the pipeline and public portal are operational. The project should be considered **Not yet ready** for independent engineering handoff until an engineer can set it up, run it, inspect meaningful validation results, and modify the documented models without clarification.
-
