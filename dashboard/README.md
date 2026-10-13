@@ -11,7 +11,7 @@ A Databricks AI/BI dashboard that helps the client explore tourism across the 10
 | 1. Tourism Overview | Yes | #65 merged |
 | 2. Tourism Recovery | Yes | #65 merged |
 | 3. Traveler Recovery | Domestic only | #65 fix: foreign and overseas Filipino recovery are blocked (all NULL) until it reads `foreign_includes_overseas_filipinos` from Gold |
-| 4. Tourism × Economy | Layout yes; pattern wording no | Team decision on the quadrant (sign-based in #65 vs. Roselle's high/low split at the median) |
+| 4. Tourism × Economy | Yes; labels come from Analytics (`tourism_economy_pattern_label`) | Team decision on the quadrant (sign-based in #65 vs. Roselle's high/low split at the median) |
 | 5. Province Explorer | Yes | #65 merged |
 
 ## Build steps
@@ -24,17 +24,21 @@ A Databricks AI/BI dashboard that helps the client explore tourism across the 10
 
 ## Datasets
 
-| Dataset | File | Grain | Source table |
-| --- | --- | --- | --- |
-| `ds_activity` | `01_activity.sql` | unit × year (600) | `tourism_activity` |
-| `ds_concentration` | `02_concentration.sql` | year (6) | `tourism_concentration` |
-| `ds_recovery` | `03_recovery.sql` | unit × comparison year (200) | `tourism_recovery` |
-| `ds_recovery_compare` | `04_recovery_2022_vs_2023.sql` | unit (100) | `tourism_recovery`, 2022 and 2023 side by side |
-| `ds_segments` | `05_segment_recovery.sql` | unit × comparison year × segment (600) | `traveler_segment_recovery`, unpivoted |
-| `ds_economy` | `06_economy.sql` | unit (100) | `tourism_economy` |
-| `ds_caveats` | `07_unit_caveats.sql` | unit × year with a caveat (75) | `tourism_activity` |
+The core SQL lives in seven files in `datasets/`. Several charts need only part of a query (for example, only units with a recovery index), and AI/BI can't filter rows per chart. So the dashboard JSON wraps some files in a `WHERE` clause to make extra datasets. These wrappers only filter rows; they never change a value.
 
-Row counts are from a local run of #65 on the Gold tables from #56.
+| File | Grain | Source table | Datasets in `provinsights.lvdash.json` |
+| --- | --- | --- | --- |
+| `01_activity.sql` | unit × year (600) | `tourism_activity` | `ds_activity`; `ds_top_travelers` and `ds_top_intensity` (rank 1–15); `ds_bottom_travelers` and `ds_bottom_intensity` (lowest 15 ranks per year); `ds_activity_excluded` (not included) |
+| `02_concentration.sql` | year (6) | `tourism_concentration` | `ds_concentration` (KPIs, follows the Year filter); `ds_concentration_trend` (same query, ignores the Year filter) |
+| `03_recovery.sql` | unit × comparison year (200) | `tourism_recovery` | `ds_recovery`; `ds_recovery_eligible`; `ds_recovery_excluded` |
+| `04_recovery_2022_vs_2023.sql` | unit (100) | `tourism_recovery`, 2022 and 2023 side by side | `ds_recovery_compare` (units with both years) |
+| `05_segment_recovery.sql` | unit × comparison year × segment (600) | `traveler_segment_recovery`, unpivoted | `ds_segments`; `ds_segments_cohort` (below 2019, assessed); `ds_segments_mix` (below 2019, all segments); `ds_segments_excluded` |
+| `06_economy.sql` | unit (100) | `tourism_economy` | `ds_economy`; `ds_economy_aligned` (assessed); `ds_economy_capped` (changes above +300%) |
+| `07_unit_caveats.sql` | unit × year with a caveat (75) | `tourism_activity` | `ds_caveats` |
+
+**Edit the SQL in `datasets/`, then rebuild the JSON** with `python dashboard/tools/build_lvdash.py` and re-import it. The JSON keeps its own copy of the SQL, so editing only the `.sql` files does not change the dashboard.
+
+Row counts are from a local run of #65 (commit `a4e6312`) on the Gold tables from #56.
 
 ## Filters
 
@@ -58,6 +62,8 @@ Row counts are from a local run of #65 on the Gold tables from #56.
 | Top 5 / Top 10 share | `ds_concentration` | Counter ×2 | `top_5_share_pct`, `top_10_share_pct` (1 decimal, %) |
 | Top 15 units by travelers | `ds_activity` | Bar (horizontal) | Y `reporting_unit`, X `total_travelers`, color `unit_type`; filter `activity_eligible = true`, `tourism_rank <= 15` |
 | Top 15 units by tourism intensity | `ds_activity` | Bar (horizontal) | X `tourism_intensity_per_1000`; filter `intensity_eligible = true`, `intensity_rank <= 15` |
+| Lowest 15 units by travelers | `ds_bottom_travelers` | Bar (horizontal, ascending) | Lowest 15 ranks among units with reported data (2023: Apayao, Quirino, Zamboanga Sibugay, Batanes, Dinagat Islands...) |
+| Lowest 15 units by tourism intensity | `ds_bottom_intensity` | Bar (horizontal, ascending) | Lowest 15 intensity ranks among units with data and population |
 | Concentration over time | `ds_concentration` | Line | X `year`, Y `top_5_share_pct` and `top_10_share_pct` |
 | Units not included this year | `ds_activity` | Table | `reporting_unit`, `unit_type`, `data_status`, `activity_exclusion_reason`; filter `activity_eligible = false` |
 
@@ -87,25 +93,44 @@ Until #65 is fixed, the Foreign and Overseas Filipinos bars are empty, and the t
 
 | Widget | Dataset | Type | Fields and settings |
 | --- | --- | --- | --- |
-| Units by pattern | `ds_economy` | Counter ×4 | Count where `pattern` = each of the four patterns |
-| Tourism change vs A&F growth | `ds_economy` | Scatter | X `afs_gva_growth_pct`, Y `tourism_change_pct`, color `pattern`, tooltip `reporting_unit`, `unit_type`; filter `alignment_eligible = true` |
+| Units by pattern | `ds_economy` | Bar | X `pattern`, Y count, color `alignment`. `pattern` is `tourism_economy_pattern_label` from Analytics, or "Not assessed" |
+| Tourism change vs A&F growth | `ds_economy_aligned` | Scatter | X `afs_gva_growth_pct`, Y `tourism_change_pct_chart` (capped at +300% for display), color `pattern` |
+| Very large changes | `ds_economy_capped` | Table | The 5 units above +300% with exact values: Davao Occidental (+17,121%, from 188 travelers in 2019), Camarines Sur, Romblon, City of Isabela, Davao Oriental |
 | Same vs opposite direction | `ds_economy` | Bar | X `alignment`, Y count |
 | A&F share of GDP by pattern | `ds_economy` | Bar | X `pattern` (sort by `pattern_order`), Y median `afs_share_of_gdp_pct`; filter `afs_share_eligible = true` |
-| Is strong tourism only in strong economies? | `ds_economy` | Scatter | X `gdp_per_capita_current_2019` (log scale), Y `recovery_index_2023`, color `unit_type`; filter `alignment_eligible = true` |
+| Is strong tourism only in strong economies? | `ds_economy_aligned` | Scatter | X `gdp_per_capita_current_2019`, Y `recovery_index_2023_chart` (capped at 400), color `unit_type` |
 | Units by pattern | `ds_economy` | Table | `reporting_unit`, `pattern`, `tourism_change_pct`, `afs_gva_growth_pct`, `afs_share_of_gdp_pct` |
 
 Wording on this page: "moves with" or "diverges from", never "drives" or "causes".
+
+**Why the cap:** without it, Davao Occidental (+17,121%) stretches the axis and the other 90 units collapse into a line. The cap only affects where a dot is drawn. The exact values stay in `tourism_change_pct` and are listed in the table. Remove the cap once Analytics adds a minimum-2019-base flag (see **Requested from Analytics and Gold**).
 
 ### 5. Province Explorer: one unit in one place
 
 | Widget | Dataset | Type | Fields and settings |
 | --- | --- | --- | --- |
 | Unit type and region | `ds_economy` | Table (1 row) | `reporting_unit`, `unit_type`, `region_name` |
-| 2023 KPIs | `ds_economy` | Counter ×5 | `travelers_2023`, `recovery_index_2023`, `tourism_intensity_per_1000_2023`, `afs_gva_growth_pct`, `pattern` |
+| 2023 KPIs | `ds_economy` | Counter ×6 | `travelers_2023`, `tourism_change_pct` (travelers vs 2019), `recovery_index_2023`, `tourism_intensity_per_1000_2023`, `afs_gva_growth_pct`, `afs_share_of_gdp_pct` |
 | Travelers 2019–2024 | `ds_activity` | Line | X `year`, Y `total_travelers` (missing years stay as gaps, not 0) |
 | Segment recovery | `ds_segments` | Bar | X `segment`, Y `recovery_index`, filtered by comparison year |
 | Caveats for this unit | `ds_caveats` | Table | `year`, `caveat` |
 | Year detail | `ds_activity` | Table | `year`, `total_travelers`, `population_total`, `tourism_intensity_per_1000`, `tourism_rank`, `data_status` |
+
+## Map (planned)
+
+Add a **point map**: one dot per reporting unit, size = travelers, colour = recovery status or pattern. Use it on the Overview and Tourism × Economy pages. Use dots rather than shaded province areas, because HUCs, City of Isabela and NCR are separate units that shaded province shapes would hide.
+
+This needs `latitude` and `longitude` per unit, which the data doesn't have yet (see **Requested from Analytics and Gold**). Once Analytics carries them, add the two columns to `01_activity.sql` and `06_economy.sql` and add the map widgets in `tools/build_lvdash.py`.
+
+## Requested from Analytics and Gold
+
+| Request | Owner | Why |
+| --- | --- | --- |
+| Unit coordinates: seed `map_unit_centroid.csv` → `latitude` / `longitude` in `dim_province` → carried into the Analytics tables | Seed: Gabs; Gold: Charlene; Analytics: Nella | Point map |
+| Minimum-2019-base flag in `tourism_recovery` and `tourism_economy` (threshold to agree, as with DL-006 / OI-7) | Nella | Small bases (Davao Occidental: 188 travelers) create extreme percentages |
+| `tourism_economy_summary`: number of units, correlation (Pearson and Spearman), and count per pattern | Nella | BQ2 asks how strongly they are associated; the dashboard must not compute it |
+| Read `foreign_includes_overseas_filipinos` from Gold | Nella | Traveler Recovery page |
+| Quadrant definition (sign vs median split) | Team + Roselle | Tourism × Economy labels |
 
 ## Text widgets
 
@@ -133,13 +158,13 @@ Check these values in the dashboard against `05_analytics` (and Gold, via #65's 
 
 | Unit | Type | 2023 travelers | 2023 rank | Intensity / 1,000 | Recovery 2022 | Recovery 2023 | Pattern | A&F share |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Quezon | Province | 1,264,181 | 12 | 543.0 | 91.2 | 97.1 | Tourism down, A&F up | 4.05% |
-| Pampanga | Province | 1,655,887 | 5 | 671.6 | 123.4 | 181.8 | Tourism up, A&F up | 2.65% |
+| Quezon | Province | 1,264,181 | 12 | 543.0 | 91.2 | 97.1 | Tourism activity decreased; real A&F GVA increased | 4.05% |
+| Pampanga | Province | 1,655,887 | 5 | 671.6 | 123.4 | 181.8 | Tourism activity increased; real A&F GVA increased | 2.65% |
 | Aklan | Province | 2,200,138 | 4 | 3,544.4 | not assessed (not comparable) | not assessed | Not assessed | 3.24% |
 | Basilan | Province | blank | — | blank | not assessed (no 2019 data) | not assessed | Not assessed | 0.10% |
-| City of Angeles | HUC | 157,666 | 66 | 277.1 | not assessed (no 2022 data) | 223.7 | Tourism up, A&F down | 5.17% |
-| City of Isabela | Independent city | 101,238 | 76 | 748.2 | 82.1 | 667.8 | Tourism up, A&F down | 0.33% |
-| NCR | NCR | 7,027,445 | 1 | 492.7 | 155.0 | 231.4 | Tourism up, A&F down | 1.29% |
+| City of Angeles | HUC | 157,666 | 66 | 277.1 | not assessed (no 2022 data) | 223.7 | Tourism activity increased; real A&F GVA decreased | 5.17% |
+| City of Isabela | Independent city | 101,238 | 76 | 748.2 | 82.1 | 667.8 | Tourism activity increased; real A&F GVA decreased | 0.33% |
+| NCR | NCR | 7,027,445 | 1 | 492.7 | 155.0 | 231.4 | Tourism activity increased; real A&F GVA decreased | 1.29% |
 
 Whole-dashboard checks for 2023: 39 units above 2019, 52 below and 9 not assessed. The patterns are 26 up/up, 13 tourism up with A&F down, 30 tourism down with A&F up, 22 down/down and 9 not assessed.
 
