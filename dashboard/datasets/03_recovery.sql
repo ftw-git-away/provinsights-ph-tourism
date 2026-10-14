@@ -19,6 +19,6 @@ SELECT
   END                                   AS recovery_status,
   recovery_eligible,
   recovery_exclusion_reason,
-  comparable_to_2019,
+  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019
   comparability_note
 FROM tuklas_dev.`05_analytics`.tourism_recovery

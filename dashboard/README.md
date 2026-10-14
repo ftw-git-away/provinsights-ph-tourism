@@ -10,7 +10,7 @@ A Databricks AI/BI dashboard that helps the client explore tourism across the 10
 | --- | --- | --- |
 | 1. Tourism Overview | Yes | #65 merged |
 | 2. Tourism Recovery | Yes | #65 merged |
-| 3. Traveler Recovery | Domestic only | #65 fix: foreign and overseas Filipino recovery are blocked (all NULL) until it reads `foreign_includes_overseas_filipinos` from Gold |
+| 3. Traveler Recovery | Yes, with coverage shown per group (2023: domestic 52, foreign 47, overseas Filipinos 26 of 52 units) | #65 merged |
 | 4. Tourism × Economy | Yes; labels come from Analytics (`tourism_economy_pattern_label`) | Team decision on the quadrant (sign-based in #65 vs. Roselle's high/low split at the median) |
 | 5. Province Explorer | Yes | #65 merged |
 
@@ -32,13 +32,13 @@ The core SQL lives in seven files in `datasets/`. Several charts need only part 
 | `02_concentration.sql` | year (6) | `tourism_concentration` | `ds_concentration` (KPIs, follows the Year filter); `ds_concentration_trend` (same query, ignores the Year filter) |
 | `03_recovery.sql` | unit × comparison year (200) | `tourism_recovery` | `ds_recovery`; `ds_recovery_eligible`; `ds_recovery_excluded` |
 | `04_recovery_2022_vs_2023.sql` | unit (100) | `tourism_recovery`, 2022 and 2023 side by side | `ds_recovery_compare` (units with both years) |
-| `05_segment_recovery.sql` | unit × comparison year × segment (600) | `traveler_segment_recovery`, unpivoted | `ds_segments`; `ds_segments_cohort` (below 2019, assessed); `ds_segments_mix` (below 2019, all segments); `ds_segments_excluded` |
+| `05_segment_recovery.sql` | unit × segment, 2023 vs 2019, units below 2019 only (52 × 3 = 156) | `traveler_segment_recovery`, unpivoted | `ds_segments` (all, with `coverage_status`); `ds_segments_cohort` (assessed); `ds_segments_mix` (same as `ds_segments`); `ds_segments_excluded` (not assessed) |
 | `06_economy.sql` | unit (100) | `tourism_economy` | `ds_economy`; `ds_economy_aligned` (assessed); `ds_economy_capped` (changes above +300%) |
 | `07_unit_caveats.sql` | unit × year with a caveat (75) | `tourism_activity` | `ds_caveats` |
 
 **Edit the SQL in `datasets/`, then rebuild the JSON** with `python dashboard/tools/build_lvdash.py` and re-import it. The JSON keeps its own copy of the SQL, so editing only the `.sql` files does not change the dashboard.
 
-Row counts are from a local run of #65 (commit `a4e6312`) on the Gold tables from #56.
+Row counts are from a local run of #65 (commit `52d9338`) on the Gold tables from #56. That commit renamed some columns; the queries map them back to the names the dashboard uses (e.g. `comp_comparison AS comparable_to_2019`).
 
 ## Filters
 
@@ -76,18 +76,20 @@ Row counts are from a local run of #65 (commit `a4e6312`) on the Gold tables fro
 | Recovery index by unit | `ds_recovery` | Bar (horizontal, sorted) | Y `reporting_unit`, X `recovery_index`, color `recovery_status`; filter `recovery_eligible = true`. Title says "100 = same as 2019". |
 | 2022 vs 2023 | `ds_recovery_compare` | Scatter | X `recovery_index_2022`, Y `recovery_index_2023`, color `recovery_class_2023`, tooltip `reporting_unit` |
 | Not assessed and why | `ds_recovery` | Table | `reporting_unit`, `recovery_exclusion_reason`; filter `recovery_eligible = false` |
+| NCR note | — | Text | NCR cities printing "-" for all traveler counts: 8 in 2019, 4 in 2023, so part of NCR's rise reflects more cities reporting. Checked in Silver: on the cities that reported in both years, NCR is about 220% of 2019 (headline 231.4). Status `reported_partial`; treatment pending (DL-019). |
 
 ### 3. Traveler Recovery: which traveler groups are behind?
 
-Show this page for units below 2019 (`segment_analysis_cohort_flag = true`), with a toggle to show all.
+`traveler_segment_recovery` holds only the units below 2019 in 2023 (52), comparing 2023 with 2019.
 
 | Widget | Dataset | Type | Fields and settings |
 | --- | --- | --- | --- |
-| Segment recovery by unit | `ds_segments` | Grouped bar | Y `reporting_unit`, X `recovery_index`, color `segment`; filter `eligible = true` |
-| Traveler mix, 2019 vs comparison year | `ds_segments` | 100% stacked bar | X `reporting_unit`, Y `travelers_2019` (and a second chart for `travelers_comparison`), color `segment` |
-| Segments not assessed | `ds_segments` | Table | `reporting_unit`, `segment`, `exclusion_reason`; filter `eligible = false` |
+| Coverage per traveler group | `ds_segments` | Stacked bar | X `segment`, Y count, color `coverage_status` (Assessed / Not assessed). Shows 52 / 47 / 26 of 52, as #65 asks the dashboard to report coverage next to the metrics |
+| Recovery index by traveler group | `ds_segments_cohort` | Grouped bar (horizontal) | Y `reporting_unit`, X `recovery_index`, color `segment` |
+| Traveler mix in 2023 | `ds_segments_mix` | Stacked bar (horizontal) | Y `reporting_unit`, X `travelers_comparison`, color `segment` |
+| Traveler groups not assessed | `ds_segments_excluded` | Table | `reporting_unit`, `segment`, `exclusion_reason` |
 
-Until #65 is fixed, the Foreign and Overseas Filipinos bars are empty, and the table lists them as blocked. Add a text note on the page until then.
+A group is not assessed when its 2019 count is 0 or "-", or when DOT counts foreign travelers and overseas Filipinos together (`foreign_includes_overseas_filipinos`). All 22 overseas Filipino exclusions for a zero 2019 baseline are units where DOT printed "-".
 
 ### 4. Tourism × Economy: do tourism and the local economy move together?
 
@@ -103,7 +105,7 @@ Until #65 is fixed, the Foreign and Overseas Filipinos bars are empty, and the t
 
 Wording on this page: "moves with" or "diverges from", never "drives" or "causes".
 
-**Why the cap:** without it, Davao Occidental (+17,121%) stretches the axis and the other 90 units collapse into a line. The cap only affects where a dot is drawn. The exact values stay in `tourism_change_pct` and are listed in the table. Remove the cap once Analytics adds a minimum-2019-base flag (see **Requested from Analytics and Gold**).
+**Why the cap:** without it, Davao Occidental (+17,121%) stretches the axis and the other 90 units collapse into a line. The cap only affects where a dot is drawn, and uses `CASE`, not `LEAST`: Spark's `LEAST` skips NULLs, so `LEAST(NULL, 300)` would return 300 and plot a not-assessed unit at the cap. The exact values stay in `tourism_change_pct` and are listed in the table. Remove the cap once Analytics adds a minimum-2019-base flag (see **Requested from Analytics and Gold**).
 
 ### 5. Province Explorer: one unit in one place
 
@@ -112,7 +114,7 @@ Wording on this page: "moves with" or "diverges from", never "drives" or "causes
 | Unit type and region | `ds_economy` | Table (1 row) | `reporting_unit`, `unit_type`, `region_name` |
 | 2023 KPIs | `ds_economy` | Counter ×6 | `travelers_2023`, `tourism_change_pct` (travelers vs 2019), `recovery_index_2023`, `tourism_intensity_per_1000_2023`, `afs_gva_growth_pct`, `afs_share_of_gdp_pct` |
 | Travelers 2019–2024 | `ds_activity` | Line | X `year`, Y `total_travelers` (missing years stay as gaps, not 0) |
-| Segment recovery | `ds_segments` | Bar | X `segment`, Y `recovery_index`, filtered by comparison year |
+| Segment recovery | `ds_segments` | Bar | X `segment`, Y `recovery_index`, color `coverage_status`. Only for units below 2019 in 2023 |
 | Caveats for this unit | `ds_caveats` | Table | `year`, `caveat` |
 | Year detail | `ds_activity` | Table | `year`, `total_travelers`, `population_total`, `tourism_intensity_per_1000`, `tourism_rank`, `data_status` |
 
@@ -129,7 +131,6 @@ This needs `latitude` and `longitude` per unit, which the data doesn't have yet 
 | Unit coordinates: seed `map_unit_centroid.csv` → `latitude` / `longitude` in `dim_province` → carried into the Analytics tables | Seed: Gabs; Gold: Charlene; Analytics: Nella | Point map |
 | Minimum-2019-base flag in `tourism_recovery` and `tourism_economy` (threshold to agree, as with DL-006 / OI-7) | Nella | Small bases (Davao Occidental: 188 travelers) create extreme percentages |
 | `tourism_economy_summary`: number of units, correlation (Pearson and Spearman), and count per pattern | Nella | BQ2 asks how strongly they are associated; the dashboard must not compute it |
-| Read `foreign_includes_overseas_filipinos` from Gold | Nella | Traveler Recovery page |
 | Quadrant definition (sign vs median split) | Team + Roselle | Tourism × Economy labels |
 
 ## Text widgets
@@ -147,6 +148,8 @@ This needs `latitude` and `longitude` per unit, which the data doesn't have yet 
 
 - Blank means DOT did not report the unit that year. It is never shown as 0.
 - Where DOT printed "-" for a traveler category, it is counted as 0.
+- Some towns printed "-" in 2019 report in 2023, so part of the change in Camarines Sur, Romblon, Surigao del Norte, Ilocos Norte, Misamis Oriental, Leyte and Sorsogon reflects wider reporting (OI-5).
+- NCR is one unit. More NCR cities reported in 2023 than in 2019 (8 printed "-" in 2019, 4 in 2023), so part of NCR's rise reflects reporting, not only recovery.
 - Aklan is not compared with 2019 because DOT changed how it counts Aklan from 2021.
 - Totals cover the included reporting units only, not the whole country.
 - 2019 populations for HUCs are estimated from the 2020–2021 trend.

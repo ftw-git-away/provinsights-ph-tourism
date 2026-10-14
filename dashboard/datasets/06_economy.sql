@@ -12,8 +12,9 @@ SELECT
   tourism_change_pct,
   -- Chart-only copies, capped so a few very large changes from small 2019 bases do not flatten the scatter.
   -- Exact values stay in tourism_change_pct / recovery_index_2023 and are listed in a table next to the chart.
-  LEAST(tourism_change_pct, 300)        AS tourism_change_pct_chart,
-  LEAST(recovery_index_2023, 400)       AS recovery_index_2023_chart,
+  -- CASE, not LEAST: LEAST skips NULLs, so LEAST(NULL, 300) would return 300 and plot a not-assessed unit at the cap.
+  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,
+  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,
   coalesce(tourism_change_pct > 300, false) AS shown_at_chart_cap,
   afs_gva_growth_pct,
   afs_share_of_gdp_pct,
@@ -32,14 +33,13 @@ SELECT
        THEN 'Same direction'
        WHEN tourism_economy_pattern IN ('tourism_up_economy_down', 'tourism_down_economy_up')
        THEN 'Opposite directions'
-       WHEN tourism_economy_pattern = 'unchanged' THEN 'No change'
+       WHEN tourism_economy_pattern LIKE '%unchanged%' THEN 'No change'
        ELSE 'Not assessed'
   END                                   AS alignment,
   alignment_eligible,
   alignment_exclusion_reason,
   afs_share_eligible,
-  intensity_gdp_context_eligible,
-  comparable_to_2019,
-  comparability_note,
+  tourism_intensity_eligible,
+  comp_2023                             AS comparable_to_2019,
   population_source_2023
 FROM tuklas_dev.`05_analytics`.tourism_economy

@@ -208,8 +208,7 @@
         "  top_5_travelers,\n",
         "  top_5_share_pct,\n",
         "  top_10_travelers,\n",
-        "  top_10_share_pct,\n",
-        "  coverage_note\n",
+        "  top_10_share_pct\n",
         "FROM tuklas_dev.`05_analytics`.tourism_concentration\n"
       ]
     },
@@ -225,8 +224,7 @@
         "  top_5_travelers,\n",
         "  top_5_share_pct,\n",
         "  top_10_travelers,\n",
-        "  top_10_share_pct,\n",
-        "  coverage_note\n",
+        "  top_10_share_pct\n",
         "FROM tuklas_dev.`05_analytics`.tourism_concentration\n"
       ]
     },
@@ -252,7 +250,7 @@
         "  END                                   AS recovery_status,\n",
         "  recovery_eligible,\n",
         "  recovery_exclusion_reason,\n",
-        "  comparable_to_2019,\n",
+        "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
         "  comparability_note\n",
         "FROM tuklas_dev.`05_analytics`.tourism_recovery\n"
       ]
@@ -280,7 +278,7 @@
         "  END                                   AS recovery_status,\n",
         "  recovery_eligible,\n",
         "  recovery_exclusion_reason,\n",
-        "  comparable_to_2019,\n",
+        "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
         "  comparability_note\n",
         "FROM tuklas_dev.`05_analytics`.tourism_recovery\n",
         ") WHERE recovery_eligible\n"
@@ -309,7 +307,7 @@
         "  END                                   AS recovery_status,\n",
         "  recovery_eligible,\n",
         "  recovery_exclusion_reason,\n",
-        "  comparable_to_2019,\n",
+        "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
         "  comparability_note\n",
         "FROM tuklas_dev.`05_analytics`.tourism_recovery\n",
         ") WHERE NOT recovery_eligible\n"
@@ -342,26 +340,29 @@
         ")\n",
         "SELECT province_psgc, province_name AS reporting_unit, unit_type, region_name, comparison_year,\n",
         "       'Domestic' AS segment, 1 AS segment_order,\n",
-        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_comparison AS travelers_comparison,\n",
+        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_2023 AS travelers_comparison,\n",
         "       domestic_recovery_index AS recovery_index, domestic_recovery_class AS recovery_class,\n",
         "       domestic_eligible AS eligible, domestic_exclusion_reason AS exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN domestic_eligible THEN 'Assessed' ELSE 'Not assessed' END AS coverage_status,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Foreign', 2,\n",
-        "       foreign_travelers_2019, foreign_travelers_comparison,\n",
+        "       foreign_travelers_2019, foreign_travelers_2023,\n",
         "       foreign_recovery_index, foreign_recovery_class,\n",
         "       foreign_eligible, foreign_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN foreign_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Overseas Filipinos', 3,\n",
-        "       overseas_filipinos_2019, overseas_filipinos_comparison,\n",
+        "       overseas_filipino_travelers_2019, overseas_filipino_travelers_2023,\n",
         "       overseas_filipino_recovery_index, overseas_filipino_recovery_class,\n",
         "       overseas_filipino_eligible, overseas_filipino_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN overseas_filipino_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n"
       ]
     },
@@ -375,62 +376,66 @@
         ")\n",
         "SELECT province_psgc, province_name AS reporting_unit, unit_type, region_name, comparison_year,\n",
         "       'Domestic' AS segment, 1 AS segment_order,\n",
-        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_comparison AS travelers_comparison,\n",
+        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_2023 AS travelers_comparison,\n",
         "       domestic_recovery_index AS recovery_index, domestic_recovery_class AS recovery_class,\n",
         "       domestic_eligible AS eligible, domestic_exclusion_reason AS exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN domestic_eligible THEN 'Assessed' ELSE 'Not assessed' END AS coverage_status,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Foreign', 2,\n",
-        "       foreign_travelers_2019, foreign_travelers_comparison,\n",
+        "       foreign_travelers_2019, foreign_travelers_2023,\n",
         "       foreign_recovery_index, foreign_recovery_class,\n",
         "       foreign_eligible, foreign_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN foreign_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Overseas Filipinos', 3,\n",
-        "       overseas_filipinos_2019, overseas_filipinos_comparison,\n",
+        "       overseas_filipino_travelers_2019, overseas_filipino_travelers_2023,\n",
         "       overseas_filipino_recovery_index, overseas_filipino_recovery_class,\n",
         "       overseas_filipino_eligible, overseas_filipino_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN overseas_filipino_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
-        ") WHERE segment_analysis_cohort_flag AND eligible\n"
+        ") WHERE eligible\n"
       ]
     },
     {
       "name": "ds_segments_mix",
       "displayName": "Segments mix (units below 2019)",
       "queryLines": [
-        "SELECT * FROM (\n",
         "WITH s AS (\n",
         "  SELECT * FROM tuklas_dev.`05_analytics`.traveler_segment_recovery\n",
         ")\n",
         "SELECT province_psgc, province_name AS reporting_unit, unit_type, region_name, comparison_year,\n",
         "       'Domestic' AS segment, 1 AS segment_order,\n",
-        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_comparison AS travelers_comparison,\n",
+        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_2023 AS travelers_comparison,\n",
         "       domestic_recovery_index AS recovery_index, domestic_recovery_class AS recovery_class,\n",
         "       domestic_eligible AS eligible, domestic_exclusion_reason AS exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN domestic_eligible THEN 'Assessed' ELSE 'Not assessed' END AS coverage_status,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Foreign', 2,\n",
-        "       foreign_travelers_2019, foreign_travelers_comparison,\n",
+        "       foreign_travelers_2019, foreign_travelers_2023,\n",
         "       foreign_recovery_index, foreign_recovery_class,\n",
         "       foreign_eligible, foreign_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN foreign_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Overseas Filipinos', 3,\n",
-        "       overseas_filipinos_2019, overseas_filipinos_comparison,\n",
+        "       overseas_filipino_travelers_2019, overseas_filipino_travelers_2023,\n",
         "       overseas_filipino_recovery_index, overseas_filipino_recovery_class,\n",
         "       overseas_filipino_eligible, overseas_filipino_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
-        "FROM s\n",
-        ") WHERE segment_analysis_cohort_flag\n"
+        "       CASE WHEN overseas_filipino_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
+        "FROM s\n"
       ]
     },
     {
@@ -443,28 +448,31 @@
         ")\n",
         "SELECT province_psgc, province_name AS reporting_unit, unit_type, region_name, comparison_year,\n",
         "       'Domestic' AS segment, 1 AS segment_order,\n",
-        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_comparison AS travelers_comparison,\n",
+        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_2023 AS travelers_comparison,\n",
         "       domestic_recovery_index AS recovery_index, domestic_recovery_class AS recovery_class,\n",
         "       domestic_eligible AS eligible, domestic_exclusion_reason AS exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN domestic_eligible THEN 'Assessed' ELSE 'Not assessed' END AS coverage_status,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Foreign', 2,\n",
-        "       foreign_travelers_2019, foreign_travelers_comparison,\n",
+        "       foreign_travelers_2019, foreign_travelers_2023,\n",
         "       foreign_recovery_index, foreign_recovery_class,\n",
         "       foreign_eligible, foreign_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN foreign_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
         "UNION ALL\n",
         "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
         "       'Overseas Filipinos', 3,\n",
-        "       overseas_filipinos_2019, overseas_filipinos_comparison,\n",
+        "       overseas_filipino_travelers_2019, overseas_filipino_travelers_2023,\n",
         "       overseas_filipino_recovery_index, overseas_filipino_recovery_class,\n",
         "       overseas_filipino_eligible, overseas_filipino_exclusion_reason,\n",
-        "       overall_recovery_index, below_2019_total_flag, segment_analysis_cohort_flag, comparability_note\n",
+        "       CASE WHEN overseas_filipino_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
         "FROM s\n",
-        ") WHERE segment_analysis_cohort_flag AND NOT eligible\n"
+        ") WHERE NOT eligible\n"
       ]
     },
     {
@@ -480,8 +488,8 @@
         "  travelers_2023,\n",
         "  recovery_index_2023,\n",
         "  tourism_change_pct,\n",
-        "  LEAST(tourism_change_pct, 300)        AS tourism_change_pct_chart,\n",
-        "  LEAST(recovery_index_2023, 400)       AS recovery_index_2023_chart,\n",
+        "  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,\n",
+        "  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,\n",
         "  coalesce(tourism_change_pct > 300, false) AS shown_at_chart_cap,\n",
         "  afs_gva_growth_pct,\n",
         "  afs_share_of_gdp_pct,\n",
@@ -500,15 +508,14 @@
         "       THEN 'Same direction'\n",
         "       WHEN tourism_economy_pattern IN ('tourism_up_economy_down', 'tourism_down_economy_up')\n",
         "       THEN 'Opposite directions'\n",
-        "       WHEN tourism_economy_pattern = 'unchanged' THEN 'No change'\n",
+        "       WHEN tourism_economy_pattern LIKE '%unchanged%' THEN 'No change'\n",
         "       ELSE 'Not assessed'\n",
         "  END                                   AS alignment,\n",
         "  alignment_eligible,\n",
         "  alignment_exclusion_reason,\n",
         "  afs_share_eligible,\n",
-        "  intensity_gdp_context_eligible,\n",
-        "  comparable_to_2019,\n",
-        "  comparability_note,\n",
+        "  tourism_intensity_eligible,\n",
+        "  comp_2023                             AS comparable_to_2019,\n",
         "  population_source_2023\n",
         "FROM tuklas_dev.`05_analytics`.tourism_economy\n"
       ]
@@ -527,8 +534,8 @@
         "  travelers_2023,\n",
         "  recovery_index_2023,\n",
         "  tourism_change_pct,\n",
-        "  LEAST(tourism_change_pct, 300)        AS tourism_change_pct_chart,\n",
-        "  LEAST(recovery_index_2023, 400)       AS recovery_index_2023_chart,\n",
+        "  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,\n",
+        "  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,\n",
         "  coalesce(tourism_change_pct > 300, false) AS shown_at_chart_cap,\n",
         "  afs_gva_growth_pct,\n",
         "  afs_share_of_gdp_pct,\n",
@@ -547,15 +554,14 @@
         "       THEN 'Same direction'\n",
         "       WHEN tourism_economy_pattern IN ('tourism_up_economy_down', 'tourism_down_economy_up')\n",
         "       THEN 'Opposite directions'\n",
-        "       WHEN tourism_economy_pattern = 'unchanged' THEN 'No change'\n",
+        "       WHEN tourism_economy_pattern LIKE '%unchanged%' THEN 'No change'\n",
         "       ELSE 'Not assessed'\n",
         "  END                                   AS alignment,\n",
         "  alignment_eligible,\n",
         "  alignment_exclusion_reason,\n",
         "  afs_share_eligible,\n",
-        "  intensity_gdp_context_eligible,\n",
-        "  comparable_to_2019,\n",
-        "  comparability_note,\n",
+        "  tourism_intensity_eligible,\n",
+        "  comp_2023                             AS comparable_to_2019,\n",
         "  population_source_2023\n",
         "FROM tuklas_dev.`05_analytics`.tourism_economy\n",
         ") WHERE alignment_eligible\n"
@@ -575,8 +581,8 @@
         "  travelers_2023,\n",
         "  recovery_index_2023,\n",
         "  tourism_change_pct,\n",
-        "  LEAST(tourism_change_pct, 300)        AS tourism_change_pct_chart,\n",
-        "  LEAST(recovery_index_2023, 400)       AS recovery_index_2023_chart,\n",
+        "  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,\n",
+        "  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,\n",
         "  coalesce(tourism_change_pct > 300, false) AS shown_at_chart_cap,\n",
         "  afs_gva_growth_pct,\n",
         "  afs_share_of_gdp_pct,\n",
@@ -595,15 +601,14 @@
         "       THEN 'Same direction'\n",
         "       WHEN tourism_economy_pattern IN ('tourism_up_economy_down', 'tourism_down_economy_up')\n",
         "       THEN 'Opposite directions'\n",
-        "       WHEN tourism_economy_pattern = 'unchanged' THEN 'No change'\n",
+        "       WHEN tourism_economy_pattern LIKE '%unchanged%' THEN 'No change'\n",
         "       ELSE 'Not assessed'\n",
         "  END                                   AS alignment,\n",
         "  alignment_eligible,\n",
         "  alignment_exclusion_reason,\n",
         "  afs_share_eligible,\n",
-        "  intensity_gdp_context_eligible,\n",
-        "  comparable_to_2019,\n",
-        "  comparability_note,\n",
+        "  tourism_intensity_eligible,\n",
+        "  comp_2023                             AS comparable_to_2019,\n",
         "  population_source_2023\n",
         "FROM tuklas_dev.`05_analytics`.tourism_economy\n",
         ") WHERE shown_at_chart_cap\n"
@@ -2061,6 +2066,24 @@
         {
           "widget": {
             "name": "w022",
+            "multilineTextboxSpec": {
+              "lines": [
+                "**NCR note:** NCR is shown as one unit, and some NCR cities printed \"-\" for all traveler counts: 8 cities in 2019, 4 in 2023. Part of NCR's rise therefore reflects more cities reporting, not only recovery. Its status is \"Partly reported\" (`reported_partial`); how to treat it is still to be decided (DL-019).\n",
+                "\n",
+                "**Read with caution (OI-5):** DOT printed some towns as \"-\" in 2019 that report in 2023, so part of the change reflects wider reporting: Camarines Sur (Naga City), Romblon, Surigao del Norte (Siargao Islands), Ilocos Norte (Batac, Pasuquin), Misamis Oriental (Gingoog City), Leyte (Matalom) and Sorsogon.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 25,
+            "width": 6,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "w023",
             "queries": [
               {
                 "name": "main_query",
@@ -2186,14 +2209,14 @@
           },
           "position": {
             "x": 0,
-            "y": 25,
+            "y": 28,
             "width": 4,
             "height": 6
           }
         },
         {
           "widget": {
-            "name": "w023",
+            "name": "w024",
             "multilineTextboxSpec": {
               "lines": [
                 "**Data notes:** Blank means DOT did not report the unit that year; it is never shown as 0. Where DOT printed \"-\" for a traveler category it is counted as 0. Aklan is not compared with 2019 because DOT changed how it counts Aklan from 2021. Totals cover included reporting units only, not the whole country. Patterns show association, not cause.\n"
@@ -2202,7 +2225,7 @@
           },
           "position": {
             "x": 4,
-            "y": 25,
+            "y": 28,
             "width": 2,
             "height": 6
           }
@@ -2216,121 +2239,18 @@
       "layout": [
         {
           "widget": {
-            "name": "w024",
+            "name": "w025",
             "multilineTextboxSpec": {
               "lines": [
                 "## Which traveler groups are behind?\n",
-                "Units still **below 2019**, by traveler group. Foreign and overseas Filipino recovery appear once the Analytics fix in #65 lands.\n"
+                "The 52 units still **below 2019 in 2023**, by traveler group (2023 vs 2019). Read each group with its coverage: a group is not assessed where its 2019 count is 0 or \"-\", or where DOT counts foreign travelers and overseas Filipinos together.\n"
               ]
             }
           },
           "position": {
             "x": 0,
             "y": 0,
-            "width": 2,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "w025",
-            "queries": [
-              {
-                "name": "w025_ds_segments_cohort",
-                "query": {
-                  "datasetName": "ds_segments_cohort",
-                  "fields": [
-                    {
-                      "name": "comparison_year",
-                      "expression": "`comparison_year`"
-                    },
-                    {
-                      "name": "comparison_year_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "w025_ds_segments_mix",
-                "query": {
-                  "datasetName": "ds_segments_mix",
-                  "fields": [
-                    {
-                      "name": "comparison_year",
-                      "expression": "`comparison_year`"
-                    },
-                    {
-                      "name": "comparison_year_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              },
-              {
-                "name": "w025_ds_segments_excluded",
-                "query": {
-                  "datasetName": "ds_segments_excluded",
-                  "fields": [
-                    {
-                      "name": "comparison_year",
-                      "expression": "`comparison_year`"
-                    },
-                    {
-                      "name": "comparison_year_associativity",
-                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "version": 2,
-              "widgetType": "filter-single-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "comparison_year",
-                    "displayName": "Comparison year",
-                    "queryName": "w025_ds_segments_cohort"
-                  },
-                  {
-                    "fieldName": "comparison_year",
-                    "displayName": "Comparison year",
-                    "queryName": "w025_ds_segments_mix"
-                  },
-                  {
-                    "fieldName": "comparison_year",
-                    "displayName": "Comparison year",
-                    "queryName": "w025_ds_segments_excluded"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Comparison year"
-              },
-              "selection": {
-                "defaultSelection": {
-                  "values": {
-                    "dataType": "INTEGER",
-                    "values": [
-                      {
-                        "value": "2023"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "position": {
-            "x": 2,
-            "y": 0,
-            "width": 2,
+            "width": 4,
             "height": 2
           }
         },
@@ -2338,6 +2258,23 @@
           "widget": {
             "name": "w026",
             "queries": [
+              {
+                "name": "w026_ds_segments",
+                "query": {
+                  "datasetName": "ds_segments",
+                  "fields": [
+                    {
+                      "name": "region_name",
+                      "expression": "`region_name`"
+                    },
+                    {
+                      "name": "region_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
               {
                 "name": "w026_ds_segments_cohort",
                 "query": {
@@ -2398,6 +2335,11 @@
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
+                    "queryName": "w026_ds_segments"
+                  },
+                  {
+                    "fieldName": "region_name",
+                    "displayName": "Region",
                     "queryName": "w026_ds_segments_cohort"
                   },
                   {
@@ -2428,6 +2370,76 @@
         {
           "widget": {
             "name": "w027",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_segments",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    },
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "coverage_status",
+                      "expression": "`coverage_status`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "segment",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Traveler group"
+                },
+                "y": {
+                  "fieldName": "count(*)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Units below 2019"
+                },
+                "color": {
+                  "fieldName": "coverage_status",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Coverage"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Coverage: units assessed per traveler group",
+                "showDescription": true,
+                "description": "Out of the units below 2019 in 2023"
+              },
+              "mark": {
+                "layout": "stack"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "w028",
             "queries": [
               {
                 "name": "main_query",
@@ -2491,14 +2503,14 @@
           },
           "position": {
             "x": 0,
-            "y": 2,
+            "y": 8,
             "width": 3,
             "height": 16
           }
         },
         {
           "widget": {
-            "name": "w028",
+            "name": "w029",
             "queries": [
               {
                 "name": "main_query",
@@ -2531,7 +2543,7 @@
                   "scale": {
                     "type": "quantitative"
                   },
-                  "displayName": "Travelers in comparison year"
+                  "displayName": "Travelers in 2023"
                 },
                 "y": {
                   "fieldName": "reporting_unit",
@@ -2553,7 +2565,7 @@
               },
               "frame": {
                 "showTitle": true,
-                "title": "Traveler mix in the comparison year"
+                "title": "Traveler mix in 2023"
               },
               "mark": {
                 "layout": "stack"
@@ -2562,14 +2574,14 @@
           },
           "position": {
             "x": 3,
-            "y": 2,
+            "y": 8,
             "width": 3,
             "height": 16
           }
         },
         {
           "widget": {
-            "name": "w029",
+            "name": "w030",
             "queries": [
               {
                 "name": "main_query",
@@ -2695,7 +2707,7 @@
           },
           "position": {
             "x": 0,
-            "y": 18,
+            "y": 24,
             "width": 6,
             "height": 6
           }
@@ -2709,7 +2721,7 @@
       "layout": [
         {
           "widget": {
-            "name": "w030",
+            "name": "w031",
             "multilineTextboxSpec": {
               "lines": [
                 "## Do tourism and the local economy move together? (2019 to 2023)\n",
@@ -2726,10 +2738,10 @@
         },
         {
           "widget": {
-            "name": "w031",
+            "name": "w032",
             "queries": [
               {
-                "name": "w031_ds_economy",
+                "name": "w032_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -2746,7 +2758,7 @@
                 }
               },
               {
-                "name": "w031_ds_economy_aligned",
+                "name": "w032_ds_economy_aligned",
                 "query": {
                   "datasetName": "ds_economy_aligned",
                   "fields": [
@@ -2763,7 +2775,7 @@
                 }
               },
               {
-                "name": "w031_ds_economy_capped",
+                "name": "w032_ds_economy_capped",
                 "query": {
                   "datasetName": "ds_economy_capped",
                   "fields": [
@@ -2788,17 +2800,17 @@
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w031_ds_economy"
+                    "queryName": "w032_ds_economy"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w031_ds_economy_aligned"
+                    "queryName": "w032_ds_economy_aligned"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w031_ds_economy_capped"
+                    "queryName": "w032_ds_economy_capped"
                   }
                 ]
               },
@@ -2817,10 +2829,10 @@
         },
         {
           "widget": {
-            "name": "w032",
+            "name": "w033",
             "queries": [
               {
-                "name": "w032_ds_economy",
+                "name": "w033_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -2837,7 +2849,7 @@
                 }
               },
               {
-                "name": "w032_ds_economy_aligned",
+                "name": "w033_ds_economy_aligned",
                 "query": {
                   "datasetName": "ds_economy_aligned",
                   "fields": [
@@ -2854,7 +2866,7 @@
                 }
               },
               {
-                "name": "w032_ds_economy_capped",
+                "name": "w033_ds_economy_capped",
                 "query": {
                   "datasetName": "ds_economy_capped",
                   "fields": [
@@ -2879,17 +2891,17 @@
                   {
                     "fieldName": "unit_type",
                     "displayName": "Unit type",
-                    "queryName": "w032_ds_economy"
+                    "queryName": "w033_ds_economy"
                   },
                   {
                     "fieldName": "unit_type",
                     "displayName": "Unit type",
-                    "queryName": "w032_ds_economy_aligned"
+                    "queryName": "w033_ds_economy_aligned"
                   },
                   {
                     "fieldName": "unit_type",
                     "displayName": "Unit type",
-                    "queryName": "w032_ds_economy_capped"
+                    "queryName": "w033_ds_economy_capped"
                   }
                 ]
               },
@@ -2908,10 +2920,10 @@
         },
         {
           "widget": {
-            "name": "w033",
+            "name": "w034",
             "queries": [
               {
-                "name": "w033_ds_economy",
+                "name": "w034_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -2928,7 +2940,7 @@
                 }
               },
               {
-                "name": "w033_ds_economy_aligned",
+                "name": "w034_ds_economy_aligned",
                 "query": {
                   "datasetName": "ds_economy_aligned",
                   "fields": [
@@ -2945,7 +2957,7 @@
                 }
               },
               {
-                "name": "w033_ds_economy_capped",
+                "name": "w034_ds_economy_capped",
                 "query": {
                   "datasetName": "ds_economy_capped",
                   "fields": [
@@ -2970,17 +2982,17 @@
                   {
                     "fieldName": "pattern",
                     "displayName": "Pattern",
-                    "queryName": "w033_ds_economy"
+                    "queryName": "w034_ds_economy"
                   },
                   {
                     "fieldName": "pattern",
                     "displayName": "Pattern",
-                    "queryName": "w033_ds_economy_aligned"
+                    "queryName": "w034_ds_economy_aligned"
                   },
                   {
                     "fieldName": "pattern",
                     "displayName": "Pattern",
-                    "queryName": "w033_ds_economy_capped"
+                    "queryName": "w034_ds_economy_capped"
                   }
                 ]
               },
@@ -2999,7 +3011,7 @@
         },
         {
           "widget": {
-            "name": "w034",
+            "name": "w035",
             "queries": [
               {
                 "name": "main_query",
@@ -3067,7 +3079,7 @@
         },
         {
           "widget": {
-            "name": "w035",
+            "name": "w036",
             "queries": [
               {
                 "name": "main_query",
@@ -3126,7 +3138,7 @@
         },
         {
           "widget": {
-            "name": "w036",
+            "name": "w037",
             "queries": [
               {
                 "name": "main_query",
@@ -3193,7 +3205,7 @@
         },
         {
           "widget": {
-            "name": "w037",
+            "name": "w038",
             "queries": [
               {
                 "name": "main_query",
@@ -3260,7 +3272,7 @@
         },
         {
           "widget": {
-            "name": "w038",
+            "name": "w039",
             "queries": [
               {
                 "name": "main_query",
@@ -3460,7 +3472,7 @@
         },
         {
           "widget": {
-            "name": "w039",
+            "name": "w040",
             "queries": [
               {
                 "name": "main_query",
@@ -3720,7 +3732,7 @@
         },
         {
           "widget": {
-            "name": "w040",
+            "name": "w041",
             "multilineTextboxSpec": {
               "lines": [
                 "**Data notes:** Blank means DOT did not report the unit that year; it is never shown as 0. Where DOT printed \"-\" for a traveler category it is counted as 0. Aklan is not compared with 2019 because DOT changed how it counts Aklan from 2021. Totals cover included reporting units only, not the whole country. Patterns show association, not cause.\n"
@@ -3743,7 +3755,7 @@
       "layout": [
         {
           "widget": {
-            "name": "w041",
+            "name": "w042",
             "multilineTextboxSpec": {
               "lines": [
                 "## One reporting unit in one place\n",
@@ -3760,10 +3772,10 @@
         },
         {
           "widget": {
-            "name": "w042",
+            "name": "w043",
             "queries": [
               {
-                "name": "w042_ds_economy",
+                "name": "w043_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -3780,7 +3792,7 @@
                 }
               },
               {
-                "name": "w042_ds_activity",
+                "name": "w043_ds_activity",
                 "query": {
                   "datasetName": "ds_activity",
                   "fields": [
@@ -3797,7 +3809,7 @@
                 }
               },
               {
-                "name": "w042_ds_segments",
+                "name": "w043_ds_segments",
                 "query": {
                   "datasetName": "ds_segments",
                   "fields": [
@@ -3814,7 +3826,7 @@
                 }
               },
               {
-                "name": "w042_ds_caveats",
+                "name": "w043_ds_caveats",
                 "query": {
                   "datasetName": "ds_caveats",
                   "fields": [
@@ -3839,22 +3851,22 @@
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w042_ds_economy"
+                    "queryName": "w043_ds_economy"
                   },
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w042_ds_activity"
+                    "queryName": "w043_ds_activity"
                   },
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w042_ds_segments"
+                    "queryName": "w043_ds_segments"
                   },
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w042_ds_caveats"
+                    "queryName": "w043_ds_caveats"
                   }
                 ]
               },
@@ -3885,7 +3897,7 @@
         },
         {
           "widget": {
-            "name": "w043",
+            "name": "w044",
             "queries": [
               {
                 "name": "main_query",
@@ -3925,7 +3937,7 @@
         },
         {
           "widget": {
-            "name": "w044",
+            "name": "w045",
             "queries": [
               {
                 "name": "main_query",
@@ -3965,7 +3977,7 @@
         },
         {
           "widget": {
-            "name": "w045",
+            "name": "w046",
             "queries": [
               {
                 "name": "main_query",
@@ -4005,7 +4017,7 @@
         },
         {
           "widget": {
-            "name": "w046",
+            "name": "w047",
             "queries": [
               {
                 "name": "main_query",
@@ -4045,7 +4057,7 @@
         },
         {
           "widget": {
-            "name": "w047",
+            "name": "w048",
             "queries": [
               {
                 "name": "main_query",
@@ -4085,7 +4097,7 @@
         },
         {
           "widget": {
-            "name": "w048",
+            "name": "w049",
             "queries": [
               {
                 "name": "main_query",
@@ -4125,7 +4137,7 @@
         },
         {
           "widget": {
-            "name": "w049",
+            "name": "w050",
             "queries": [
               {
                 "name": "main_query",
@@ -4289,7 +4301,7 @@
         },
         {
           "widget": {
-            "name": "w050",
+            "name": "w051",
             "queries": [
               {
                 "name": "main_query",
@@ -4349,7 +4361,7 @@
         },
         {
           "widget": {
-            "name": "w051",
+            "name": "w052",
             "queries": [
               {
                 "name": "main_query",
@@ -4365,8 +4377,8 @@
                       "expression": "SUM(`recovery_index`)"
                     },
                     {
-                      "name": "comparison_year",
-                      "expression": "`comparison_year`"
+                      "name": "coverage_status",
+                      "expression": "`coverage_status`"
                     }
                   ],
                   "disaggregated": false
@@ -4392,19 +4404,18 @@
                   "displayName": "Recovery index"
                 },
                 "color": {
-                  "fieldName": "comparison_year",
+                  "fieldName": "coverage_status",
                   "scale": {
                     "type": "categorical"
                   },
-                  "displayName": "Comparison year"
+                  "displayName": "Coverage"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Recovery by traveler group (100 = 2019 level)"
-              },
-              "mark": {
-                "layout": "group"
+                "title": "Recovery by traveler group, 2023 (100 = 2019 level)",
+                "showDescription": true,
+                "description": "Shown only for units below 2019 in 2023"
               }
             }
           },
@@ -4417,7 +4428,7 @@
         },
         {
           "widget": {
-            "name": "w052",
+            "name": "w053",
             "queries": [
               {
                 "name": "main_query",
@@ -4648,7 +4659,7 @@
         },
         {
           "widget": {
-            "name": "w053",
+            "name": "w054",
             "queries": [
               {
                 "name": "main_query",

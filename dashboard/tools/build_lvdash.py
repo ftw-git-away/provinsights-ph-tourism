@@ -29,9 +29,9 @@ datasets = {
     "ds_recovery_excluded": ("Recovery (not assessed)", wrap(REC, "NOT recovery_eligible")),
     "ds_recovery_compare":  ("Recovery 2022 vs 2023", wrap(CMP, "recovery_index_2022 IS NOT NULL AND recovery_index_2023 IS NOT NULL")),
     "ds_segments":          ("Segments (all)", SEG),
-    "ds_segments_cohort":   ("Segments (units below 2019)", wrap(SEG, "segment_analysis_cohort_flag AND eligible")),
-    "ds_segments_mix":      ("Segments mix (units below 2019)", wrap(SEG, "segment_analysis_cohort_flag")),
-    "ds_segments_excluded": ("Segments not assessed", wrap(SEG, "segment_analysis_cohort_flag AND NOT eligible")),
+    "ds_segments_cohort":   ("Segments (units below 2019)", wrap(SEG, "eligible")),
+    "ds_segments_mix":      ("Segments mix (units below 2019)", SEG),
+    "ds_segments_excluded": ("Segments not assessed", wrap(SEG, "NOT eligible")),
     "ds_economy":           ("Tourism x economy (all units)", ECO),
     "ds_economy_aligned":   ("Tourism x economy (assessed units)", wrap(ECO, "alignment_eligible")),
     "ds_economy_capped":    ("Very large tourism changes", wrap(ECO, "shown_at_chart_cap")),
@@ -218,6 +218,11 @@ p2.row(16,
     (scatter("ds_recovery_compare", ("recovery_index_2022", "Recovery index 2022"),
              ("recovery_index_2023", "Recovery index 2023"), ("unit_type", "Unit type"),
              "2022 vs 2023: did units keep recovering?", "Above the diagonal = higher in 2023 than 2022. Not affected by Comparison year."), 3))
+p2.row(3, (text("""
+**NCR note:** NCR is shown as one unit, and some NCR cities printed "-" for all traveler counts: 8 cities in 2019, 4 in 2023. Part of NCR's rise therefore reflects more cities reporting, not only recovery. Its status is "Partly reported" (`reported_partial`); how to treat it is still to be decided (DL-019).
+
+**Read with caution (OI-5):** DOT printed some towns as "-" in 2019 that report in 2023, so part of the change reflects wider reporting: Camarines Sur (Naga City), Romblon, Surigao del Norte (Siargao Islands), Ilocos Norte (Batac, Pasuquin), Misamis Oriental (Gingoog City), Leyte (Matalom) and Sorsogon.
+"""), 6))
 p2.row(6, (table("ds_recovery_excluded", [("reporting_unit", "Reporting unit", "string"), ("unit_type", "Unit type", "string"),
                                          ("recovery_exclusion_reason", "Why not assessed", "string")],
                  "Units not assessed and why"), 4), (text(DATA_NOTES), 2))
@@ -226,16 +231,18 @@ p2.row(6, (table("ds_recovery_excluded", [("reporting_unit", "Reporting unit", "
 p3 = Page("p_segments", "3. Traveler Recovery")
 p3.row(2, (text("""
 ## Which traveler groups are behind?
-Units still **below 2019**, by traveler group. Foreign and overseas Filipino recovery appear once the Analytics fix in #65 lands.
-"""), 2), (filt("filter-single-select", "comparison_year", "Comparison year",
-               ["ds_segments_cohort", "ds_segments_mix", "ds_segments_excluded"], default=2023, dtype="INTEGER"), 2),
-   (filt("filter-multi-select", "region_name", "Region", ["ds_segments_cohort", "ds_segments_mix", "ds_segments_excluded"]), 2))
+The 52 units still **below 2019 in 2023**, by traveler group (2023 vs 2019). Read each group with its coverage: a group is not assessed where its 2019 count is 0 or "-", or where DOT counts foreign travelers and overseas Filipinos together.
+"""), 4), (filt("filter-multi-select", "region_name", "Region", ["ds_segments", "ds_segments_cohort", "ds_segments_mix", "ds_segments_excluded"]), 2))
+p3.row(6,
+    (bar("ds_segments", (f("segment"), "Traveler group"), (COUNT, "Units below 2019"),
+         "Coverage: units assessed per traveler group", color=(f("coverage_status"), "Coverage"),
+         layout="stack", sort=False, desc="Out of the units below 2019 in 2023"), 6))
 p3.row(16,
     (bar("ds_segments_cohort", (agg("SUM", "recovery_index"), "Recovery index (100 = 2019 level)"),
          (f("reporting_unit"), "Reporting unit"), "Recovery index by traveler group",
          color=(f("segment"), "Traveler group"), horizontal=True, layout="group"), 3),
-    (bar("ds_segments_mix", (agg("SUM", "travelers_comparison"), "Travelers in comparison year"),
-         (f("reporting_unit"), "Reporting unit"), "Traveler mix in the comparison year",
+    (bar("ds_segments_mix", (agg("SUM", "travelers_comparison"), "Travelers in 2023"),
+         (f("reporting_unit"), "Reporting unit"), "Traveler mix in 2023",
          color=(f("segment"), "Traveler group"), horizontal=True, layout="stack"), 3))
 p3.row(6, (table("ds_segments_excluded", [("reporting_unit", "Reporting unit", "string"), ("segment", "Traveler group", "string"),
                                          ("exclusion_reason", "Why not assessed", "string")],
@@ -295,8 +302,8 @@ p5.row(7,
     (line("ds_activity", (f("year"), "Year"), [(agg("SUM", "total_travelers"), "Travelers")], "Travelers 2019-2024",
           "Missing years are gaps, not zero"), 3),
     (bar("ds_segments", (f("segment"), "Traveler group"), (agg("SUM", "recovery_index"), "Recovery index"),
-         "Recovery by traveler group (100 = 2019 level)", color=(f("comparison_year"), "Comparison year"),
-         layout="group", sort=False), 3))
+         "Recovery by traveler group, 2023 (100 = 2019 level)", color=(f("coverage_status"), "Coverage"),
+         sort=False, desc="Shown only for units below 2019 in 2023"), 3))
 p5.row(7,
     (table("ds_activity", [("year", "Year", "integer"), ("total_travelers", "Travelers", "integer"),
                            ("population_total", "Population", "integer"),

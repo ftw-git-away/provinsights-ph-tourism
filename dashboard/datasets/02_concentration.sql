@@ -9,6 +9,5 @@ SELECT
   top_5_travelers,
   top_5_share_pct,
   top_10_travelers,
-  top_10_share_pct,
-  coverage_note
+  top_10_share_pct
 FROM tuklas_dev.`05_analytics`.tourism_concentration
