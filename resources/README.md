@@ -33,7 +33,7 @@ silver_setup ───────┴─ silver_geography
                         ├─ silver_psa_economy
                         └─ silver_population
 gold_setup ─┬─ gold_dim_province ─┐
-            └─ gold_dim_year ─────┴─ gold_fact_province_year ─ gold_run_evidence ─ analytics
+            └─ gold_dim_year ─────┴─ gold_fact_province_year ─ gold_run_evidence ─ analytics ─ analytics_run_evidence
 ```
 
 ### Tasks
@@ -55,8 +55,13 @@ gold_setup ─┬─ gold_dim_province ─┐
 | 04 Gold | `gold_fact_province_year` | `notebooks/04_gold/03_gold_fact_province_year.ipynb` | `gold_dim_province`, `gold_dim_year`, `silver_dot`, `silver_psa_economy`, `silver_population` |
 | 04 Gold | `gold_run_evidence` | `notebooks/04_gold/04_gold_run_evidence.ipynb` | `gold_fact_province_year` |
 | 05 Analytics | `analytics` | `notebooks/05_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
+| 05 Analytics | `analytics_run_evidence` | `notebooks/05_analytics/02_analytics_run_evidence.ipynb` | `analytics` |
 
-Bronze tables are written by the ingestion notebooks. Silver notebooks run their own
+There is no `02_bronze` folder: the ingestion notebooks in `01_ingestion` write the Bronze
+tables themselves, so the layer numbers go from `01` to `03`. The `02` prefix stays reserved
+so the folder numbers keep matching the medallion layers (Bronze = 02, Silver = 03, Gold = 04).
+
+Silver notebooks run their own
 data-quality checks before writing; results go to `06_data_quality.dq_results`, and a failed
 `BLOCK` check fails the task, which stops every task that depends on it.
 
@@ -104,7 +109,7 @@ addresses under `on_failure:` in `tourism_pipeline.yml` (one `- email` per line)
 5. Open a small PR. After it merges, the deploy workflow updates the job automatically.
 
 Layer folders use underscores: `01_ingestion`, `03_silver`, `04_gold`, `05_analytics`,
-`06_data_quality`.
+`06_data_quality`. There is no `02_bronze` folder, because Bronze is written during ingestion.
 
 ## Testing the job in your own dev folder
 
