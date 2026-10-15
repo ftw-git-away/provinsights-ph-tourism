@@ -4,6 +4,10 @@ bundle:
 include:
   - resources/jobs/*.yml
 
+variables:
+  alert_email:
+    description: Email address that receives pipeline failure notifications
+
 targets:
   dev:
     mode: development

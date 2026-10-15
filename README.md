@@ -1,123 +1,135 @@
-# Tuklas Pinas Data Platform
+# ProvInsights
 
-[![CI](https://github.com/ftw-git-away/tuklas-pinas-data-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/tuklas-pinas-data-platform/actions/workflows/ci.yml)
+[![CI](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml)
 
-A public-facing tourism and local economy data platform for exploring tourism activity across Philippine destinations and how it relates to local economic, geographic, and population conditions.
+**Philippine Province-Level Tourism, Recovery, and Economic Analytics Project**
 
-**GitHub organization:** [ftw-git-away](https://github.com/ftw-git-away)  
-**Project status:** Capstone project in development
+ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data to show where tourism is concentrated, which provinces are back to their 2019 level, and whether tourism and local hotel and restaurant activity move together. The client is a fictional persona, the Tourism-Economy Convergence Task Force (TECTF), which asks whether tourism growth is reaching beyond the usual strong destinations.
 
-## The problem
+**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. Accommodation and food services (A&F) GVA is an economic proxy that includes spending unrelated to tourism. Findings support descriptive comparisons and further investigation, not causal or investment-return claims. A missing value is never treated as zero.
 
-What makes tourism and local economic information difficult to compare destinations or understand where tourism opportunities are concentrated is that it's published by multiple agencies, with different geographic levels, reporting periods, and classifications.
+## Analytical scope
 
-_Tuklas Pinas_ aims to bring compatible, documented datasets together and make the resulting indicators accessible through a public website. Visitors should be able to explore published data through filters, visualizations, tables, and downloads.
+The canonical questions, definitions, thresholds and confirmed results are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md).
 
-## Questions the platform is designed to explore
+| Business question | Analytical questions | Analytics table |
+| --- | --- | --- |
+| **BQ1:** Which provinces stand out in tourism activity and recovery, and which appear to be lagging? | AQ1.1 activity, intensity and concentration | `tourism_activity`, `tourism_concentration` |
+| | AQ1.2 recovery relative to 2019 | `tourism_recovery` |
+| | AQ1.3 recovery by traveler type (domestic, foreign, overseas Filipino) among provinces below 2019 | `traveler_segment_recovery` |
+| **BQ2:** How are changes in tourism associated with changes in local tourism-related economic activity? | AQ2.1 tourism change and real A&F growth | `tourism_economy` |
+| | AQ2.2 alignment and divergence | `tourism_economy` |
+| | AQ2.3 economic significance of A&F | `tourism_economy` |
+| | AQ2.4 tourism outcomes versus the 2019 economic base | `tourism_economy` |
 
-- Which destinations and provinces show tourism activity in the available data?
-- Where are tourism opportunities concentrated?
-- How do tourism indicators relate to local economic and population conditions?
-- How do these patterns change over time?
-
-## Intended users
-
-- Travelers, researchers, students, and the public looking for accessible tourism information
-- Local planners and tourism stakeholders exploring destination-level indicators
-- Project contributors who need documented, reproducible data models and pipelines
+The baseline year is **2019**, the comparison years are **2022 and 2023**, and the headline year is **2023**. Source data covers 2019–2024. The "usual strong destinations" are the ten most visited units in 2019.
 
 ## Data sources
 
-These are candidate public sources. The team will confirm dataset availability, definitions, licensing, update frequency, and geographic coverage before integrating them.
-
-| Candidate source | Potential contribution |
+| Source | Role |
 | --- | --- |
-| [Department of Tourism data](https://www.tourism.gov.ph/dot/data/) | Tourism indicators and statistics |
-| Philippine Statistics Authority (PSA) | Population statistics, tourism satellite accounts, and regional GDP/GRDP |
-| Philippine Standard Geographic Code (PSGC) | Standard geographic identifiers and administrative classifications |
+| DOT overnight-traveler reports | Provincial tourism activity and recovery |
+| PSA population sources | Population denominators for intensity |
+| PSA provincial GDP, GDP per capita, and A&F GVA | Economic comparisons: current prices for shares, constant prices for growth |
+| PSGC | Geographic reference and historical crosswalk |
 
-Each integrated dataset should have a source record, retrieval date, licensing and attribution notes, coverage description, and transformation history.
+See [Source assessment](docs/consolidated-data-sources.md) and [Data sources](docs/data-sources.md) for identifiers and limitations.
 
-## Proposed platform architecture
+## How the pipeline works
 
-The design separates data processing from the public experience:
-
-```mermaid
-flowchart LR
-    S[DOT, PSA, PSGC and other approved sources] --> I[Ingestion and source validation]
-    I --> B[Databricks: raw and cleaned data]
-    B --> G[Databricks Gold marts]
-    G --> Q[Read-only query API]
-    Q --> W[Public Tuklas Pinas website]
-    W --> V[Filters, charts, maps, tables and downloads]
+```text
+Government source files
+    → Ingestion and Bronze      (notebooks/01_ingestion)
+    → Silver                    (notebooks/03_silver)
+    → Gold                      (notebooks/04_gold)
+    → Analytics                 (notebooks/05_analytics)
+    → Dashboard
 ```
 
-- **Databricks** is the planned environment for ingesting, transforming, validating, and serving curated Gold marts.
-- **The public data platform** will present indicators and let visitors explore supported dimensions such as geography, time, and indicator.
-- **GitHub** holds source code, SQL, documentation, issues, project planning, and automation. GitHub Pages can host a static site.
-- Databricks Apps require authenticated Databricks users, so they are not the assumed host for an anonymously accessible public portal. The team will verify hosting and access choices before implementation.
+- **Silver** cleans each source and maps places to PSGC units. Each Silver notebook runs its own data-quality checks and fails on a BLOCK error.
+- **Gold** is a star schema: `dim_province`, `dim_year` and `fact_province_year` (see [schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md)).
+- **Analytics** calculates the business metrics once, in five tables in `05_analytics`. Every row carries the Analytics run ID and the exact Gold Delta versions it was built from.
+- **Data quality:** check results are saved in `06_data_quality.dq_results`, and each layer records its runs in a run log (`silver_run_log`, `gold_run_log`, `05_analytics.analytics_run_log`). A BLOCK check protects correctness. A REVIEW check flags something unusual that needs a person to look.
 
-As of September 27, 2026: This is a proposed architecture, not a claim that the pipeline or website is already deployed.
+Run evidence: [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md).
 
-## Data model and quality
-
-Model documentation should identify:
-
-- The grain of every table (what one row represents)
-- Primary and foreign keys, including geographic and date keys
-- Important fields, data types, units, and definitions
-- Source-to-target lineage and transformation rules
-- Known coverage gaps, null handling, and caveats
-
-Planned validation includes checks appropriate to each source, such as required fields, valid dates and codes, uniqueness at the documented grain, accepted value ranges, and reconciliation against source totals where possible. Failed critical checks should stop publication of affected data until reviewed.
+The job in [`resources/jobs/tourism_pipeline.yml`](resources/jobs/tourism_pipeline.yml) runs the layers in dependency order. Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
 
 ## Repository guide
 
-The repository is being established. As implementation grows, it will hold the project's authoritative code and documentation. Proposed areas include:
+```text
+.github/
+  PULL_REQUEST_TEMPLATE.md
+  workflows/                      # ci.yml, deploy.yml
+docs/
+  business-and-analytical-questions.md
+  consolidated-data-sources.md
+  data-sources.md
+  schema-and-source-to-target-mapping.md
+  bronze-ingestion-guide.md
+  gold-run-evidence.md
+  analytics-run-evidence.md
+  project-decision-log.md
+  architecture.md                 # placeholder
+  runbook.md                      # placeholder
+notebooks/
+  01_ingestion/                   # sources to Bronze
+  03_silver/
+  04_gold/
+  05_analytics/                   # build, validation, run evidence
+resources/
+  jobs/tourism_pipeline.yml       # end-to-end Databricks job
+  seeds/                          # reviewed crosswalk files
+databricks.yml                    # Databricks bundle
+src/                              # folder guidance; pipeline logic lives in the notebooks
+tests/
+  README.md                       # validation guidance, no automated tests yet
+dashboard/
+  README.md                       # placeholder
+```
 
-- `docs/` - architecture, data model, decisions, and operating guides
-- `src/` - ingestion, transformation, API, and website code as those components are selected
-- `notebooks/` - contains the compiled, documented Databricks workflow
-- `tests/` - data and application validation
-- `.github/` - collaboration and automation workflows
+## Databricks deployment
 
-Numbered folders show execution order; file names use lowercase snake_case.
+The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It needs one variable, `alert_email`, which receives failure emails. No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)).
 
-The repository's actual structure and run instructions will be documented here as files are added.
+**How changes reach Databricks**
 
-## Project milestones
+1. Open a pull request. CI runs **Validate repository** and **Validate Databricks bundle**.
+2. After approval, merge into `main`.
+3. The **CD - Deploy ProvInsights PH to Databricks** workflow validates and deploys the bundle. Deploying updates the job but does not run it.
 
-1. Confirm questions, data sources, licensing, coverage, and project scope.
-2. Design and document the schemas, keys, grains, and source mappings.
-3. Build and validate the Gold marts.
-4. Develop the query experience, analytics, and public website.
-5. Document setup, validation results, engineering decisions, and limitations.
-6. Prepare the demonstration and capstone defense.
+**Working with the bundle locally**
 
-Use the organization's GitHub Project as the current source of truth for assignments, status, and target dates.
+```bash
+# sign in once
+databricks auth login --host <workspace URL> --profile <profile>
 
-## Team
+# check the bundle (run before every pull request)
+databricks bundle validate -t dev -p <profile> --var="alert_email=<your email>"
 
-GitAway is the FTW Batch 12 Data Engineering capstone team working on Tuklas Pinas.
+# deploy to your own dev folder
+databricks bundle deploy -t dev -p <profile> --var="alert_email=<your email>"
 
-- Cole
-- Nella
-- Cha
-- Gab
-- Haze
+# run the pipeline (writes to the shared tuklas_dev catalog; tell the team first)
+databricks bundle run -t dev -p <profile> tourism_pipeline --var="alert_email=<your email>"
+```
 
-## Contributing
+## Team workflow
 
-Work should be traceable and reviewable:
-
-1. Pick up or create an issue describing the work and its acceptance criteria.
+1. Link work to an issue and state its acceptance criteria.
 2. Make a focused change on a branch.
-3. Open a pull request that links the issue and explains the change and validation.
-4. Request a teammate review and address feedback before merging.
+3. Open a PR using the [PR template](.github/PULL_REQUEST_TEMPLATE.md), explaining behavior, source or schema changes, and validation evidence.
+4. Request a teammate review and address findings before merging.
+5. Update relevant documentation when implementation or decisions change.
 
-Do not commit credentials, access tokens, private data, or unpublished personal information. Keep commit messages and pull requests specific so the project history shows what changed and why.
+Use the [Decision log](docs/project-decision-log.md) for approved choices. Preserve original source artifacts and keep credentials out of Git.
 
-## Handoff readiness
+CI checks repository structure, Python files under `src/`, notebook structure, syntax in marked Python and SQL cells, and the Databricks bundle. It does not run the notebooks or validate source data.
 
-This README describes the intended project and proposed architecture. It does not yet provide complete setup and run instructions or prove that the pipeline and public portal are operational. The project should be considered **Not yet ready** for independent engineering handoff until an engineer can set it up, run it, inspect meaningful validation results, and modify the documented models without clarification.
+## Team and handoff
 
+**GitAway, FTW Batch 12 LT3:** Cole, Nella, Cha, Gab, and Haze.
+
+Use the GitHub Project and issues for assignments and checkpoints.
+
+**Handoff status: partly ready.** The ingestion, Silver, Gold and Analytics notebooks, the job definition, and run evidence for Gold and Analytics are in the repository. Still missing: the architecture and runbook documents, automated tests in `tests/`, and a dashboard guide.
