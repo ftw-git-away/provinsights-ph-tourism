@@ -21,6 +21,7 @@ datasets = {
     "ds_top_intensity":     ("Top 15 by intensity", wrap(ACT, "intensity_eligible AND intensity_rank <= 15")),
     "ds_bottom_travelers":  ("Bottom 15 by travelers", f"SELECT * FROM (SELECT *, MAX(tourism_rank) OVER (PARTITION BY year) AS lowest_rank FROM (\n{ACT}\n) WHERE activity_eligible) WHERE tourism_rank > lowest_rank - 15"),
     "ds_bottom_intensity":  ("Bottom 15 by intensity", f"SELECT * FROM (SELECT *, MAX(intensity_rank) OVER (PARTITION BY year) AS lowest_rank FROM (\n{ACT}\n) WHERE intensity_eligible) WHERE intensity_rank > lowest_rank - 15"),
+    "ds_map_activity":      ("Map: travelers by unit", wrap(ACT, "activity_eligible")),
     "ds_activity_excluded": ("Units not included", wrap(ACT, "NOT activity_eligible")),
     "ds_concentration":     ("Concentration (KPIs)", CONC),
     "ds_concentration_trend": ("Concentration (trend)", CONC),
@@ -36,6 +37,23 @@ datasets = {
     "ds_economy_aligned":   ("Tourism x economy (assessed units)", wrap(ECO, "alignment_eligible")),
     "ds_economy_capped":    ("Very large tourism changes", wrap(ECO, "shown_at_chart_cap")),
     "ds_caveats":           ("Caveats", CAV),
+    # ---- Presentation page (2023, fixed) ----
+    "ds_p_pareto":    ("Presentation: Pareto (top 30, 2023)", f"""SELECT *,
+  lpad(cast(tourism_rank AS STRING), 2, '0') || ' ' || reporting_unit AS ranked_unit,
+  CASE WHEN tourism_rank <= 10 THEN 'Top 10' ELSE 'Ranks 11-30' END AS rank_group,
+  SUM(tourism_share_pct) OVER (ORDER BY tourism_rank) AS cumulative_share_pct
+FROM (
+{ACT}
+) WHERE year = 2023 AND activity_eligible AND tourism_rank <= 30"""),
+    "ds_p_recovery":  ("Presentation: recovery 2023", wrap(REC, "comparison_year = 2023 AND recovery_eligible")),
+    "ds_p_leaders":   ("Presentation: usual leaders vs other places", f"""SELECT *, CASE WHEN recovery_status = 'Above 2019' THEN 100.0 ELSE 0.0 END AS above_2019_pct_points
+FROM (
+{REC}
+) WHERE comparison_year = 2023 AND recovery_eligible"""),
+    "ds_p_segments":  ("Presentation: domestic vs foreign", wrap(SEG, "eligible AND segment IN ('Domestic', 'Foreign')")),
+    "ds_p_afs_top15": ("Presentation: A&F share top 15", f"""SELECT * FROM (
+{ECO}
+) WHERE afs_share_eligible ORDER BY afs_share_of_gdp_pct DESC LIMIT 15"""),
 }
 
 ids = (f"w{n:03d}" for n in itertools.count(1))
@@ -97,6 +115,18 @@ def scatter(ds, x, y, color, title, desc=None):
                      "encodings": {"x": enc(x[0], "quantitative", x[1]),
                                    "y": enc(y[0], "quantitative", y[1]),
                                    "color": enc(color[0], "categorical", color[1])},
+                     "frame": frame(title, desc)}}
+
+def point_map(ds, size, color, title, desc=None, tooltip=()):
+    """AI/BI point map: one dot per unit at (latitude, longitude)."""
+    fields = [f("latitude"), f("longitude"), f(size[0]), f(color[0])] + [f(t) for t in tooltip]
+    return {"name": next(ids), "queries": q(ds, fields, disagg=True),
+            "spec": {"version": 3, "widgetType": "symbol-map",
+                     "encodings": {"coordinates": {"latitude": {"fieldName": "latitude", "displayName": "Latitude"},
+                                                   "longitude": {"fieldName": "longitude", "displayName": "Longitude"}},
+                                   "size": {"fieldName": size[0], "scale": {"type": "quantitative"}, "displayName": size[1]},
+                                   "color": {"fieldName": color[0], "scale": {"type": "categorical"}, "displayName": color[1]},
+                                   "extra": [{"fieldName": t, "displayName": t} for t in tooltip]},
                      "frame": frame(title, desc)}}
 
 NUMFMT = {"integer": "0,0", "float": "0,0.0"}
@@ -163,7 +193,7 @@ p1.row(2, (text("""
 ## Where is tourism activity highest?
 100 reporting units: 82 provinces, 16 highly urbanized cities (HUCs), City of Isabela and NCR. **Tourism intensity** = travelers per 1,000 residents. Use the **Year** filter (default 2023).
 """), 4), (filt("filter-single-select", "year", "Year",
-               ["ds_concentration", "ds_top_travelers", "ds_top_intensity", "ds_bottom_travelers", "ds_bottom_intensity", "ds_activity_excluded"],
+               ["ds_concentration", "ds_top_travelers", "ds_top_intensity", "ds_bottom_travelers", "ds_bottom_intensity", "ds_activity_excluded", "ds_map_activity"],
                default=2023, dtype="INTEGER"), 2))
 p1.row(3,
     (counter("ds_concentration", agg("SUM", "eligible_total_travelers"), "Travelers in included units",
@@ -172,6 +202,10 @@ p1.row(3,
     (counter("ds_concentration", agg("SUM", "excluded_reporting_unit_count"), "Units not included"), 1),
     (counter("ds_concentration", agg("SUM", "top_5_share_pct"), "Top 5 share (%)"), 1),
     (counter("ds_concentration", agg("SUM", "top_10_share_pct"), "Top 10 share (%)"), 1))
+p1.row(12, (point_map("ds_map_activity", ("total_travelers", "Overnight travelers"), ("unit_type", "Unit type"),
+                      "Where tourism activity is, by reporting unit",
+                      "Dot size = overnight travelers in the selected year; HUCs, City of Isabela and NCR are their own dots",
+                      tooltip=("reporting_unit", "tourism_intensity_per_1000")), 6))
 p1.row(9,
     (bar("ds_top_travelers", (agg("SUM", "total_travelers"), "Travelers"), (f("reporting_unit"), "Reporting unit"),
          "Top 15 units by travelers", color=(f("unit_type"), "Unit type"), horizontal=True), 3),
@@ -211,6 +245,10 @@ p2.row(7,
          "Units above, below or not assessed against 2019", color=(f("recovery_status"), "Recovery status")), 2),
     (bar("ds_recovery", (f("region_name"), "Region"), (COUNT, "Reporting units"), "Recovery status by region",
          color=(f("recovery_status"), "Recovery status"), layout="stack", sort=False), 4))
+p2.row(12, (point_map("ds_economy", ("travelers_2023", "Overnight travelers 2023"), ("recovery_status_2023", "2023 vs 2019"),
+                      "Where recovery lags (2023 vs 2019)",
+                      "Colour = above / below 2019 in 2023; not assessed units (no data or not comparable) are shown separately",
+                      tooltip=("reporting_unit", "recovery_index_2023", "destination_label")), 6))
 p2.row(16,
     (bar("ds_recovery_eligible", (agg("SUM", "recovery_index"), "Recovery index (100 = 2019 level)"),
          (f("reporting_unit"), "Reporting unit"), "Recovery index by unit",
@@ -312,10 +350,48 @@ p5.row(7,
            "Year by year"), 4),
     (table("ds_caveats", [("year", "Year", "integer"), ("caveat", "Caveat", "string")], "Caveats for this unit"), 2))
 
+# ---------- Page 6: Presentation charts (2023, no filters) ----------
+p6 = Page("p_presentation", "6. Presentation charts")
+p6.row(2, (text("""
+## Presentation charts (2023 vs 2019)
+One chart per slide. Every chart reads the stored Analytics values for 2023; there are no filters, so screenshots always match the slide numbers.
+"""), 6))
+p6.row(8, (bar("ds_p_pareto", (f("ranked_unit"), "Reporting unit (ranked)"), (agg("SUM", "total_travelers"), "Overnight travelers, 2023"),
+               "The usual leaders, by volume", color=(f("rank_group"), "Group"), sort=False,
+               desc="Top 30 units by overnight travelers in 2023; top 10 = 44.6% of included travelers"), 6))
+p6.row(5, (line("ds_p_pareto", (f("ranked_unit"), "Reporting unit (ranked)"),
+                [(agg("SUM", "cumulative_share_pct"), "Cumulative share of included travelers (%)")],
+                "Cumulative share of travelers (Pareto line)", "Running total of each unit's stored share (tourism_share_pct)"), 6))
+p6.row(14, (bar("ds_p_recovery", (agg("SUM", "recovery_index"), "2023 travelers as % of 2019 (100 = 2019 level)"),
+                (f("reporting_unit"), "Reporting unit"), "Where recovery lags",
+                color=(f("recovery_status"), "2023 vs 2019"), horizontal=True,
+                desc="91 units assessed; 9 not assessed (no data, or not comparable: Aklan)"), 3),
+           (bar("ds_p_segments", (f("segment"), "Traveler type"), (agg("MEDIAN", "recovery_index"), "Median 2023 as % of 2019"),
+                "Who's still missing? Domestic vs foreign", color=(f("segment"), "Traveler type"), sort=False,
+                desc="Units still below 2019 in 2023: domestic 52, foreign 47 assessed (median of stored indices)"), 3))
+p6.row(12, (point_map("ds_economy", ("travelers_2023", "Overnight travelers 2023"), ("recovery_status_2023", "2023 vs 2019"),
+                      "Where recovery lags: map", "Map version of the recovery slide (2023)",
+                      tooltip=("reporting_unit", "recovery_index_2023")), 6))
+p6.row(10, (scatter("ds_economy_aligned", ("tourism_change_pct_chart", "% change in overnight travelers, 2019-2023 (capped at +300)"),
+                    ("afs_gva_growth_pct", "% change in real A&F output, 2019-2023"), ("pattern", "Pattern"),
+                    "Tourists vs local business, 2019-2023", "91 comparable units. Top-left: travelers down, A&F up (30); bottom-right: travelers up, A&F down (13)"), 3),
+            (bar("ds_p_afs_top15", (agg("SUM", "afs_share_of_gdp_pct"), "A&F as % of the local economy (provincial GDP), 2023"),
+                 (f("reporting_unit"), "Reporting unit"), "Where tourism carries the economy (top 15)",
+                 color=(f("recovery_status_2023"), "2023 vs 2019"), horizontal=True,
+                 desc="Colour = still below 2019 or not"), 3))
+p6.row(7, (bar("ds_p_leaders", (f("destination_group"), "Group"), (agg("AVG", "above_2019_pct_points"), "% of units above 2019"),
+               "Did only the usual leaders recover? Share above 2019", color=(f("destination_group"), "Group"), sort=False,
+               desc="Usual leaders = 2019 top 10 (9 assessed); other places = 82 assessed"), 3),
+           (bar("ds_p_leaders", (f("destination_group"), "Group"), (agg("MEDIAN", "recovery_index"), "Median 2023 as % of 2019"),
+                "Did only the usual leaders recover? Median recovery", color=(f("destination_group"), "Group"), sort=False), 3))
+p6.row(10, (scatter("ds_economy_aligned", ("gdp_per_capita_current_2019", "GDP per capita 2019 (PHP, current prices)"),
+                    ("tourism_change_pct_chart", "% change in overnight travelers, 2019-2023 (capped at +300)"), ("destination_label", "Label"),
+                    "Only where the economy is strong?", "Median GDP per capita 2019 = PHP 114,874; median change = -7.7%. Weaker half: 23 of 45 grew; stronger half: 16 of 46"), 6))
+
 dashboard = {
     "datasets": [{"name": k, "displayName": v[0], "queryLines": [l + "\n" for l in v[1].split("\n")]}
                  for k, v in datasets.items()],
-    "pages": [p.to_json() for p in (p1, p2, p3, p4, p5)],
+    "pages": [p.to_json() for p in (p1, p2, p3, p4, p5, p6)],
 }
 out = pathlib.Path("dashboard/provinsights.lvdash.json")
 out.write_text(json.dumps(dashboard, indent=2))

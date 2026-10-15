@@ -118,11 +118,33 @@ Wording on this page: "moves with" or "diverges from", never "drives" or "causes
 | Caveats for this unit | `ds_caveats` | Table | `year`, `caveat` |
 | Year detail | `ds_activity` | Table | `year`, `total_travelers`, `population_total`, `tourism_intensity_per_1000`, `tourism_rank`, `data_status` |
 
-## Map (planned)
+### 6. Presentation charts (2023, no filters)
 
-Add a **point map**: one dot per reporting unit, size = travelers, colour = recovery status or pattern. Use it on the Overview and Tourism × Economy pages. Use dots rather than shaded province areas, because HUCs, City of Isabela and NCR are separate units that shaded province shapes would hide.
+One chart per slide, fixed to 2023 so screenshots match the slide numbers. All values are stored Analytics values; the only presentation-side steps are row filters, a 0/100 indicator averaged into "% of units above 2019", medians of stored indices, and the Pareto running total of the stored `tourism_share_pct` (ask Analytics to store `cumulative_share_pct` if this should not be computed in the dashboard).
 
-This needs `latitude` and `longitude` per unit, which the data doesn't have yet (see **Requested from Analytics and Gold**). Once Analytics carries them, add the two columns to `01_activity.sql` and `06_economy.sql` and add the map widgets in `tools/build_lvdash.py`.
+| Slide | Widget | Dataset | Check (local run) |
+| --- | --- | --- | --- |
+| The usual leaders, by volume | Bar (top 30, top 10 vs ranks 11–30) + cumulative share line | `ds_p_pareto` | Line reaches 44.6% at rank 10 |
+| Where recovery lags | Ranked bar, colour = below / above 2019 | `ds_p_recovery` | 91 assessed (39 above, 52 below); 9 not assessed |
+| Who's still missing? | Bar, median recovery index: domestic vs foreign | `ds_p_segments` | 67.9 (52 units) vs 45.2 (47 units) |
+| Tourists vs local business | Scatter, X = travelers change (capped +300), Y = real A&F change | `ds_economy_aligned` | 30 top-left, 13 bottom-right |
+| Where tourism carries the economy | Ranked bar, top 15 A&F share, colour = 2023 vs 2019 | `ds_p_afs_top15` | 9 of 15 below 2019 |
+| Did only the usual leaders recover? | Two bars: % above 2019 and median index, by group | `ds_p_leaders` | 33% / 58.9 (9 leaders) vs 44% / 93.7 (82 others) |
+| Only where the economy is strong? | Scatter, X = GDP per capita 2019, Y = travelers change, colour = destination label | `ds_economy_aligned` | Median lines (PHP 114,874; −7.7%) are added on the slide |
+
+AI/BI cannot draw reference lines (100%, zero, medians) or set colours from the JSON; add lines on the slide and set colours (orange / grey / gold) in each widget's settings before taking screenshots.
+
+## Maps
+
+Point maps (one dot per reporting unit) read `latitude` and `longitude`, which Analytics carries from Gold `dim_province` (seed `resources/seeds/map_unit_coordinates.csv`, COD-AB centre points). Dots are used instead of shaded province areas because HUCs, City of Isabela and NCR are separate units.
+
+| Page | Map | Dataset | Size | Colour |
+| --- | --- | --- | --- | --- |
+| 1. Tourism Overview | Where tourism activity is | `ds_map_activity` (follows the Year filter) | travelers | unit type |
+| 2. Tourism Recovery | Where recovery lags (2023 vs 2019) | `ds_economy` | travelers 2023 | above / below 2019 / not assessed |
+| 6. Presentation charts | Where recovery lags: map | `ds_economy` | travelers 2023 | above / below 2019 / not assessed |
+
+Units with no traveler data (BARMM provinces, Sulu) have no dot on the activity map, and show as "Not assessed" on the recovery maps.
 
 ## Requested from Analytics and Gold
 

@@ -10,6 +10,8 @@
         "  unit_type,\n",
         "  region_name,\n",
         "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
         "  population_total,\n",
         "  tourism_intensity_per_1000,\n",
@@ -42,6 +44,8 @@
         "  unit_type,\n",
         "  region_name,\n",
         "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
         "  population_total,\n",
         "  tourism_intensity_per_1000,\n",
@@ -75,6 +79,8 @@
         "  unit_type,\n",
         "  region_name,\n",
         "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
         "  population_total,\n",
         "  tourism_intensity_per_1000,\n",
@@ -108,6 +114,8 @@
         "  unit_type,\n",
         "  region_name,\n",
         "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
         "  population_total,\n",
         "  tourism_intensity_per_1000,\n",
@@ -141,6 +149,8 @@
         "  unit_type,\n",
         "  region_name,\n",
         "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
         "  population_total,\n",
         "  tourism_intensity_per_1000,\n",
@@ -164,6 +174,41 @@
       ]
     },
     {
+      "name": "ds_map_activity",
+      "displayName": "Map: travelers by unit",
+      "queryLines": [
+        "SELECT * FROM (\n",
+        "SELECT\n",
+        "  province_psgc,\n",
+        "  province_name                         AS reporting_unit,\n",
+        "  unit_type,\n",
+        "  region_name,\n",
+        "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
+        "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
+        "  population_total,\n",
+        "  tourism_intensity_per_1000,\n",
+        "  tourism_rank,\n",
+        "  intensity_rank,\n",
+        "  tourism_share_pct,\n",
+        "  CASE traveler_value_status\n",
+        "    WHEN 'reported'         THEN 'Reported'\n",
+        "    WHEN 'dash_as_zero'     THEN 'Reported (blank categories counted as 0)'\n",
+        "    WHEN 'reported_partial' THEN 'Partly reported'\n",
+        "    WHEN 'not_reported'     THEN 'Not reported by DOT'\n",
+        "  END                                   AS data_status,\n",
+        "  comparable_to_2019,\n",
+        "  comparability_note,\n",
+        "  activity_eligible,\n",
+        "  activity_exclusion_reason,\n",
+        "  intensity_eligible,\n",
+        "  intensity_exclusion_reason\n",
+        "FROM tuklas_dev.`05_analytics`.tourism_activity\n",
+        ") WHERE activity_eligible\n"
+      ]
+    },
+    {
       "name": "ds_activity_excluded",
       "displayName": "Units not included",
       "queryLines": [
@@ -174,6 +219,8 @@
         "  unit_type,\n",
         "  region_name,\n",
         "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
         "  population_total,\n",
         "  tourism_intensity_per_1000,\n",
@@ -249,6 +296,15 @@
         "    ELSE 'Not assessed'\n",
         "  END                                   AS recovery_status,\n",
         "  recovery_eligible,\n",
+        "  usual_strong_destination_2019,        -- 2019 top 10 (DL-026)\n",
+        "  CASE WHEN usual_strong_destination_2019 THEN 'Usual leaders (2019 top 10)' ELSE 'Other places' END AS destination_group,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "  END                                   AS destination_label,\n",
+        "  destination_label_reason,\n",
+        "  baseline_under_review_2019,\n",
+        "  small_base_2019,\n",
         "  recovery_exclusion_reason,\n",
         "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
         "  comparability_note\n",
@@ -277,6 +333,15 @@
         "    ELSE 'Not assessed'\n",
         "  END                                   AS recovery_status,\n",
         "  recovery_eligible,\n",
+        "  usual_strong_destination_2019,        -- 2019 top 10 (DL-026)\n",
+        "  CASE WHEN usual_strong_destination_2019 THEN 'Usual leaders (2019 top 10)' ELSE 'Other places' END AS destination_group,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "  END                                   AS destination_label,\n",
+        "  destination_label_reason,\n",
+        "  baseline_under_review_2019,\n",
+        "  small_base_2019,\n",
         "  recovery_exclusion_reason,\n",
         "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
         "  comparability_note\n",
@@ -306,6 +371,15 @@
         "    ELSE 'Not assessed'\n",
         "  END                                   AS recovery_status,\n",
         "  recovery_eligible,\n",
+        "  usual_strong_destination_2019,        -- 2019 top 10 (DL-026)\n",
+        "  CASE WHEN usual_strong_destination_2019 THEN 'Usual leaders (2019 top 10)' ELSE 'Other places' END AS destination_group,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "  END                                   AS destination_label,\n",
+        "  destination_label_reason,\n",
+        "  baseline_under_review_2019,\n",
+        "  small_base_2019,\n",
         "  recovery_exclusion_reason,\n",
         "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
         "  comparability_note\n",
@@ -484,9 +558,23 @@
         "  province_name                         AS reporting_unit,\n",
         "  unit_type,\n",
         "  region_name,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  travelers_2019,\n",
         "  travelers_2023,\n",
         "  recovery_index_2023,\n",
+        "  CASE recovery_class_2023\n",
+        "    WHEN 'above_2019' THEN 'Above 2019'\n",
+        "    WHEN 'unchanged'  THEN 'Same as 2019'\n",
+        "    WHEN 'below_2019' THEN 'Below 2019'\n",
+        "    ELSE 'Not assessed'\n",
+        "  END                                   AS recovery_status_2023,\n",
+        "  usual_strong_destination_2019,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "    ELSE 'No label'\n",
+        "  END                                   AS destination_label,\n",
         "  tourism_change_pct,\n",
         "  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,\n",
         "  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,\n",
@@ -530,9 +618,23 @@
         "  province_name                         AS reporting_unit,\n",
         "  unit_type,\n",
         "  region_name,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  travelers_2019,\n",
         "  travelers_2023,\n",
         "  recovery_index_2023,\n",
+        "  CASE recovery_class_2023\n",
+        "    WHEN 'above_2019' THEN 'Above 2019'\n",
+        "    WHEN 'unchanged'  THEN 'Same as 2019'\n",
+        "    WHEN 'below_2019' THEN 'Below 2019'\n",
+        "    ELSE 'Not assessed'\n",
+        "  END                                   AS recovery_status_2023,\n",
+        "  usual_strong_destination_2019,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "    ELSE 'No label'\n",
+        "  END                                   AS destination_label,\n",
         "  tourism_change_pct,\n",
         "  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,\n",
         "  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,\n",
@@ -577,9 +679,23 @@
         "  province_name                         AS reporting_unit,\n",
         "  unit_type,\n",
         "  region_name,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
         "  travelers_2019,\n",
         "  travelers_2023,\n",
         "  recovery_index_2023,\n",
+        "  CASE recovery_class_2023\n",
+        "    WHEN 'above_2019' THEN 'Above 2019'\n",
+        "    WHEN 'unchanged'  THEN 'Same as 2019'\n",
+        "    WHEN 'below_2019' THEN 'Below 2019'\n",
+        "    ELSE 'Not assessed'\n",
+        "  END                                   AS recovery_status_2023,\n",
+        "  usual_strong_destination_2019,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "    ELSE 'No label'\n",
+        "  END                                   AS destination_label,\n",
         "  tourism_change_pct,\n",
         "  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,\n",
         "  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,\n",
@@ -631,6 +747,220 @@
         "  comparability_note                    -- source wording, for reviewers\n",
         "FROM tuklas_dev.`05_analytics`.tourism_activity\n",
         "WHERE traveler_value_status IN ('not_reported', 'reported_partial') OR comparable_to_2019 IS NOT TRUE\n"
+      ]
+    },
+    {
+      "name": "ds_p_pareto",
+      "displayName": "Presentation: Pareto (top 30, 2023)",
+      "queryLines": [
+        "SELECT *,\n",
+        "  lpad(cast(tourism_rank AS STRING), 2, '0') || ' ' || reporting_unit AS ranked_unit,\n",
+        "  CASE WHEN tourism_rank <= 10 THEN 'Top 10' ELSE 'Ranks 11-30' END AS rank_group,\n",
+        "  SUM(tourism_share_pct) OVER (ORDER BY tourism_rank) AS cumulative_share_pct\n",
+        "FROM (\n",
+        "SELECT\n",
+        "  province_psgc,\n",
+        "  province_name                         AS reporting_unit,\n",
+        "  unit_type,\n",
+        "  region_name,\n",
+        "  year,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
+        "  total_travelers,                      -- NULL when DOT did not report; never shown as 0\n",
+        "  population_total,\n",
+        "  tourism_intensity_per_1000,\n",
+        "  tourism_rank,\n",
+        "  intensity_rank,\n",
+        "  tourism_share_pct,\n",
+        "  CASE traveler_value_status\n",
+        "    WHEN 'reported'         THEN 'Reported'\n",
+        "    WHEN 'dash_as_zero'     THEN 'Reported (blank categories counted as 0)'\n",
+        "    WHEN 'reported_partial' THEN 'Partly reported'\n",
+        "    WHEN 'not_reported'     THEN 'Not reported by DOT'\n",
+        "  END                                   AS data_status,\n",
+        "  comparable_to_2019,\n",
+        "  comparability_note,\n",
+        "  activity_eligible,\n",
+        "  activity_exclusion_reason,\n",
+        "  intensity_eligible,\n",
+        "  intensity_exclusion_reason\n",
+        "FROM tuklas_dev.`05_analytics`.tourism_activity\n",
+        ") WHERE year = 2023 AND activity_eligible AND tourism_rank <= 30\n"
+      ]
+    },
+    {
+      "name": "ds_p_recovery",
+      "displayName": "Presentation: recovery 2023",
+      "queryLines": [
+        "SELECT * FROM (\n",
+        "SELECT\n",
+        "  province_psgc,\n",
+        "  province_name                         AS reporting_unit,\n",
+        "  unit_type,\n",
+        "  region_name,\n",
+        "  comparison_year,\n",
+        "  travelers_2019,\n",
+        "  travelers_comparison_year,\n",
+        "  traveler_change_absolute,\n",
+        "  recovery_index,\n",
+        "  CASE recovery_class\n",
+        "    WHEN 'above_2019' THEN 'Above 2019'\n",
+        "    WHEN 'unchanged'  THEN 'Same as 2019'\n",
+        "    WHEN 'below_2019' THEN 'Below 2019'\n",
+        "    ELSE 'Not assessed'\n",
+        "  END                                   AS recovery_status,\n",
+        "  recovery_eligible,\n",
+        "  usual_strong_destination_2019,        -- 2019 top 10 (DL-026)\n",
+        "  CASE WHEN usual_strong_destination_2019 THEN 'Usual leaders (2019 top 10)' ELSE 'Other places' END AS destination_group,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "  END                                   AS destination_label,\n",
+        "  destination_label_reason,\n",
+        "  baseline_under_review_2019,\n",
+        "  small_base_2019,\n",
+        "  recovery_exclusion_reason,\n",
+        "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
+        "  comparability_note\n",
+        "FROM tuklas_dev.`05_analytics`.tourism_recovery\n",
+        ") WHERE comparison_year = 2023 AND recovery_eligible\n"
+      ]
+    },
+    {
+      "name": "ds_p_leaders",
+      "displayName": "Presentation: usual leaders vs other places",
+      "queryLines": [
+        "SELECT *, CASE WHEN recovery_status = 'Above 2019' THEN 100.0 ELSE 0.0 END AS above_2019_pct_points\n",
+        "FROM (\n",
+        "SELECT\n",
+        "  province_psgc,\n",
+        "  province_name                         AS reporting_unit,\n",
+        "  unit_type,\n",
+        "  region_name,\n",
+        "  comparison_year,\n",
+        "  travelers_2019,\n",
+        "  travelers_comparison_year,\n",
+        "  traveler_change_absolute,\n",
+        "  recovery_index,\n",
+        "  CASE recovery_class\n",
+        "    WHEN 'above_2019' THEN 'Above 2019'\n",
+        "    WHEN 'unchanged'  THEN 'Same as 2019'\n",
+        "    WHEN 'below_2019' THEN 'Below 2019'\n",
+        "    ELSE 'Not assessed'\n",
+        "  END                                   AS recovery_status,\n",
+        "  recovery_eligible,\n",
+        "  usual_strong_destination_2019,        -- 2019 top 10 (DL-026)\n",
+        "  CASE WHEN usual_strong_destination_2019 THEN 'Usual leaders (2019 top 10)' ELSE 'Other places' END AS destination_group,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "  END                                   AS destination_label,\n",
+        "  destination_label_reason,\n",
+        "  baseline_under_review_2019,\n",
+        "  small_base_2019,\n",
+        "  recovery_exclusion_reason,\n",
+        "  comp_comparison                       AS comparable_to_2019,   -- comparison year comparable to 2019\n",
+        "  comparability_note\n",
+        "FROM tuklas_dev.`05_analytics`.tourism_recovery\n",
+        ") WHERE comparison_year = 2023 AND recovery_eligible\n"
+      ]
+    },
+    {
+      "name": "ds_p_segments",
+      "displayName": "Presentation: domestic vs foreign",
+      "queryLines": [
+        "SELECT * FROM (\n",
+        "WITH s AS (\n",
+        "  SELECT * FROM tuklas_dev.`05_analytics`.traveler_segment_recovery\n",
+        ")\n",
+        "SELECT province_psgc, province_name AS reporting_unit, unit_type, region_name, comparison_year,\n",
+        "       'Domestic' AS segment, 1 AS segment_order,\n",
+        "       domestic_travelers_2019 AS travelers_2019, domestic_travelers_2023 AS travelers_comparison,\n",
+        "       domestic_recovery_index AS recovery_index, domestic_recovery_class AS recovery_class,\n",
+        "       domestic_eligible AS eligible, domestic_exclusion_reason AS exclusion_reason,\n",
+        "       CASE WHEN domestic_eligible THEN 'Assessed' ELSE 'Not assessed' END AS coverage_status,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
+        "FROM s\n",
+        "UNION ALL\n",
+        "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
+        "       'Foreign', 2,\n",
+        "       foreign_travelers_2019, foreign_travelers_2023,\n",
+        "       foreign_recovery_index, foreign_recovery_class,\n",
+        "       foreign_eligible, foreign_exclusion_reason,\n",
+        "       CASE WHEN foreign_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
+        "FROM s\n",
+        "UNION ALL\n",
+        "SELECT province_psgc, province_name, unit_type, region_name, comparison_year,\n",
+        "       'Overseas Filipinos', 3,\n",
+        "       overseas_filipino_travelers_2019, overseas_filipino_travelers_2023,\n",
+        "       overseas_filipino_recovery_index, overseas_filipino_recovery_class,\n",
+        "       overseas_filipino_eligible, overseas_filipino_exclusion_reason,\n",
+        "       CASE WHEN overseas_filipino_eligible THEN 'Assessed' ELSE 'Not assessed' END,\n",
+        "       overall_recovery_index, foreign_includes_overseas_filipinos, comparability_note\n",
+        "FROM s\n",
+        ") WHERE eligible AND segment IN ('Domestic', 'Foreign')\n"
+      ]
+    },
+    {
+      "name": "ds_p_afs_top15",
+      "displayName": "Presentation: A&F share top 15",
+      "queryLines": [
+        "SELECT * FROM (\n",
+        "SELECT\n",
+        "  province_psgc,\n",
+        "  province_name                         AS reporting_unit,\n",
+        "  unit_type,\n",
+        "  region_name,\n",
+        "  latitude,                             -- map point (Gold dim_province, COD-AB)\n",
+        "  longitude,\n",
+        "  travelers_2019,\n",
+        "  travelers_2023,\n",
+        "  recovery_index_2023,\n",
+        "  CASE recovery_class_2023\n",
+        "    WHEN 'above_2019' THEN 'Above 2019'\n",
+        "    WHEN 'unchanged'  THEN 'Same as 2019'\n",
+        "    WHEN 'below_2019' THEN 'Below 2019'\n",
+        "    ELSE 'Not assessed'\n",
+        "  END                                   AS recovery_status_2023,\n",
+        "  usual_strong_destination_2019,\n",
+        "  CASE destination_label\n",
+        "    WHEN 'possible_emerging' THEN 'Possible emerging destination'\n",
+        "    WHEN 'under_review'      THEN 'Under review'\n",
+        "    ELSE 'No label'\n",
+        "  END                                   AS destination_label,\n",
+        "  tourism_change_pct,\n",
+        "  CASE WHEN tourism_change_pct > 300 THEN 300 ELSE tourism_change_pct END AS tourism_change_pct_chart,\n",
+        "  CASE WHEN recovery_index_2023 > 400 THEN 400 ELSE recovery_index_2023 END AS recovery_index_2023_chart,\n",
+        "  coalesce(tourism_change_pct > 300, false) AS shown_at_chart_cap,\n",
+        "  afs_gva_growth_pct,\n",
+        "  afs_share_of_gdp_pct,\n",
+        "  gdp_per_capita_current_2019,\n",
+        "  gdp_per_capita_current_2023,\n",
+        "  tourism_intensity_per_1000_2023,\n",
+        "  coalesce(tourism_economy_pattern_label, 'Not assessed') AS pattern,   -- approved wording from Analytics (#65)\n",
+        "  CASE tourism_economy_pattern\n",
+        "    WHEN 'tourism_up_economy_up'     THEN 1\n",
+        "    WHEN 'tourism_up_economy_down'   THEN 2\n",
+        "    WHEN 'tourism_down_economy_up'   THEN 3\n",
+        "    WHEN 'tourism_down_economy_down' THEN 4\n",
+        "    ELSE 9\n",
+        "  END                                   AS pattern_order,\n",
+        "  CASE WHEN tourism_economy_pattern IN ('tourism_up_economy_up', 'tourism_down_economy_down')\n",
+        "       THEN 'Same direction'\n",
+        "       WHEN tourism_economy_pattern IN ('tourism_up_economy_down', 'tourism_down_economy_up')\n",
+        "       THEN 'Opposite directions'\n",
+        "       WHEN tourism_economy_pattern LIKE '%unchanged%' THEN 'No change'\n",
+        "       ELSE 'Not assessed'\n",
+        "  END                                   AS alignment,\n",
+        "  alignment_eligible,\n",
+        "  alignment_exclusion_reason,\n",
+        "  afs_share_eligible,\n",
+        "  tourism_intensity_eligible,\n",
+        "  comp_2023                             AS comparable_to_2019,\n",
+        "  population_source_2023\n",
+        "FROM tuklas_dev.`05_analytics`.tourism_economy\n",
+        ") WHERE afs_share_eligible ORDER BY afs_share_of_gdp_pct DESC LIMIT 15\n"
       ]
     }
   ],
@@ -762,6 +1092,23 @@
                   ],
                   "disaggregated": false
                 }
+              },
+              {
+                "name": "w002_ds_map_activity",
+                "query": {
+                  "datasetName": "ds_map_activity",
+                  "fields": [
+                    {
+                      "name": "year",
+                      "expression": "`year`"
+                    },
+                    {
+                      "name": "year_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
               }
             ],
             "spec": {
@@ -798,6 +1145,11 @@
                     "fieldName": "year",
                     "displayName": "Year",
                     "queryName": "w002_ds_activity_excluded"
+                  },
+                  {
+                    "fieldName": "year",
+                    "displayName": "Year",
+                    "queryName": "w002_ds_map_activity"
                   }
                 ]
               },
@@ -1035,6 +1387,98 @@
               {
                 "name": "main_query",
                 "query": {
+                  "datasetName": "ds_map_activity",
+                  "fields": [
+                    {
+                      "name": "latitude",
+                      "expression": "`latitude`"
+                    },
+                    {
+                      "name": "longitude",
+                      "expression": "`longitude`"
+                    },
+                    {
+                      "name": "total_travelers",
+                      "expression": "`total_travelers`"
+                    },
+                    {
+                      "name": "unit_type",
+                      "expression": "`unit_type`"
+                    },
+                    {
+                      "name": "reporting_unit",
+                      "expression": "`reporting_unit`"
+                    },
+                    {
+                      "name": "tourism_intensity_per_1000",
+                      "expression": "`tourism_intensity_per_1000`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "symbol-map",
+              "encodings": {
+                "coordinates": {
+                  "latitude": {
+                    "fieldName": "latitude",
+                    "displayName": "Latitude"
+                  },
+                  "longitude": {
+                    "fieldName": "longitude",
+                    "displayName": "Longitude"
+                  }
+                },
+                "size": {
+                  "fieldName": "total_travelers",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Overnight travelers"
+                },
+                "color": {
+                  "fieldName": "unit_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Unit type"
+                },
+                "extra": [
+                  {
+                    "fieldName": "reporting_unit",
+                    "displayName": "reporting_unit"
+                  },
+                  {
+                    "fieldName": "tourism_intensity_per_1000",
+                    "displayName": "tourism_intensity_per_1000"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Where tourism activity is, by reporting unit",
+                "showDescription": true,
+                "description": "Dot size = overnight travelers in the selected year; HUCs, City of Isabela and NCR are their own dots"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 12
+          }
+        },
+        {
+          "widget": {
+            "name": "w009",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
                   "datasetName": "ds_top_travelers",
                   "fields": [
                     {
@@ -1091,14 +1535,14 @@
           },
           "position": {
             "x": 0,
-            "y": 5,
+            "y": 17,
             "width": 3,
             "height": 9
           }
         },
         {
           "widget": {
-            "name": "w009",
+            "name": "w010",
             "queries": [
               {
                 "name": "main_query",
@@ -1159,14 +1603,14 @@
           },
           "position": {
             "x": 3,
-            "y": 5,
+            "y": 17,
             "width": 3,
             "height": 9
           }
         },
         {
           "widget": {
-            "name": "w010",
+            "name": "w011",
             "queries": [
               {
                 "name": "main_query",
@@ -1229,14 +1673,14 @@
           },
           "position": {
             "x": 0,
-            "y": 14,
+            "y": 26,
             "width": 3,
             "height": 9
           }
         },
         {
           "widget": {
-            "name": "w011",
+            "name": "w012",
             "queries": [
               {
                 "name": "main_query",
@@ -1299,14 +1743,14 @@
           },
           "position": {
             "x": 3,
-            "y": 14,
+            "y": 26,
             "width": 3,
             "height": 9
           }
         },
         {
           "widget": {
-            "name": "w012",
+            "name": "w013",
             "queries": [
               {
                 "name": "main_query",
@@ -1367,14 +1811,14 @@
           },
           "position": {
             "x": 0,
-            "y": 23,
+            "y": 35,
             "width": 3,
             "height": 7
           }
         },
         {
           "widget": {
-            "name": "w013",
+            "name": "w014",
             "queries": [
               {
                 "name": "main_query",
@@ -1531,14 +1975,14 @@
           },
           "position": {
             "x": 3,
-            "y": 23,
+            "y": 35,
             "width": 3,
             "height": 7
           }
         },
         {
           "widget": {
-            "name": "w014",
+            "name": "w015",
             "multilineTextboxSpec": {
               "lines": [
                 "**Data notes:** Blank means DOT did not report the unit that year; it is never shown as 0. Where DOT printed \"-\" for a traveler category it is counted as 0. Aklan is not compared with 2019 because DOT changed how it counts Aklan from 2021. Totals cover included reporting units only, not the whole country. Patterns show association, not cause.\n"
@@ -1547,7 +1991,7 @@
           },
           "position": {
             "x": 0,
-            "y": 30,
+            "y": 42,
             "width": 6,
             "height": 2
           }
@@ -1561,7 +2005,7 @@
       "layout": [
         {
           "widget": {
-            "name": "w015",
+            "name": "w016",
             "multilineTextboxSpec": {
               "lines": [
                 "## Which units are above or below 2019?\n",
@@ -1578,10 +2022,10 @@
         },
         {
           "widget": {
-            "name": "w016",
+            "name": "w017",
             "queries": [
               {
-                "name": "w016_ds_recovery",
+                "name": "w017_ds_recovery",
                 "query": {
                   "datasetName": "ds_recovery",
                   "fields": [
@@ -1598,7 +2042,7 @@
                 }
               },
               {
-                "name": "w016_ds_recovery_eligible",
+                "name": "w017_ds_recovery_eligible",
                 "query": {
                   "datasetName": "ds_recovery_eligible",
                   "fields": [
@@ -1615,7 +2059,7 @@
                 }
               },
               {
-                "name": "w016_ds_recovery_excluded",
+                "name": "w017_ds_recovery_excluded",
                 "query": {
                   "datasetName": "ds_recovery_excluded",
                   "fields": [
@@ -1640,17 +2084,17 @@
                   {
                     "fieldName": "comparison_year",
                     "displayName": "Comparison year",
-                    "queryName": "w016_ds_recovery"
+                    "queryName": "w017_ds_recovery"
                   },
                   {
                     "fieldName": "comparison_year",
                     "displayName": "Comparison year",
-                    "queryName": "w016_ds_recovery_eligible"
+                    "queryName": "w017_ds_recovery_eligible"
                   },
                   {
                     "fieldName": "comparison_year",
                     "displayName": "Comparison year",
-                    "queryName": "w016_ds_recovery_excluded"
+                    "queryName": "w017_ds_recovery_excluded"
                   }
                 ]
               },
@@ -1681,10 +2125,10 @@
         },
         {
           "widget": {
-            "name": "w017",
+            "name": "w018",
             "queries": [
               {
-                "name": "w017_ds_recovery",
+                "name": "w018_ds_recovery",
                 "query": {
                   "datasetName": "ds_recovery",
                   "fields": [
@@ -1701,7 +2145,7 @@
                 }
               },
               {
-                "name": "w017_ds_recovery_eligible",
+                "name": "w018_ds_recovery_eligible",
                 "query": {
                   "datasetName": "ds_recovery_eligible",
                   "fields": [
@@ -1718,7 +2162,7 @@
                 }
               },
               {
-                "name": "w017_ds_recovery_excluded",
+                "name": "w018_ds_recovery_excluded",
                 "query": {
                   "datasetName": "ds_recovery_excluded",
                   "fields": [
@@ -1735,7 +2179,7 @@
                 }
               },
               {
-                "name": "w017_ds_recovery_compare",
+                "name": "w018_ds_recovery_compare",
                 "query": {
                   "datasetName": "ds_recovery_compare",
                   "fields": [
@@ -1760,22 +2204,22 @@
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w017_ds_recovery"
+                    "queryName": "w018_ds_recovery"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w017_ds_recovery_eligible"
+                    "queryName": "w018_ds_recovery_eligible"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w017_ds_recovery_excluded"
+                    "queryName": "w018_ds_recovery_excluded"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w017_ds_recovery_compare"
+                    "queryName": "w018_ds_recovery_compare"
                   }
                 ]
               },
@@ -1794,7 +2238,7 @@
         },
         {
           "widget": {
-            "name": "w018",
+            "name": "w019",
             "queries": [
               {
                 "name": "main_query",
@@ -1862,7 +2306,7 @@
         },
         {
           "widget": {
-            "name": "w019",
+            "name": "w020",
             "queries": [
               {
                 "name": "main_query",
@@ -1930,7 +2374,107 @@
         },
         {
           "widget": {
-            "name": "w020",
+            "name": "w021",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_economy",
+                  "fields": [
+                    {
+                      "name": "latitude",
+                      "expression": "`latitude`"
+                    },
+                    {
+                      "name": "longitude",
+                      "expression": "`longitude`"
+                    },
+                    {
+                      "name": "travelers_2023",
+                      "expression": "`travelers_2023`"
+                    },
+                    {
+                      "name": "recovery_status_2023",
+                      "expression": "`recovery_status_2023`"
+                    },
+                    {
+                      "name": "reporting_unit",
+                      "expression": "`reporting_unit`"
+                    },
+                    {
+                      "name": "recovery_index_2023",
+                      "expression": "`recovery_index_2023`"
+                    },
+                    {
+                      "name": "destination_label",
+                      "expression": "`destination_label`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "symbol-map",
+              "encodings": {
+                "coordinates": {
+                  "latitude": {
+                    "fieldName": "latitude",
+                    "displayName": "Latitude"
+                  },
+                  "longitude": {
+                    "fieldName": "longitude",
+                    "displayName": "Longitude"
+                  }
+                },
+                "size": {
+                  "fieldName": "travelers_2023",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Overnight travelers 2023"
+                },
+                "color": {
+                  "fieldName": "recovery_status_2023",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "2023 vs 2019"
+                },
+                "extra": [
+                  {
+                    "fieldName": "reporting_unit",
+                    "displayName": "reporting_unit"
+                  },
+                  {
+                    "fieldName": "recovery_index_2023",
+                    "displayName": "recovery_index_2023"
+                  },
+                  {
+                    "fieldName": "destination_label",
+                    "displayName": "destination_label"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Where recovery lags (2023 vs 2019)",
+                "showDescription": true,
+                "description": "Colour = above / below 2019 in 2023; not assessed units (no data or not comparable) are shown separately"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 6,
+            "height": 12
+          }
+        },
+        {
+          "widget": {
+            "name": "w022",
             "queries": [
               {
                 "name": "main_query",
@@ -1991,14 +2535,14 @@
           },
           "position": {
             "x": 0,
-            "y": 9,
+            "y": 21,
             "width": 3,
             "height": 16
           }
         },
         {
           "widget": {
-            "name": "w021",
+            "name": "w023",
             "queries": [
               {
                 "name": "main_query",
@@ -2058,14 +2602,14 @@
           },
           "position": {
             "x": 3,
-            "y": 9,
+            "y": 21,
             "width": 3,
             "height": 16
           }
         },
         {
           "widget": {
-            "name": "w022",
+            "name": "w024",
             "multilineTextboxSpec": {
               "lines": [
                 "**NCR note:** NCR is shown as one unit, and some NCR cities printed \"-\" for all traveler counts: 8 cities in 2019, 4 in 2023. Part of NCR's rise therefore reflects more cities reporting, not only recovery. Its status is \"Partly reported\" (`reported_partial`); how to treat it is still to be decided (DL-019).\n",
@@ -2076,14 +2620,14 @@
           },
           "position": {
             "x": 0,
-            "y": 25,
+            "y": 37,
             "width": 6,
             "height": 3
           }
         },
         {
           "widget": {
-            "name": "w023",
+            "name": "w025",
             "queries": [
               {
                 "name": "main_query",
@@ -2209,14 +2753,14 @@
           },
           "position": {
             "x": 0,
-            "y": 28,
+            "y": 40,
             "width": 4,
             "height": 6
           }
         },
         {
           "widget": {
-            "name": "w024",
+            "name": "w026",
             "multilineTextboxSpec": {
               "lines": [
                 "**Data notes:** Blank means DOT did not report the unit that year; it is never shown as 0. Where DOT printed \"-\" for a traveler category it is counted as 0. Aklan is not compared with 2019 because DOT changed how it counts Aklan from 2021. Totals cover included reporting units only, not the whole country. Patterns show association, not cause.\n"
@@ -2225,7 +2769,7 @@
           },
           "position": {
             "x": 4,
-            "y": 28,
+            "y": 40,
             "width": 2,
             "height": 6
           }
@@ -2239,7 +2783,7 @@
       "layout": [
         {
           "widget": {
-            "name": "w025",
+            "name": "w027",
             "multilineTextboxSpec": {
               "lines": [
                 "## Which traveler groups are behind?\n",
@@ -2256,10 +2800,10 @@
         },
         {
           "widget": {
-            "name": "w026",
+            "name": "w028",
             "queries": [
               {
-                "name": "w026_ds_segments",
+                "name": "w028_ds_segments",
                 "query": {
                   "datasetName": "ds_segments",
                   "fields": [
@@ -2276,7 +2820,7 @@
                 }
               },
               {
-                "name": "w026_ds_segments_cohort",
+                "name": "w028_ds_segments_cohort",
                 "query": {
                   "datasetName": "ds_segments_cohort",
                   "fields": [
@@ -2293,7 +2837,7 @@
                 }
               },
               {
-                "name": "w026_ds_segments_mix",
+                "name": "w028_ds_segments_mix",
                 "query": {
                   "datasetName": "ds_segments_mix",
                   "fields": [
@@ -2310,7 +2854,7 @@
                 }
               },
               {
-                "name": "w026_ds_segments_excluded",
+                "name": "w028_ds_segments_excluded",
                 "query": {
                   "datasetName": "ds_segments_excluded",
                   "fields": [
@@ -2335,22 +2879,22 @@
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w026_ds_segments"
+                    "queryName": "w028_ds_segments"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w026_ds_segments_cohort"
+                    "queryName": "w028_ds_segments_cohort"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w026_ds_segments_mix"
+                    "queryName": "w028_ds_segments_mix"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w026_ds_segments_excluded"
+                    "queryName": "w028_ds_segments_excluded"
                   }
                 ]
               },
@@ -2369,7 +2913,7 @@
         },
         {
           "widget": {
-            "name": "w027",
+            "name": "w029",
             "queries": [
               {
                 "name": "main_query",
@@ -2439,7 +2983,7 @@
         },
         {
           "widget": {
-            "name": "w028",
+            "name": "w030",
             "queries": [
               {
                 "name": "main_query",
@@ -2510,7 +3054,7 @@
         },
         {
           "widget": {
-            "name": "w029",
+            "name": "w031",
             "queries": [
               {
                 "name": "main_query",
@@ -2581,7 +3125,7 @@
         },
         {
           "widget": {
-            "name": "w030",
+            "name": "w032",
             "queries": [
               {
                 "name": "main_query",
@@ -2721,7 +3265,7 @@
       "layout": [
         {
           "widget": {
-            "name": "w031",
+            "name": "w033",
             "multilineTextboxSpec": {
               "lines": [
                 "## Do tourism and the local economy move together? (2019 to 2023)\n",
@@ -2738,10 +3282,10 @@
         },
         {
           "widget": {
-            "name": "w032",
+            "name": "w034",
             "queries": [
               {
-                "name": "w032_ds_economy",
+                "name": "w034_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -2758,7 +3302,7 @@
                 }
               },
               {
-                "name": "w032_ds_economy_aligned",
+                "name": "w034_ds_economy_aligned",
                 "query": {
                   "datasetName": "ds_economy_aligned",
                   "fields": [
@@ -2775,7 +3319,7 @@
                 }
               },
               {
-                "name": "w032_ds_economy_capped",
+                "name": "w034_ds_economy_capped",
                 "query": {
                   "datasetName": "ds_economy_capped",
                   "fields": [
@@ -2800,17 +3344,17 @@
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w032_ds_economy"
+                    "queryName": "w034_ds_economy"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w032_ds_economy_aligned"
+                    "queryName": "w034_ds_economy_aligned"
                   },
                   {
                     "fieldName": "region_name",
                     "displayName": "Region",
-                    "queryName": "w032_ds_economy_capped"
+                    "queryName": "w034_ds_economy_capped"
                   }
                 ]
               },
@@ -2829,10 +3373,10 @@
         },
         {
           "widget": {
-            "name": "w033",
+            "name": "w035",
             "queries": [
               {
-                "name": "w033_ds_economy",
+                "name": "w035_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -2849,7 +3393,7 @@
                 }
               },
               {
-                "name": "w033_ds_economy_aligned",
+                "name": "w035_ds_economy_aligned",
                 "query": {
                   "datasetName": "ds_economy_aligned",
                   "fields": [
@@ -2866,7 +3410,7 @@
                 }
               },
               {
-                "name": "w033_ds_economy_capped",
+                "name": "w035_ds_economy_capped",
                 "query": {
                   "datasetName": "ds_economy_capped",
                   "fields": [
@@ -2891,17 +3435,17 @@
                   {
                     "fieldName": "unit_type",
                     "displayName": "Unit type",
-                    "queryName": "w033_ds_economy"
+                    "queryName": "w035_ds_economy"
                   },
                   {
                     "fieldName": "unit_type",
                     "displayName": "Unit type",
-                    "queryName": "w033_ds_economy_aligned"
+                    "queryName": "w035_ds_economy_aligned"
                   },
                   {
                     "fieldName": "unit_type",
                     "displayName": "Unit type",
-                    "queryName": "w033_ds_economy_capped"
+                    "queryName": "w035_ds_economy_capped"
                   }
                 ]
               },
@@ -2920,10 +3464,10 @@
         },
         {
           "widget": {
-            "name": "w034",
+            "name": "w036",
             "queries": [
               {
-                "name": "w034_ds_economy",
+                "name": "w036_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -2940,7 +3484,7 @@
                 }
               },
               {
-                "name": "w034_ds_economy_aligned",
+                "name": "w036_ds_economy_aligned",
                 "query": {
                   "datasetName": "ds_economy_aligned",
                   "fields": [
@@ -2957,7 +3501,7 @@
                 }
               },
               {
-                "name": "w034_ds_economy_capped",
+                "name": "w036_ds_economy_capped",
                 "query": {
                   "datasetName": "ds_economy_capped",
                   "fields": [
@@ -2982,17 +3526,17 @@
                   {
                     "fieldName": "pattern",
                     "displayName": "Pattern",
-                    "queryName": "w034_ds_economy"
+                    "queryName": "w036_ds_economy"
                   },
                   {
                     "fieldName": "pattern",
                     "displayName": "Pattern",
-                    "queryName": "w034_ds_economy_aligned"
+                    "queryName": "w036_ds_economy_aligned"
                   },
                   {
                     "fieldName": "pattern",
                     "displayName": "Pattern",
-                    "queryName": "w034_ds_economy_capped"
+                    "queryName": "w036_ds_economy_capped"
                   }
                 ]
               },
@@ -3011,7 +3555,7 @@
         },
         {
           "widget": {
-            "name": "w035",
+            "name": "w037",
             "queries": [
               {
                 "name": "main_query",
@@ -3079,7 +3623,7 @@
         },
         {
           "widget": {
-            "name": "w036",
+            "name": "w038",
             "queries": [
               {
                 "name": "main_query",
@@ -3138,7 +3682,7 @@
         },
         {
           "widget": {
-            "name": "w037",
+            "name": "w039",
             "queries": [
               {
                 "name": "main_query",
@@ -3205,7 +3749,7 @@
         },
         {
           "widget": {
-            "name": "w038",
+            "name": "w040",
             "queries": [
               {
                 "name": "main_query",
@@ -3272,7 +3816,7 @@
         },
         {
           "widget": {
-            "name": "w039",
+            "name": "w041",
             "queries": [
               {
                 "name": "main_query",
@@ -3472,7 +4016,7 @@
         },
         {
           "widget": {
-            "name": "w040",
+            "name": "w042",
             "queries": [
               {
                 "name": "main_query",
@@ -3732,7 +4276,7 @@
         },
         {
           "widget": {
-            "name": "w041",
+            "name": "w043",
             "multilineTextboxSpec": {
               "lines": [
                 "**Data notes:** Blank means DOT did not report the unit that year; it is never shown as 0. Where DOT printed \"-\" for a traveler category it is counted as 0. Aklan is not compared with 2019 because DOT changed how it counts Aklan from 2021. Totals cover included reporting units only, not the whole country. Patterns show association, not cause.\n"
@@ -3755,7 +4299,7 @@
       "layout": [
         {
           "widget": {
-            "name": "w042",
+            "name": "w044",
             "multilineTextboxSpec": {
               "lines": [
                 "## One reporting unit in one place\n",
@@ -3772,10 +4316,10 @@
         },
         {
           "widget": {
-            "name": "w043",
+            "name": "w045",
             "queries": [
               {
-                "name": "w043_ds_economy",
+                "name": "w045_ds_economy",
                 "query": {
                   "datasetName": "ds_economy",
                   "fields": [
@@ -3792,7 +4336,7 @@
                 }
               },
               {
-                "name": "w043_ds_activity",
+                "name": "w045_ds_activity",
                 "query": {
                   "datasetName": "ds_activity",
                   "fields": [
@@ -3809,7 +4353,7 @@
                 }
               },
               {
-                "name": "w043_ds_segments",
+                "name": "w045_ds_segments",
                 "query": {
                   "datasetName": "ds_segments",
                   "fields": [
@@ -3826,7 +4370,7 @@
                 }
               },
               {
-                "name": "w043_ds_caveats",
+                "name": "w045_ds_caveats",
                 "query": {
                   "datasetName": "ds_caveats",
                   "fields": [
@@ -3851,22 +4395,22 @@
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w043_ds_economy"
+                    "queryName": "w045_ds_economy"
                   },
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w043_ds_activity"
+                    "queryName": "w045_ds_activity"
                   },
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w043_ds_segments"
+                    "queryName": "w045_ds_segments"
                   },
                   {
                     "fieldName": "reporting_unit",
                     "displayName": "Reporting unit",
-                    "queryName": "w043_ds_caveats"
+                    "queryName": "w045_ds_caveats"
                   }
                 ]
               },
@@ -3897,7 +4441,7 @@
         },
         {
           "widget": {
-            "name": "w044",
+            "name": "w046",
             "queries": [
               {
                 "name": "main_query",
@@ -3937,7 +4481,7 @@
         },
         {
           "widget": {
-            "name": "w045",
+            "name": "w047",
             "queries": [
               {
                 "name": "main_query",
@@ -3977,7 +4521,7 @@
         },
         {
           "widget": {
-            "name": "w046",
+            "name": "w048",
             "queries": [
               {
                 "name": "main_query",
@@ -4017,7 +4561,7 @@
         },
         {
           "widget": {
-            "name": "w047",
+            "name": "w049",
             "queries": [
               {
                 "name": "main_query",
@@ -4057,7 +4601,7 @@
         },
         {
           "widget": {
-            "name": "w048",
+            "name": "w050",
             "queries": [
               {
                 "name": "main_query",
@@ -4097,7 +4641,7 @@
         },
         {
           "widget": {
-            "name": "w049",
+            "name": "w051",
             "queries": [
               {
                 "name": "main_query",
@@ -4137,7 +4681,7 @@
         },
         {
           "widget": {
-            "name": "w050",
+            "name": "w052",
             "queries": [
               {
                 "name": "main_query",
@@ -4301,7 +4845,7 @@
         },
         {
           "widget": {
-            "name": "w051",
+            "name": "w053",
             "queries": [
               {
                 "name": "main_query",
@@ -4361,7 +4905,7 @@
         },
         {
           "widget": {
-            "name": "w052",
+            "name": "w054",
             "queries": [
               {
                 "name": "main_query",
@@ -4428,7 +4972,7 @@
         },
         {
           "widget": {
-            "name": "w053",
+            "name": "w055",
             "queries": [
               {
                 "name": "main_query",
@@ -4659,7 +5203,7 @@
         },
         {
           "widget": {
-            "name": "w054",
+            "name": "w056",
             "queries": [
               {
                 "name": "main_query",
@@ -4758,6 +5302,722 @@
             "y": 15,
             "width": 2,
             "height": 7
+          }
+        }
+      ]
+    },
+    {
+      "name": "p_presentation",
+      "displayName": "6. Presentation charts",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "w057",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Presentation charts (2023 vs 2019)\n",
+                "One chart per slide. Every chart reads the stored Analytics values for 2023; there are no filters, so screenshots always match the slide numbers.\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "w058",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_p_pareto",
+                  "fields": [
+                    {
+                      "name": "ranked_unit",
+                      "expression": "`ranked_unit`"
+                    },
+                    {
+                      "name": "sum(total_travelers)",
+                      "expression": "SUM(`total_travelers`)"
+                    },
+                    {
+                      "name": "rank_group",
+                      "expression": "`rank_group`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "ranked_unit",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Reporting unit (ranked)"
+                },
+                "y": {
+                  "fieldName": "sum(total_travelers)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Overnight travelers, 2023"
+                },
+                "color": {
+                  "fieldName": "rank_group",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Group"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "The usual leaders, by volume",
+                "showDescription": true,
+                "description": "Top 30 units by overnight travelers in 2023; top 10 = 44.6% of included travelers"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "w059",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_p_pareto",
+                  "fields": [
+                    {
+                      "name": "ranked_unit",
+                      "expression": "`ranked_unit`"
+                    },
+                    {
+                      "name": "sum(cumulative_share_pct)",
+                      "expression": "SUM(`cumulative_share_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "ranked_unit",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Reporting unit (ranked)"
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(cumulative_share_pct)",
+                      "displayName": "Cumulative share of included travelers (%)"
+                    }
+                  ]
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Cumulative share of travelers (Pareto line)",
+                "showDescription": true,
+                "description": "Running total of each unit's stored share (tourism_share_pct)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "w060",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_p_recovery",
+                  "fields": [
+                    {
+                      "name": "sum(recovery_index)",
+                      "expression": "SUM(`recovery_index`)"
+                    },
+                    {
+                      "name": "reporting_unit",
+                      "expression": "`reporting_unit`"
+                    },
+                    {
+                      "name": "recovery_status",
+                      "expression": "`recovery_status`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(recovery_index)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "2023 travelers as % of 2019 (100 = 2019 level)"
+                },
+                "y": {
+                  "fieldName": "reporting_unit",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "Reporting unit"
+                },
+                "color": {
+                  "fieldName": "recovery_status",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "2023 vs 2019"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Where recovery lags",
+                "showDescription": true,
+                "description": "91 units assessed; 9 not assessed (no data, or not comparable: Aklan)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 15,
+            "width": 3,
+            "height": 14
+          }
+        },
+        {
+          "widget": {
+            "name": "w061",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_p_segments",
+                  "fields": [
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    },
+                    {
+                      "name": "median(recovery_index)",
+                      "expression": "MEDIAN(`recovery_index`)"
+                    },
+                    {
+                      "name": "segment",
+                      "expression": "`segment`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "segment",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Traveler type"
+                },
+                "y": {
+                  "fieldName": "median(recovery_index)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Median 2023 as % of 2019"
+                },
+                "color": {
+                  "fieldName": "segment",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Traveler type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Who's still missing? Domestic vs foreign",
+                "showDescription": true,
+                "description": "Units still below 2019 in 2023: domestic 52, foreign 47 assessed (median of stored indices)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 15,
+            "width": 3,
+            "height": 14
+          }
+        },
+        {
+          "widget": {
+            "name": "w062",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_economy",
+                  "fields": [
+                    {
+                      "name": "latitude",
+                      "expression": "`latitude`"
+                    },
+                    {
+                      "name": "longitude",
+                      "expression": "`longitude`"
+                    },
+                    {
+                      "name": "travelers_2023",
+                      "expression": "`travelers_2023`"
+                    },
+                    {
+                      "name": "recovery_status_2023",
+                      "expression": "`recovery_status_2023`"
+                    },
+                    {
+                      "name": "reporting_unit",
+                      "expression": "`reporting_unit`"
+                    },
+                    {
+                      "name": "recovery_index_2023",
+                      "expression": "`recovery_index_2023`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "symbol-map",
+              "encodings": {
+                "coordinates": {
+                  "latitude": {
+                    "fieldName": "latitude",
+                    "displayName": "Latitude"
+                  },
+                  "longitude": {
+                    "fieldName": "longitude",
+                    "displayName": "Longitude"
+                  }
+                },
+                "size": {
+                  "fieldName": "travelers_2023",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Overnight travelers 2023"
+                },
+                "color": {
+                  "fieldName": "recovery_status_2023",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "2023 vs 2019"
+                },
+                "extra": [
+                  {
+                    "fieldName": "reporting_unit",
+                    "displayName": "reporting_unit"
+                  },
+                  {
+                    "fieldName": "recovery_index_2023",
+                    "displayName": "recovery_index_2023"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Where recovery lags: map",
+                "showDescription": true,
+                "description": "Map version of the recovery slide (2023)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 29,
+            "width": 6,
+            "height": 12
+          }
+        },
+        {
+          "widget": {
+            "name": "w063",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_economy_aligned",
+                  "fields": [
+                    {
+                      "name": "tourism_change_pct_chart",
+                      "expression": "`tourism_change_pct_chart`"
+                    },
+                    {
+                      "name": "afs_gva_growth_pct",
+                      "expression": "`afs_gva_growth_pct`"
+                    },
+                    {
+                      "name": "pattern",
+                      "expression": "`pattern`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "scatter",
+              "encodings": {
+                "x": {
+                  "fieldName": "tourism_change_pct_chart",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "% change in overnight travelers, 2019-2023 (capped at +300)"
+                },
+                "y": {
+                  "fieldName": "afs_gva_growth_pct",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "% change in real A&F output, 2019-2023"
+                },
+                "color": {
+                  "fieldName": "pattern",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Pattern"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Tourists vs local business, 2019-2023",
+                "showDescription": true,
+                "description": "91 comparable units. Top-left: travelers down, A&F up (30); bottom-right: travelers up, A&F down (13)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 41,
+            "width": 3,
+            "height": 10
+          }
+        },
+        {
+          "widget": {
+            "name": "w064",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_p_afs_top15",
+                  "fields": [
+                    {
+                      "name": "sum(afs_share_of_gdp_pct)",
+                      "expression": "SUM(`afs_share_of_gdp_pct`)"
+                    },
+                    {
+                      "name": "reporting_unit",
+                      "expression": "`reporting_unit`"
+                    },
+                    {
+                      "name": "recovery_status_2023",
+                      "expression": "`recovery_status_2023`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(afs_share_of_gdp_pct)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "A&F as % of the local economy (provincial GDP), 2023"
+                },
+                "y": {
+                  "fieldName": "reporting_unit",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "Reporting unit"
+                },
+                "color": {
+                  "fieldName": "recovery_status_2023",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "2023 vs 2019"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Where tourism carries the economy (top 15)",
+                "showDescription": true,
+                "description": "Colour = still below 2019 or not"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 41,
+            "width": 3,
+            "height": 10
+          }
+        },
+        {
+          "widget": {
+            "name": "w065",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_p_leaders",
+                  "fields": [
+                    {
+                      "name": "destination_group",
+                      "expression": "`destination_group`"
+                    },
+                    {
+                      "name": "avg(above_2019_pct_points)",
+                      "expression": "AVG(`above_2019_pct_points`)"
+                    },
+                    {
+                      "name": "destination_group",
+                      "expression": "`destination_group`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "destination_group",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Group"
+                },
+                "y": {
+                  "fieldName": "avg(above_2019_pct_points)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "% of units above 2019"
+                },
+                "color": {
+                  "fieldName": "destination_group",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Group"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Did only the usual leaders recover? Share above 2019",
+                "showDescription": true,
+                "description": "Usual leaders = 2019 top 10 (9 assessed); other places = 82 assessed"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 51,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "w066",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_p_leaders",
+                  "fields": [
+                    {
+                      "name": "destination_group",
+                      "expression": "`destination_group`"
+                    },
+                    {
+                      "name": "median(recovery_index)",
+                      "expression": "MEDIAN(`recovery_index`)"
+                    },
+                    {
+                      "name": "destination_group",
+                      "expression": "`destination_group`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "destination_group",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Group"
+                },
+                "y": {
+                  "fieldName": "median(recovery_index)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Median 2023 as % of 2019"
+                },
+                "color": {
+                  "fieldName": "destination_group",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Group"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Did only the usual leaders recover? Median recovery"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 51,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "w067",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_economy_aligned",
+                  "fields": [
+                    {
+                      "name": "gdp_per_capita_current_2019",
+                      "expression": "`gdp_per_capita_current_2019`"
+                    },
+                    {
+                      "name": "tourism_change_pct_chart",
+                      "expression": "`tourism_change_pct_chart`"
+                    },
+                    {
+                      "name": "destination_label",
+                      "expression": "`destination_label`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "scatter",
+              "encodings": {
+                "x": {
+                  "fieldName": "gdp_per_capita_current_2019",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "GDP per capita 2019 (PHP, current prices)"
+                },
+                "y": {
+                  "fieldName": "tourism_change_pct_chart",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "% change in overnight travelers, 2019-2023 (capped at +300)"
+                },
+                "color": {
+                  "fieldName": "destination_label",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Label"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Only where the economy is strong?",
+                "showDescription": true,
+                "description": "Median GDP per capita 2019 = PHP 114,874; median change = -7.7%. Weaker half: 23 of 45 grew; stronger half: 16 of 46"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 58,
+            "width": 6,
+            "height": 10
           }
         }
       ]

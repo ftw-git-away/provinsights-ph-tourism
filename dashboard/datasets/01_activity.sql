@@ -7,6 +7,8 @@ SELECT
   unit_type,
   region_name,
   year,
+  latitude,                             -- map point (Gold dim_province, COD-AB)
+  longitude,
   total_travelers,                      -- NULL when DOT did not report; never shown as 0
   population_total,
   tourism_intensity_per_1000,

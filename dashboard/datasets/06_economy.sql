@@ -6,9 +6,23 @@ SELECT
   province_name                         AS reporting_unit,
   unit_type,
   region_name,
+  latitude,                             -- map point (Gold dim_province, COD-AB)
+  longitude,
   travelers_2019,
   travelers_2023,
   recovery_index_2023,
+  CASE recovery_class_2023
+    WHEN 'above_2019' THEN 'Above 2019'
+    WHEN 'unchanged'  THEN 'Same as 2019'
+    WHEN 'below_2019' THEN 'Below 2019'
+    ELSE 'Not assessed'
+  END                                   AS recovery_status_2023,
+  usual_strong_destination_2019,
+  CASE destination_label
+    WHEN 'possible_emerging' THEN 'Possible emerging destination'
+    WHEN 'under_review'      THEN 'Under review'
+    ELSE 'No label'
+  END                                   AS destination_label,
   tourism_change_pct,
   -- Chart-only copies, capped so a few very large changes from small 2019 bases do not flatten the scatter.
   -- Exact values stay in tourism_change_pct / recovery_index_2023 and are listed in a table next to the chart.
