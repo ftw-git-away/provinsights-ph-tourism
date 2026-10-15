@@ -6,10 +6,11 @@
 #
 # REQUIRED GITHUB CONFIGURATION (set once by a repo admin)
 #   Settings -> Environments -> development
-#     - Environment variable  DATABRICKS_HOST   = Databricks workspace URL
-#     - Environment secret    DATABRICKS_TOKEN  = Databricks access token
+#     - Environment variable  DATABRICKS_HOST         = Databricks workspace URL
+#     - Environment secret    DATABRICKS_TOKEN        = Databricks access token
+#     - Environment variable  DATABRICKS_ALERT_EMAIL  = email that receives job failure alerts
 #
-#   If either value is missing, the "Check required GitHub configuration" step
+#   If any value is missing, the "Check required GitHub configuration" step
 #   fails with a message naming the missing value. An authentication error in
 #   the Validate or Deploy step usually means the token is wrong or has expired.
 #   Never put the token in this file or anywhere else in the repository.
@@ -45,8 +46,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}       # environment variable (development)
-  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}  # environment secret (development)
+  DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}                # environment variable (development)
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}           # environment secret (development)
+  BUNDLE_VAR_alert_email: ${{ vars.DATABRICKS_ALERT_EMAIL }}  # environment variable (development)
 
 jobs:
   deploy:
@@ -71,6 +73,11 @@ jobs:
 
           if [ -z "${DATABRICKS_TOKEN:-}" ]; then
             echo "Missing GitHub environment secret: DATABRICKS_TOKEN (Settings -> Environments -> development)"
+            exit 1
+          fi
+
+          if [ -z "${BUNDLE_VAR_alert_email:-}" ]; then
+            echo "Missing GitHub environment variable: DATABRICKS_ALERT_EMAIL (Settings -> Environments -> development)"
             exit 1
           fi
 
