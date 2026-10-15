@@ -39,13 +39,13 @@ This document confirms that the BQ1 and BQ2 Analytics tables (`tuklas_dev`, sche
 
 All 190 checks passed. The five tables carry `_analytics_run_id = analytics_20261015_033823_3937f856` and Gold versions v72 / v83 / v55, and validation ran after the build.
 
-`[Screenshot: Latest run per notebook (analytics_run_log)]`
+<img width="1182" height="158" alt="image" src="https://github.com/user-attachments/assets/68aea8ca-4e5e-4201-aeb8-c7ea1ec4f315" />
 
-`[Screenshot: Lineage of the five tables]`
+<img width="1178" height="257" alt="image" src="https://github.com/user-attachments/assets/3edfba6f-bd51-48a6-8dad-8746555761ad" />
 
-`[Screenshot: Check summary by notebook, severity and status]`
+<img width="1181" height="227" alt="image" src="https://github.com/user-attachments/assets/d197c735-9574-45ac-87c5-084f0d0c0985" />
 
-`[Screenshot: All checks, failures first]`
+<img width="1182" height="492" alt="image" src="https://github.com/user-attachments/assets/a15d0253-4cdb-44ee-84fc-be6c21b443f8" />
 
 > In `dq_results`, a REVIEW check with status `FAIL` is a finding to review, not a failure.
 
@@ -66,9 +66,9 @@ Expected values were calculated directly from DOT *Regional Distribution of Over
 | Aurora | Presentation example | 273,906 | 736,339 | 3,145.62 | 188.29 | 268.83 | 168.83 | −25.05 | 1.27 | up / down |
 | Camiguin | Presentation example | 804,745 | 259,010 | 2,744.53 | 15.89 | 32.19 | −67.81 | −15.35 | 11.80 | down / down |
 
-`[Screenshot: Edge cases, expected vs actual values]`
+<img width="1182" height="461" alt="image" src="https://github.com/user-attachments/assets/71173063-50ac-4f63-b42f-56df622645ef" />
 
-`[Screenshot: Edge cases, tourism–economy patterns]`
+<img width="1182" height="312" alt="image" src="https://github.com/user-attachments/assets/fd6dfd00-6155-499e-8073-f9248d6c046b" />
 
 **Sample calculations**
 - **Pampanga, Recovery Index 2023:** (386,868 Pampanga + 1,269,019 Clark Freeport Zone) ÷ 910,666 × 100 = **181.83** (DL-014).
@@ -112,7 +112,7 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 | under_review | 6 |
 | no label | 81 |
 
-`[Screenshot: Recovery exclusions, classes and destination labels]`
+<img width="1180" height="603" alt="image" src="https://github.com/user-attachments/assets/17cfc465-7361-45d3-9d71-c9d4ecbdbc00" />
 
 **Tourism–economy patterns (2019–2023)**
 
@@ -126,7 +126,7 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 
 48 of 91 eligible units moved in the same direction and 43 in opposite directions.
 
-`[Screenshot: Alignment exclusions and patterns]`
+<img width="1181" height="353" alt="image" src="https://github.com/user-attachments/assets/c170a044-96a4-4296-9f5a-bfebee0dc42c" />
 
 **Traveler-segment coverage (2023 below-2019 cohort)**
 
@@ -141,7 +141,7 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 | Overseas Filipino | 2019 overseas Filipinos printed as '-' by DOT | 22 |
 | Overseas Filipino | Overseas Filipino included in foreign for this unit | 4 |
 
-`[Screenshot: Segment coverage and exclusion reasons]`
+<img width="1181" height="387" alt="image" src="https://github.com/user-attachments/assets/52d2e539-3e39-40b1-a8f6-c9b8a598b74c" />
 
 **Gold caveat fields carried into Analytics**
 
@@ -150,7 +150,7 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 | Quezon | — | true |
 | City of Tacloban | afs_gva_constant (DS_32) City of Tacloban from region total | false |
 
-`[Screenshot: Caveat fields]`
+<img width="1187" height="151" alt="image" src="https://github.com/user-attachments/assets/d22fa36d-e5fe-483a-8db1-980e59d87568" />
 
 ## Notes
 
