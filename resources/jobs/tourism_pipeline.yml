@@ -70,10 +70,13 @@ resources:
             notebook_path: ../../notebooks/01_ingestion/04_ingest_psa_ds18_pdf.ipynb
 
         # 03 Silver (each notebook runs its own DQ checks)
-        - task_key: silver_setup
+        - task_key: silver_setup        # starts the Silver layer after all ingestion finishes
           timeout_seconds: 600
           depends_on:
-            - task_key: ingestion_setup
+            - task_key: ingest_psa
+            - task_key: ingest_psgc
+            - task_key: ingest_dot
+            - task_key: ingest_psa_ds18_pdf
           notebook_task:
             notebook_path: ../../notebooks/03_silver/00_silver_setup.ipynb
 
@@ -112,10 +115,13 @@ resources:
             notebook_path: ../../notebooks/03_silver/04_silver_population.ipynb
 
         # 04 Gold (star schema: dim_province, dim_year, fact_province_year)
-        - task_key: gold_setup
+        - task_key: gold_setup          # starts the Gold layer after all Silver tables are built
           timeout_seconds: 600
           depends_on:
-            - task_key: ingestion_setup
+            - task_key: silver_geography
+            - task_key: silver_dot
+            - task_key: silver_psa_economy
+            - task_key: silver_population
           notebook_task:
             notebook_path: ../../notebooks/04_gold/00_gold_setup.ipynb
 
@@ -157,14 +163,14 @@ resources:
 
         # 05 Analytics
         - task_key: analytics
-          timeout_seconds: 2100
+          timeout_seconds: 2100   # ~3x longest observed run (669 s)
           depends_on:
             - task_key: gold_run_evidence
           notebook_task:
             notebook_path: ../../notebooks/05_analytics/01_build_analytics.ipynb
 
         - task_key: analytics_validation
-          timeout_seconds: 900
+          timeout_seconds: 900    # ~3x longest observed run (297 s)
           depends_on:
             - task_key: analytics
           notebook_task:
