@@ -1,1 +1,178 @@
+# ProvInsights PH end-to-end pipeline job.
+# Paths are relative to this file, so they start with ../../
+# Check before a PR: databricks bundle validate -t dev
 
+resources:
+  jobs:
+    tourism_pipeline:
+      name: ProvInsights PH - End-to-End Pipeline
+      description: >-
+        Runs setup, source ingestion into Bronze, Silver, Gold and analytics
+        (with validation and run evidence) for the ProvInsights PH tourism and
+        local economy platform, in dependency order.
+
+      max_concurrent_runs: 1
+      timeout_seconds: 7200
+
+      email_notifications:
+        on_failure:
+          - ${var.alert_email}
+
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+
+      tasks:
+        # 01 Ingestion -> Bronze
+        - task_key: ingestion_setup
+          timeout_seconds: 600
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/00_ingestion_setup.ipynb
+
+        - task_key: ingest_psa
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/01_ingest_psa.ipynb
+
+        - task_key: ingest_psgc
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/02_ingest_psgc.ipynb
+
+        - task_key: ingest_dot
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/03_ingest_dot.ipynb
+
+        - task_key: ingest_psa_ds18_pdf
+          timeout_seconds: 900
+          max_retries: 2
+          min_retry_interval_millis: 30000
+          retry_on_timeout: true
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/01_ingestion/04_ingest_psa_ds18_pdf.ipynb
+
+        # 03 Silver (each notebook runs its own DQ checks)
+        - task_key: silver_setup
+          timeout_seconds: 600
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/03_silver/00_silver_setup.ipynb
+
+        - task_key: silver_geography
+          timeout_seconds: 1800
+          depends_on:
+            - task_key: silver_setup
+            - task_key: ingest_psgc
+            - task_key: ingest_dot
+          notebook_task:
+            notebook_path: ../../notebooks/03_silver/01_silver_geography.ipynb
+
+        - task_key: silver_dot
+          timeout_seconds: 1800
+          depends_on:
+            - task_key: silver_geography
+            - task_key: ingest_dot
+          notebook_task:
+            notebook_path: ../../notebooks/03_silver/02_silver_dot.ipynb
+
+        - task_key: silver_psa_economy
+          timeout_seconds: 1800
+          depends_on:
+            - task_key: silver_geography
+            - task_key: ingest_psa
+          notebook_task:
+            notebook_path: ../../notebooks/03_silver/03_silver_psa_economy.ipynb
+
+        - task_key: silver_population
+          timeout_seconds: 1800
+          depends_on:
+            - task_key: silver_geography
+            - task_key: ingest_psa
+            - task_key: ingest_psa_ds18_pdf
+          notebook_task:
+            notebook_path: ../../notebooks/03_silver/04_silver_population.ipynb
+
+        # 04 Gold (star schema: dim_province, dim_year, fact_province_year)
+        - task_key: gold_setup
+          timeout_seconds: 600
+          depends_on:
+            - task_key: ingestion_setup
+          notebook_task:
+            notebook_path: ../../notebooks/04_gold/00_gold_setup.ipynb
+
+        - task_key: gold_dim_province
+          timeout_seconds: 900
+          depends_on:
+            - task_key: gold_setup
+            - task_key: silver_geography
+          notebook_task:
+            notebook_path: ../../notebooks/04_gold/01_gold_dim_province.ipynb
+
+        - task_key: gold_dim_year
+          timeout_seconds: 900
+          depends_on:
+            - task_key: gold_setup
+            - task_key: silver_dot
+            - task_key: silver_psa_economy
+            - task_key: silver_population
+          notebook_task:
+            notebook_path: ../../notebooks/04_gold/02_gold_dim_year.ipynb
+
+        - task_key: gold_fact_province_year
+          timeout_seconds: 1800
+          depends_on:
+            - task_key: gold_dim_province
+            - task_key: gold_dim_year
+            - task_key: silver_dot
+            - task_key: silver_psa_economy
+            - task_key: silver_population
+          notebook_task:
+            notebook_path: ../../notebooks/04_gold/03_gold_fact_province_year.ipynb
+
+        - task_key: gold_run_evidence
+          timeout_seconds: 600
+          depends_on:
+            - task_key: gold_fact_province_year
+          notebook_task:
+            notebook_path: ../../notebooks/04_gold/04_gold_run_evidence.ipynb
+
+        # 05 Analytics
+        - task_key: analytics
+          timeout_seconds: 2100
+          depends_on:
+            - task_key: gold_run_evidence
+          notebook_task:
+            notebook_path: ../../notebooks/05_analytics/01_build_analytics.ipynb
+
+        - task_key: analytics_validation
+          timeout_seconds: 900
+          depends_on:
+            - task_key: analytics
+          notebook_task:
+            notebook_path: ../../notebooks/05_analytics/02_analytics_validation.ipynb
+
+        - task_key: analytics_run_evidence
+          timeout_seconds: 600
+          depends_on:
+            - task_key: analytics_validation
+          notebook_task:
+            notebook_path: ../../notebooks/05_analytics/03_analytics_run_evidence.ipynb

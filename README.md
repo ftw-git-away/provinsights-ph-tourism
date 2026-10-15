@@ -47,7 +47,7 @@ Government source files
 ```
 
 - **Silver** cleans each source and maps places to PSGC units. Each Silver notebook runs its own data-quality checks and fails on a BLOCK error.
-- **Gold** is a star schema: `dim_province`, `dim_year` and `fact_province_year` (see [schema and source-to-target mapping]([docs/schema-and-source-to-target-mapping.md](https://github.com/ftw-git-away/provinsights-ph-tourism/blob/main/docs/schema-and-source-to-target-mapping.md))).
+- **Gold** is a star schema: `dim_province`, `dim_year` and `fact_province_year` (see [schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md)).
 - **Analytics** calculates the business metrics once, in five tables in `05_analytics`. Every row carries the Analytics run ID and the exact Gold Delta versions it was built from.
 - **Data quality:** check results are saved in `06_data_quality.dq_results`, and each layer records its runs in a run log (`silver_run_log`, `gold_run_log`, `05_analytics.analytics_run_log`). A BLOCK check protects correctness. A REVIEW check flags something unusual that needs a person to look.
 
