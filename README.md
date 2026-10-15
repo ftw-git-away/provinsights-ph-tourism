@@ -4,85 +4,115 @@
 
 **Philippine Province-Level Tourism, Recovery, and Economic Analytics Project**
 
-ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data to examine provincial tourism activity, recovery relative to 2019, and associations with local economic conditions.
+ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data to show where tourism is concentrated, which provinces are back to their 2019 level, and whether tourism and local hotel and restaurant activity move together. The client is a fictional persona, the Tourism-Economy Convergence Task Force (TECTF), which asks whether tourism growth is reaching beyond the usual strong destinations.
 
-**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. Accommodation and food service GVA is an economic proxy that includes spending unrelated to tourism. Findings support descriptive comparisons and further investigation, not causal or investment-return claims.
-
-The [Bronze ingestion guide](docs/bronze-ingestion-guide.md) describes workspace work and the shared control pattern.
+**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. Accommodation and food services (A&F) GVA is an economic proxy that includes spending unrelated to tourism. Findings support descriptive comparisons and further investigation, not causal or investment-return claims. A missing value is never treated as zero.
 
 ## Analytical scope
 
-The canonical questions and definitions are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md).
+The canonical questions, definitions, thresholds and confirmed results are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md).
 
-1. Distribution of tourism activity: provincial volume, concentration, population-adjusted intensity, and traveler composition.
-2. Post-pandemic change: 2022–2023 compared with 2019, including traveler-type recovery and potential emerging destinations.
-3. Tourism and local economic conditions: traveler intensity versus GDP per capita, traveler change versus accommodation and food service GVA growth, and economic shares.
+| Business question | Analytical questions | Analytics table |
+| --- | --- | --- |
+| **BQ1:** Which provinces stand out in tourism activity and recovery, and which appear to be lagging? | AQ1.1 activity, intensity and concentration | `tourism_activity`, `tourism_concentration` |
+| | AQ1.2 recovery relative to 2019 | `tourism_recovery` |
+| | AQ1.3 recovery by traveler type (domestic, foreign, overseas Filipino) among provinces below 2019 | `traveler_segment_recovery` |
+| **BQ2:** How are changes in tourism associated with changes in local tourism-related economic activity? | AQ2.1 tourism change and real A&F growth | `tourism_economy` |
+| | AQ2.2 alignment and divergence | `tourism_economy` |
+| | AQ2.3 economic significance of A&F | `tourism_economy` |
+| | AQ2.4 tourism outcomes versus the 2019 economic base | `tourism_economy` |
 
-The common analytical window is **2019–2023**. The DOT notebook also lands 2024 source data; ingestion coverage does not extend the finalized analytical scope.
-
-Before comparable results are published, the team must resolve historical PSGC mapping, province/HUC/NCR treatment, annual population denominators, missing-data rules, reporting breaks such as Aklan/Boracay, and screening thresholds. Missing or unavailable values must not be interpreted as zero.
+The baseline year is **2019**, the comparison years are **2022 and 2023**, and the headline year is **2023**. Source data covers 2019–2024. The "usual strong destinations" are the ten most visited units in 2019.
 
 ## Data sources
 
 | Source | Role |
 | --- | --- |
-| DOT overnight-traveler reports — DS_05 | Provincial tourism activity and recovery, after source extraction and geographic validation |
-| PSA population sources | Population denominators, subject to the approved annual method |
-| PSA provincial GDP, GDP per capita, and accommodation/food service GVA — DS_27–DS_32 | Economic comparisons; current prices for shares and constant prices for growth |
-| PSGC — DS_33 and DS_34 | Geographic reference and historical crosswalk input |
-| PSA tourism satellite accounts and regional tables | National context and cross-checks, not interchangeable with provincial tourism measures |
+| DOT overnight-traveler reports | Provincial tourism activity and recovery |
+| PSA population sources | Population denominators for intensity |
+| PSA provincial GDP, GDP per capita, and A&F GVA | Economic comparisons: current prices for shares, constant prices for growth |
+| PSGC | Geographic reference and historical crosswalk |
 
-See [Source assessment](docs/consolidated-data-sources.md) and the [Source inventory](https://docs.google.com/spreadsheets/d/18tTQHJLcJrIFVfNzgvT97ZMM6PfJNnAL/edit) for source identifiers and limitations.
+See [Source assessment](docs/consolidated-data-sources.md) and [Data sources](docs/data-sources.md) for identifiers and limitations.
 
-## Processing approach
-
-The intended flow is:
+## How the pipeline works
 
 ```text
-Government source files in Google Drive
-    → Databricks Bronze ingestion and provenance
-    → Silver normalization and quality rules
-    → Gold analytical models
-    → Analytics and dashboard
+Government source files
+    → Ingestion and Bronze      (notebooks/01_ingestion)
+    → Silver                    (notebooks/03_silver)
+    → Gold                      (notebooks/04_gold)
+    → Analytics                 (notebooks/05_analytics)
+    → Dashboard
 ```
+
+- **Silver** cleans each source and maps places to PSGC units. Each Silver notebook runs its own data-quality checks and fails on a BLOCK error.
+- **Gold** is a star schema: `dim_province`, `dim_year` and `fact_province_year` (see [schema and source-to-target mapping]([docs/schema-and-source-to-target-mapping.md](https://github.com/ftw-git-away/provinsights-ph-tourism/blob/main/docs/schema-and-source-to-target-mapping.md))).
+- **Analytics** calculates the business metrics once, in five tables in `05_analytics`. Every row carries the Analytics run ID and the exact Gold Delta versions it was built from.
+- **Data quality:** check results are saved in `06_data_quality.dq_results`, and each layer records its runs in a run log (`silver_run_log`, `gold_run_log`, `05_analytics.analytics_run_log`). A BLOCK check protects correctness. A REVIEW check flags something unusual that needs a person to look.
+
+Run evidence: [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md).
+
+The job in [`resources/jobs/tourism_pipeline.yml`](resources/jobs/tourism_pipeline.yml) runs the layers in dependency order. Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
 
 ## Repository guide
 
 ```text
 .github/
   PULL_REQUEST_TEMPLATE.md
-  workflows/
-    ci.yml
+  workflows/                      # ci.yml, deploy.yml
 docs/
   business-and-analytical-questions.md
   consolidated-data-sources.md
-  bronze-ingestion-guide.md
-  project-decision-log.md
   data-sources.md
+  schema-and-source-to-target-mapping.md
+  bronze-ingestion-guide.md
+  gold-run-evidence.md
+  analytics-run-evidence.md
+  project-decision-log.md
   architecture.md                 # placeholder
   runbook.md                      # placeholder
 notebooks/
-  01_ingestion/
-    02_ingest_psgc.ipynb
-    03_ingest_dot.ipynb
-  README.md
+  01_ingestion/                   # sources to Bronze
+  03_silver/
+  04_gold/
+  05_analytics/                   # build, validation, run evidence
 resources/
-  jobs/
-    tourism_pipeline.yml          # placeholder on main
-src/
-  01-ingestion/                   # folder guidance
-  02-bronze/
-  03-silver/
-  04-gold/
-  05-analytics/
-  06-data-quality/
+  jobs/tourism_pipeline.yml       # end-to-end Databricks job
+  seeds/                          # reviewed crosswalk files
+databricks.yml                    # Databricks bundle
+src/                              # folder guidance; pipeline logic lives in the notebooks
 tests/
-  README.md                       # validation guidance
+  README.md                       # validation guidance, no automated tests yet
 dashboard/
-  README.md                       # dashboard guidance
+  README.md                       # placeholder
 ```
 
-Stage folders under `src/` currently contain guidance, not implemented transformation code. Planned paths described in other documents may differ from the files currently committed.
+## Databricks deployment
+
+The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It needs one variable, `alert_email`, which receives failure emails. No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)).
+
+**How changes reach Databricks**
+
+1. Open a pull request. CI runs **Validate repository** and **Validate Databricks bundle**.
+2. After approval, merge into `main`.
+3. The **CD - Deploy ProvInsights PH to Databricks** workflow validates and deploys the bundle. Deploying updates the job but does not run it.
+
+**Working with the bundle locally**
+
+```bash
+# sign in once
+databricks auth login --host <workspace URL> --profile <profile>
+
+# check the bundle (run before every pull request)
+databricks bundle validate -t dev -p <profile> --var="alert_email=<your email>"
+
+# deploy to your own dev folder
+databricks bundle deploy -t dev -p <profile> --var="alert_email=<your email>"
+
+# run the pipeline (writes to the shared tuklas_dev catalog; tell the team first)
+databricks bundle run -t dev -p <profile> tourism_pipeline --var="alert_email=<your email>"
+```
 
 ## Team workflow
 
@@ -92,11 +122,14 @@ Stage folders under `src/` currently contain guidance, not implemented transform
 4. Request a teammate review and address findings before merging.
 5. Update relevant documentation when implementation or decisions change.
 
-Use [Business and analytical questions](docs/business-and-analytical-questions.md) for analytical scope, [Source assessment](docs/consolidated-data-sources.md) for source caveats, [Decision log](docs/project-decision-log.md) for approved choices, and [Bronze guide](docs/bronze-ingestion-guide.md) for ingestion responsibilities. Preserve original source artifacts and keep credentials out of Git.
+Use the [Decision log](docs/project-decision-log.md) for approved choices. Preserve original source artifacts and keep credentials out of Git.
 
-CI checks repository structure, Python files under `src/`, notebook structure, and syntax in explicitly marked Python/SQL cells. It does not execute Databricks ingestion, validate source data, or currently validate a Databricks bundle.
+CI checks repository structure, Python files under `src/`, notebook structure, syntax in marked Python and SQL cells, and the Databricks bundle. It does not run the notebooks or validate source data.
+
 ## Team and handoff
 
-**GitAway — FTW Batch 12 LT3:** Cole, Nella, Cha, Gab, and Haze.
+**GitAway, FTW Batch 12 LT3:** Cole, Nella, Cha, Gab, and Haze.
 
-Use the GitHub Project and issues for assignments and checkpoints. The repository is **Not yet ready** for independent engineering handoff: shared setup and PSA ingestion must be merged, complete run instructions are needed, and downstream models and analytics remain to be implemented.
+Use the GitHub Project and issues for assignments and checkpoints.
+
+**Handoff status: partly ready.** The ingestion, Silver, Gold and Analytics notebooks, the job definition, and run evidence for Gold and Analytics are in the repository. Still missing: the architecture and runbook documents, automated tests in `tests/`, and a dashboard guide.
