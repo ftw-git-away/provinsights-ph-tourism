@@ -25,15 +25,18 @@ Job name in Databricks: **ProvInsights PH - End-to-End Pipeline**
 
 ```text
 ingestion_setup
- ├─ ingest_psa ─────┐
- ├─ ingest_psgc ────┤
- └─ ingest_dot ─────┤
-silver_setup ───────┴─ silver_geography
-                        ├─ silver_dot
-                        ├─ silver_psa_economy
-                        └─ silver_population
+ ├─ ingest_psa ──────────┐
+ ├─ ingest_psgc ─────────┤
+ ├─ ingest_dot ──────────┤
+ └─ ingest_psa_ds18_pdf ─┤
+silver_setup ────────────┴─ silver_geography (PSGC + DOT)
+                             ├─ silver_dot
+                             ├─ silver_psa_economy
+                             └─ silver_population (+ PSA DS-18 PDF rows)
 gold_setup ─┬─ gold_dim_province ─┐
-            └─ gold_dim_year ─────┴─ gold_fact_province_year ─ gold_run_evidence ─ analytics ─ analytics_run_evidence
+            └─ gold_dim_year ─────┴─ gold_fact_province_year ─ gold_run_evidence
+                                                                      │
+                     analytics ─ analytics_validation ─ analytics_run_evidence
 ```
 
 ### Tasks
@@ -44,18 +47,20 @@ gold_setup ─┬─ gold_dim_province ─┐
 | 01 Ingestion | `ingest_psa` | `notebooks/01_ingestion/01_ingest_psa.ipynb` | `ingestion_setup` |
 | 01 Ingestion | `ingest_psgc` | `notebooks/01_ingestion/02_ingest_psgc.ipynb` | `ingestion_setup` |
 | 01 Ingestion | `ingest_dot` | `notebooks/01_ingestion/03_ingest_dot.ipynb` | `ingestion_setup` |
+| 01 Ingestion | `ingest_psa_ds18_pdf` | `notebooks/01_ingestion/04_ingest_psa_ds18_pdf.ipynb` | `ingestion_setup` |
 | 03 Silver | `silver_setup` | `notebooks/03_silver/00_silver_setup.ipynb` | `ingestion_setup` |
-| 03 Silver | `silver_geography` | `notebooks/03_silver/01_silver_geography.ipynb` | `silver_setup`, `ingest_psgc`, `ingest_dot`, `ingest_psa` |
+| 03 Silver | `silver_geography` | `notebooks/03_silver/01_silver_geography.ipynb` | `silver_setup`, `ingest_psgc`, `ingest_dot` |
 | 03 Silver | `silver_dot` | `notebooks/03_silver/02_silver_dot.ipynb` | `silver_geography`, `ingest_dot` |
 | 03 Silver | `silver_psa_economy` | `notebooks/03_silver/03_silver_psa_economy.ipynb` | `silver_geography`, `ingest_psa` |
-| 03 Silver | `silver_population` | `notebooks/03_silver/04_silver_population.ipynb` | `silver_geography`, `ingest_psa` |
+| 03 Silver | `silver_population` | `notebooks/03_silver/04_silver_population.ipynb` | `silver_geography`, `ingest_psa`, `ingest_psa_ds18_pdf` |
 | 04 Gold | `gold_setup` | `notebooks/04_gold/00_gold_setup.ipynb` | `ingestion_setup` |
 | 04 Gold | `gold_dim_province` | `notebooks/04_gold/01_gold_dim_province.ipynb` | `gold_setup`, `silver_geography` |
 | 04 Gold | `gold_dim_year` | `notebooks/04_gold/02_gold_dim_year.ipynb` | `gold_setup`, `silver_dot`, `silver_psa_economy`, `silver_population` |
 | 04 Gold | `gold_fact_province_year` | `notebooks/04_gold/03_gold_fact_province_year.ipynb` | `gold_dim_province`, `gold_dim_year`, `silver_dot`, `silver_psa_economy`, `silver_population` |
 | 04 Gold | `gold_run_evidence` | `notebooks/04_gold/04_gold_run_evidence.ipynb` | `gold_fact_province_year` |
 | 05 Analytics | `analytics` | `notebooks/05_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
-| 05 Analytics | `analytics_run_evidence` | `notebooks/05_analytics/02_analytics_run_evidence.ipynb` | `analytics` |
+| 05 Analytics | `analytics_validation` | `notebooks/05_analytics/02_analytics_validation.ipynb` | `analytics` |
+| 05 Analytics | `analytics_run_evidence` | `notebooks/05_analytics/03_analytics_run_evidence.ipynb` | `analytics_validation` |
 
 There is no `02_bronze` folder: the ingestion notebooks in `01_ingestion` write the Bronze
 tables themselves, so the layer numbers go from `01` to `03`. The `02` prefix stays reserved
