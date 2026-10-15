@@ -157,14 +157,14 @@ resources:
 
         # 05 Analytics
         - task_key: analytics
-          timeout_seconds: 900
+          timeout_seconds: 2100
           depends_on:
             - task_key: gold_run_evidence
           notebook_task:
             notebook_path: ../../notebooks/05_analytics/01_build_analytics.ipynb
 
         - task_key: analytics_validation
-          timeout_seconds: 600
+          timeout_seconds: 900
           depends_on:
             - task_key: analytics
           notebook_task:
