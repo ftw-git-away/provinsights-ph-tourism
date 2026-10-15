@@ -82,7 +82,7 @@ data-quality checks before writing; results go to `06_data_quality.dq_results`, 
 | Setting | Value | Why |
 | --- | --- | --- |
 | `max_concurrent_runs` | `1` | Two runs never write the same tables at the same time |
-| `timeout_seconds` (job) | `7200` (2 h) | Stops a stuck run; review after the first full run |
+| `timeout_seconds` (job) | `10800` (2 h) | Stops a stuck run; review after the first full run |
 | `timeout_seconds` (task) | 600–2100 | Every task has its own limit; analytics limits are ~3× the longest observed run |
 | Retries | 2 retries, 30 s apart | Ingestion tasks only, since they call external sources |
 | Failure emails | `${var.alert_email}` | See below |
