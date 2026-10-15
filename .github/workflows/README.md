@@ -42,7 +42,7 @@ Cells without a `%python`, `%sql` or `%md` magic are reported as `INFO` and not 
 
 ### Job 2: Validate Databricks bundle
 
-Runs `databricks bundle validate -t dev` against the branch, using the GitHub `development` environment. It checks `databricks.yml` and every job in `resources/jobs/`, including that each `notebook_path` exists.
+Runs `databricks bundle validate -t dev` against the branch, using the separate GitHub `ci-validate` environment and a low-privilege, validate-only token. Pull requests from branches in this repo can change workflow files, so CI never uses the deploy token in `development`. It checks `databricks.yml` and every job in `resources/jobs/`, including that each `notebook_path` exists.
 
 - A task that points to a notebook not yet on the branch fails this check. Merge the notebook first, then add its task.
 - Skipped for pull requests from forks, which cannot read environment secrets.
@@ -71,7 +71,14 @@ Only one deploy runs at a time (`concurrency: provinsights-databricks-dev`), and
 
 ## Required GitHub configuration
 
-Both workflows read these values from **Settings → Environments → development**:
+There are two environments, so the deploy token is never exposed to pull-request branches:
+
+| Environment | Used by | Deployment branches | Token |
+| --- | --- | --- | --- |
+| `development` | `deploy.yml` | **`main` only** | Deploy token |
+| `ci-validate` | `ci.yml` (Validate Databricks bundle) | All branches | Separate low-privilege token, used only for `bundle validate` |
+
+Each environment needs these values (**Settings → Environments → \<name\>**):
 
 | Name | Type | Value |
 | --- | --- | --- |
@@ -87,7 +94,7 @@ Never put tokens or workspace credentials in the repository. If a token leaks, r
 
 | What you see | Likely cause | Fix |
 | --- | --- | --- |
-| `Missing GitHub environment variable/secret: ...` | Value not set, or set at repository level instead of in the `development` environment | Add it under **Settings → Environments → development** |
+| `Missing GitHub environment variable/secret: ...` | Value not set, or set at repository level instead of in the environment | Add it under **Settings → Environments → development** (deploy) or **ci-validate** (CI) |
 | Authentication error or `401` in Validate / Deploy | Token expired or wrong, or wrong host URL | Create a new token and update `DATABRICKS_TOKEN`; check `DATABRICKS_HOST` |
 | `notebook ... not found` | A job task points to a notebook that is not on the branch, or the path is wrong | Merge the notebook first; check the path starts with `../../` and matches the file name |
 | `no value assigned to required variable alert_email` | `DATABRICKS_ALERT_EMAIL` not reaching the bundle | Check the variable name in the `development` environment |
