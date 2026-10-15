@@ -12,7 +12,7 @@ resources:
         local economy platform, in dependency order.
 
       max_concurrent_runs: 1
-      timeout_seconds: 7200
+      timeout_seconds: 10800
 
       email_notifications:
         on_failure:
@@ -126,7 +126,7 @@ resources:
             notebook_path: ../../notebooks/04_gold/00_gold_setup.ipynb
 
         - task_key: gold_dim_province
-          timeout_seconds: 900
+          timeout_seconds: 2700
           depends_on:
             - task_key: gold_setup
             - task_key: silver_geography
@@ -134,7 +134,7 @@ resources:
             notebook_path: ../../notebooks/04_gold/01_gold_dim_province.ipynb
 
         - task_key: gold_dim_year
-          timeout_seconds: 900
+          timeout_seconds: 2700
           depends_on:
             - task_key: gold_setup
             - task_key: silver_dot
