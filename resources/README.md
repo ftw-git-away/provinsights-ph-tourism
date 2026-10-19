@@ -87,7 +87,7 @@ data-quality checks before writing; results go to `06_data_quality.dq_results`, 
 | --- | --- | --- |
 | `max_concurrent_runs` | `1` | Two runs never write the same tables at the same time |
 | `timeout_seconds` (job) | `10800` (3 h) | Stops a stuck run; review after the first full run |
-| `timeout_seconds` (task) | 600–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run |
+| `timeout_seconds` (task) | 900–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run. Setup and run-evidence tasks get 1800 s to allow for serverless compute waits |
 | Retries | 2 retries, 30 s apart | Ingestion tasks only, since they call external sources |
 | Failure emails | `${var.alert_email}` | See below |
 | Skipped / cancelled runs | No alert | Avoids noise from manual cancels |
