@@ -1,443 +1,342 @@
-# ProvInsights Business and Analytical Questions (Revised)
+# ProvInsights Business and Analytical Questions
 
-## Table of Contents
+This document states what ProvInsights answers, how each term is defined, and which Analytics tables answer each question. Every dashboard page and notebook follows these definitions.
 
-- [Client Context](#client-context)
-- [Main Business Question](#main-business-question)
-- [Question Overview](#question-overview)
-- [Shared Definitions](#shared-definitions)
-- [BQ1](#bq1)
-  - [AQ1.1](#aq11)
-  - [AQ1.2](#aq12)
-  - [AQ1.3](#aq13)
-- [BQ2](#bq2)
-  - [AQ2.1](#aq21)
-  - [AQ2.2](#aq22)
-  - [AQ2.3](#aq23)
-  - [AQ2.4](#aq24)
-- [Out of Scope](#out-of-scope)
-- [Comparison Thresholds](#comparison-thresholds)
-- [Confirmed Results](#confirmed-results)
-- [Notes and Caveats](#notes-and-caveats)
-- [Change Log](#change-log)
+## Contents
+
+- [Business question](#business-question)
+- [Scope](#scope)
+- [Definitions](#definitions)
+- [Question overview](#question-overview)
+- [AQ1: Where do visitors go?](#aq1)
+- [AQ2: Which provinces earn more from each visitor, and which earn less?](#aq2)
+- [AQ3: Does tourism only do well in already-wealthy provinces?](#aq3)
+- [AQ4: Which provinces beyond the leading destinations should be prioritized, and what do they need?](#aq4)
+- [Recommendation framework](#recommendation-framework)
+- [Queries](#queries)
+- [Dashboard pages](#dashboard-pages)
+- [Wording rules](#wording-rules)
+- [Out of scope](#out-of-scope)
+- [Notes and caveats](#notes-and-caveats)
 
 ---
 
-<a id="client-context"></a>
+## Business question
 
-## Client Context
+> **How can tourism development be planned to benefit provinces beyond the leading tourist destinations?**
 
-**Fictional client persona:** Tourism-Economy Convergence Task Force (TECTF).
+We framed the question as a decision, so our answer is a set of recommendations: which provinces to prioritize and what kind of support fits each one.
 
-TECTF is a fictional inter-agency body bringing together the Department of Tourism, the Department of Trade and Industry, and PSA, with technical support from the Asian Development Bank.
+- **"Tourism development"** is broader than investment. It covers access, promotion, links to local suppliers, and the option of focusing on other industries first.
+- **"Benefit"** covers both ways a province can gain from tourism: more visitors, or more earnings from each visitor.
 
-TECTF wants to test whether tourism growth reaches beyond the usual top destinations, or whether it is only growing where the economy already is.
+Our four analytical questions build the answer in order. AQ1 shows that tourism is concentrated. AQ2 sorts provinces by what they need. AQ3 checks whether tourism is a realistic path outside the stronger economies. AQ4 turns these into named priorities.
 
-ProvInsights answers this by describing patterns in reported overnight tourism and in local tourism-related economic activity. It supports closer investigation. It does not show that tourism causes economic growth, and it does not prescribe interventions or investments.
+---
 
-The two halves of TECTF's question map to the analysis as follows:
+## Scope
 
-| TECTF question | Where it is answered |
+| Item | Value |
 | --- | --- |
-| Is tourism growth reaching **beyond the usual top destinations**? | AQ1.1 (concentration), AQ1.2 (recovery), AQ1.3 (traveler types), and the usual-destination split in AQ1.2 and AQ2.2 |
-| Is it **only growing where the economy already is**? | AQ2.1 to AQ2.3 (tourism and A&F co-movement) and AQ2.4 (tourism versus the 2019 economic base) |
+| Trend years | 2019–2023 |
+| Analysis year for AQ2 to AQ4 | 2023, the latest year with both DOT and PSA provincial data |
+| Units | 100 reporting units: provinces, HUCs that DOT reports separately, the City of Isabela, and NCR (DL-010). In this document, "province" means a reporting unit. |
+| Pre- versus post-pandemic comparison | Not used. 2019–2023 is shown as a plain trend, and 2020–2021 are labeled as COVID-19 years. |
 
 ---
 
-## Main Business Question
+## Definitions
 
-> **Which Philippine provinces warrant closer attention based on their tourism activity and recovery, how these relate to local economic performance, and whether tourism growth is appearing beyond the usual strong destinations?**
-
-ProvInsights is designed as a **decision-support tool** through which tourism and economic indicators are used to surface provinces and patterns that warrant closer investigation.
-
----
-
-## Question Overview
-
-| Business Question | Analytical Question | Analytical Table |
+| Term | Definition | How it is computed |
 | --- | --- | --- |
-| **BQ1: Tourism Activity and Recovery** | **AQ1.1:** Activity, intensity, and concentration | `tourism_activity`, `tourism_concentration` |
-|  | **AQ1.2:** Recovery relative to 2019 | `tourism_recovery` |
-|  | **AQ1.3:** Recovery by traveler type among provinces below 2019 | `traveler_segment_recovery` |
-| **BQ2: Tourism and Economic Conditions** | **AQ2.1:** Tourism change and real A&F growth | `tourism_economy` |
-|  | **AQ2.2:** Alignment and divergence | `tourism_economy` |
-|  | **AQ2.3:** Economic significance of A&F | `tourism_economy` |
-|  | **AQ2.4:** Tourism outcomes versus the 2019 economic base | `tourism_economy` |
+| **Overnight travelers** | Reported overnight travelers in accommodation establishments (DOT). Not unique visitors, and not day-trippers. | `total_travelers` |
+| **Tourism intensity** | Overnight travelers relative to population | Overnight travelers ÷ population × 1,000 (`tourism_intensity_per_1000`) |
+| **Leading tourist destinations** | The 10 provinces with the highest **average annual** overnight travelers, 2019–2023 | Average of `total_travelers` over the eligible years 2019–2023, ranked descending; rank ≤ 10. Averaging over the years a province has data means a missing year doesn't lower its rank. A tie at 10th adds an 11th province. |
+| **Provinces beyond the leading destinations** | Every province that is not a leading destination | — |
+| **Tourism-related output** | Accommodation and food services (A&F) gross value added, current prices. Our proxy for tourism's economic output (DL-007). | `afs_gva_current_2023` |
+| **Earnings per visitor** | Tourism-related output generated per overnight traveler, in PhP | A&F GVA (thousand PhP) × 1,000 ÷ overnight travelers, 2023 |
+| **Tourism share of the economy** | How much of a province's economy is tourism-related activity | Current-price A&F GVA ÷ current-price GDP × 100, 2023 (`afs_share_of_gdp_pct`) |
+| **GDP per capita** | Provincial GDP per person, current prices | `gdp_per_capita_current_2023` |
+| **Lagging provinces** | Provinces with below-median GDP per capita | 2023 GDP per capita below the median of all provinces with data |
+| **Extending economic benefits** | Increasing tourism-related output in provinces beyond the leading destinations | Through more visitors, more earnings per visitor, or both |
+
+**Proxy note.** We use accommodation and food services as the proxy for tourism's economic output because PSA's tourism value added is only published nationally. Our results describe tourism-related patterns, not exact tourist spending. A&F does not capture jobs, other tourist spending (transport, tours, souvenirs), or where the income goes. Residents also eat out and stay in hotels, so A&F overstates tourism somewhat.
 
 ---
 
-## Shared Definitions
+## Question overview
 
-| Term | Definition |
+| Analytical question | What it shows | Analytics tables |
+| --- | --- | --- |
+| **AQ1** Where do visitors go? | Tourism is concentrated in the leading destinations | `tourism_activity`, `tourism_concentration` |
+| **AQ2** Which provinces earn more from each visitor, and which earn less? | Which provinces need more visitors, and which need visitors to spend more | `tourism_economy`, `tourism_activity` |
+| **AQ3** Does tourism only do well in already-wealthy provinces? | Whether tourism is a realistic path outside the stronger economies | `tourism_economy` |
+| **AQ4** Which provinces beyond the leading destinations should be prioritized, and what do they need? | The answer to the business question | `tourism_economy`, `tourism_activity` |
+
+All tables are in `tuklas_dev.05_analytics` and are built by `notebooks/05_analytics/01_build_analytics.ipynb`. Leading destinations, earnings per visitor, quadrants and recommended actions are derived from these tables by the queries in [Queries](#queries).
+
+---
+
+<a id="aq1"></a>
+
+## AQ1: Where do visitors go?
+
+**Which provinces receive the most overnight travelers, and how concentrated is tourism in the leading destinations?**
+
+**Why it matters.** It shows that tourism's benefits are concentrated, which is why the business question needs asking. It also identifies the leading destinations used in AQ2 to AQ4.
+
+| Measure | Source |
 | --- | --- |
-| **Province** | Used as the main client-facing term. Selected separately reported HUCs, City of Isabela, and NCR are also included in the analytical model where required by source reporting. The model covers 100 reporting units (DL-010). |
-| **Baseline year** | 2019 (DL-004) |
-| **Recovery years** | 2022 and 2023, each compared separately with 2019 |
-| **Tourism activity** | Reported overnight travelers in accommodation establishments |
-| **Tourism intensity** | Reported overnight travelers per 1,000 residents |
-| **Traveler categories** | Domestic, foreign, and overseas Filipino |
-| **Economic proxy** | Accommodation and Food Services (A&F) GVA (DL-007) |
-| **Real A&F growth** | Change in constant-price A&F GVA from 2019 to 2023 |
-| **Economic significance** | Current-price A&F GVA as a share of current-price GDP (2023). A measure of how large the A&F sector is locally, not of overall economic strength. |
-| **Usual strong destinations** *(proposed, DL-025)* | The 10 reporting units with the most reported overnight travelers in **2019**, fixed as a pre-pandemic reference. All other provinces are described as "other places". Stored in Analytics as the flag `usual_strong_destination_2019`, which matches the 2019 `tourism_rank` of 10 or better (checked in the build and validation notebooks). |
-| **Baseline economic strength** *(proposed, DL-026)* | GDP per capita in 2019, current prices (stored `gdp_per_capita_current_2019`). A 2019 value, so it does not reflect the 2019 to 2023 tourism change it is compared with. |
-| **Baseline under review** *(proposed, DL-028)* | A unit whose 2020 traveler count is higher than its 2019 count. 2020 was a pandemic year, so a higher count suggests an undercounted 2019 base. The stored values are not changed. |
+| Overnight travelers per province and year | `tourism_activity.total_travelers` |
+| Tourism intensity | `tourism_activity.tourism_intensity_per_1000` |
+| Share of all travelers and rank, per year | `tourism_activity.tourism_share_pct`, `tourism_rank`, `intensity_rank` |
+| Top-5 and top-10 share in each year | `tourism_concentration.top_5_share_pct`, `top_10_share_pct` |
+| Leading destinations | [Query 1](#query-1-leading-destinations) on `tourism_activity` |
+| Share of travelers going to the leading destinations, per year | [Query 2](#query-2-share-going-to-the-leading-destinations) on `tourism_activity` |
+
+Only rows with `activity_eligible = true` are counted. Rows not reported by DOT are excluded, never treated as zero.
+
+**Answer template.** "The 10 leading destinations received X% of all overnight travelers in 2023. [Province] and [Province] lead in volume, while [Province] stands out relative to its population."
 
 ---
 
-<a id="bq1"></a>
+<a id="aq2"></a>
 
-## BQ1: Which provinces stand out in tourism activity and recovery, and which appear to be lagging?
+## AQ2: Which provinces earn more from each visitor, and which earn less?
 
-The tourism landscape is described through activity, intensity, concentration, recovery relative to 2019, and traveler-segment recovery among provinces that remain below their 2019 level.
+**How do provinces beyond the leading destinations compare in tourism-related earnings per visitor?**
 
-For TECTF, BQ1 also shows whether recovery and activity are limited to the usual strong destinations or also appear in other places.
+**Why it matters.** It separates provinces that need more visitors from those that need visitors to spend more. This is what makes different recommendations possible.
 
-<a id="aq11"></a>
-
-### AQ1.1: Which provinces have the highest and lowest tourism activity and tourism intensity, and how concentrated is it across provinces?
-
-**2023 is used as the headline year.**
-
-```text
-Tourism activity =
-reported overnight travelers
-
-Tourism intensity =
-reported overnight travelers / population × 1,000
-
-Tourism share (%) =
-province travelers / total eligible travelers × 100
-
-Top-N concentration (%) =
-travelers in top N provinces / total eligible travelers × 100
-```
-
-The following are reported:
-
-- activity ranking;
-- intensity ranking;
-- Top 5 concentration; and
-- Top 10 concentration.
-
-**Analytical tables:**  
-`tourism_activity`, `tourism_concentration`
-
----
-
-<a id="aq12"></a>
-
-### AQ1.2: Which provinces have returned to or surpassed their pre-pandemic tourism levels, and which remain below them?
-
-Recovery is calculated separately for:
-
-- 2022 vs. 2019; and
-- 2023 vs. 2019.
-
-```text
-Recovery Index =
-comparison-year travelers / 2019 travelers × 100
-```
-
-| Recovery Index | Classification |
+| Measure | Source |
 | --- | --- |
-| > 100 | Above 2019 |
-| = 100 | Unchanged |
-| < 100 | Below 2019 |
+| Overnight travelers, 2023 | `tourism_economy.travelers_2023` |
+| A&F GVA, current prices, 2023 | `tourism_economy.afs_gva_current_2023` |
+| Earnings per visitor | [Query 3](#query-3-province-profile-2023) |
+| Medians and quadrant | [Query 3](#query-3-province-profile-2023) |
 
-Results are also shown separately for the usual strong destinations (top 10 in 2019) and for other places, so that it is visible whether recovery above 2019 is happening beyond the usual strong destinations. This split is a display grouping based on stored values. It does not change the recovery calculation.
+Each province is placed against the 2023 medians of overnight travelers and earnings per visitor:
 
-Provinces that meet the possible emerging destination rule set out under Comparison Thresholds are labelled as such. Provinces above 400, or with a baseline under review, are shown as "Under review". All other provinces above 2019 are shown as above 2019 only.
+| Quadrant | Overnight travelers | Earnings per visitor |
+| --- | --- | --- |
+| **Many visitors, high earnings per visitor** | At or above median | At or above median |
+| **Many visitors, low earnings per visitor** | At or above median | Below median |
+| **Few visitors, high earnings per visitor** | Below median | At or above median |
+| **Few visitors, low earnings per visitor** | Below median | Below median |
 
-**Analytical table:**  
-`tourism_recovery`
+- **Eligible provinces:** reported by DOT in 2023, more than zero travelers, and a 2023 A&F value. The others are shown as "Insufficient data" and get no quadrant.
+- **Small base:** earnings per visitor divides by travelers, so a province with few travelers can look high only because its denominator is small. Provinces with fewer than 10,000 travelers in 2023 are flagged `small_base_2023`, the same level as our small-base rule (DL-028), and their figures are read together with the traveler count.
 
----
-
-<a id="aq13"></a>
-
-### AQ1.3: Among provinces that remained below their 2019 level, how do recovery patterns differ between domestic, foreign, and overseas Filipino travelers?
-
-The analysis is restricted to provinces with:
-
-- a valid and comparable 2019 baseline; and
-- overall 2023 tourism activity below the 2019 level.
-
-Recovery is then calculated separately for:
-
-- domestic travelers;
-- foreign travelers; and
-- overseas Filipino travelers.
-
-```text
-Segment Recovery Index =
-comparison-year segment travelers / 2019 segment travelers × 100
-```
-
-Coverage is reported alongside every segment result (for example, the number of provinces for which a valid segment figure exists out of all provinces in scope). A missing segment figure reflects a missing or non-comparable baseline. It does not mean there was no tourism in that segment.
-
-**Analytical table:**  
-`traveler_segment_recovery`
+**Answer template.** "[Province] and [Province] receive many travelers but generate little tourism-related output per traveler. [Province] generates high output per traveler despite few travelers."
 
 ---
 
-<a id="bq2"></a>
+<a id="aq3"></a>
 
-## BQ2: How are changes in tourism activity associated with changes in local tourism-related economic activity across provinces?
+## AQ3: Does tourism only do well in already-wealthy provinces?
 
-Changes in tourism activity are compared with changes in A&F GVA so that provinces where tourism and local tourism-related economic activity align or diverge can be identified.
+**How does the tourism share of each province's economy compare with its GDP per capita?**
 
-For TECTF, BQ2 tests whether tourism growth is linked to the local economy in a consistent way, and whether that link looks different in the usual strong destinations and in other places. Findings are co-movement only.
+**Why it matters.** It checks whether tourism is a realistic path outside the stronger economies, or whether other industries should come first.
 
-<a id="aq21"></a>
-
-### AQ2.1: How does the change in reported tourism activity from 2019 to 2023 compare with growth in A&F GVA across provinces?
-
-```text
-Tourism change (%) =
-(2023 travelers - 2019 travelers) / 2019 travelers × 100
-
-Real A&F GVA growth (%) =
-(2023 constant-price A&F GVA - 2019 constant-price A&F GVA)
- / 2019 constant-price A&F GVA × 100
-```
-
-Tourism change equals the Recovery Index minus 100 (DL-022).
-
-The number of provinces compared is reported. A correlation is shown only if Analytics stores it, because computing it in the dashboard would be a new calculation.
-
-Tourism change is unstable where the 2019 base is small or unreliable. For example, Davao Occidental moved from 188 to 32,375 reported overnight travelers (+17,121%), and Camarines Sur's 2019 count is under review (DL-028). Such values are shown separately and are not read as evidence of a strong destination.
-
-**Analytical table:**  
-`tourism_economy`
-
----
-
-<a id="aq22"></a>
-
-### AQ2.2: Which provinces show tourism activity and A&F GVA moving in the same direction, and which show divergent patterns?
-
-The following classifications are used:
-
-| Classification | Interpretation |
+| Measure | Source |
 | --- | --- |
-| `tourism_up_economy_up` | Tourism activity increased; real A&F GVA increased |
-| `tourism_up_economy_down` | Tourism activity increased; real A&F GVA decreased |
-| `tourism_down_economy_up` | Tourism activity decreased; real A&F GVA increased |
-| `tourism_down_economy_down` | Tourism activity decreased; real A&F GVA decreased |
+| Tourism share of the economy, 2023 | `tourism_economy.afs_share_of_gdp_pct` |
+| GDP per capita, 2023 | `tourism_economy.gdp_per_capita_current_2023` |
+| Lagging flag | [Query 3](#query-3-province-profile-2023) |
 
-Unchanged cases are kept separate from the four main quadrants.
+**How to read it.** An upward pattern means tourism-related activity tends to be larger where incomes are higher. No clear pattern means it is not limited to wealthier provinces. Lagging provinces with a high tourism share are candidates for priority.
 
-Patterns are also shown separately for the usual strong destinations (top 10 in 2019) and for other places.
-
-**Analytical table:**  
-`tourism_economy`
+**Answer template.** "Tourism's share of the economy [rises with / shows no clear relationship with] GDP per capita. [Province] and [Province], both below the median in GDP per capita, rely heavily on tourism-related activity."
 
 ---
 
-<a id="aq23"></a>
+<a id="aq4"></a>
 
-### AQ2.3: How does the economic significance of A&F Services differ among provinces with different tourism recovery patterns?
+## AQ4: Which provinces beyond the leading destinations should be prioritized, and what do they need?
 
-**2023 is used as the headline year.**
+**Why it matters.** This is the answer to the business question.
 
-Economic significance is calculated as:
+[Query 3](#query-3-province-profile-2023) gives one row per province with its leading-destination flag, lagging flag, quadrant, tourism share and recommended action. The priority list is every province beyond the leading destinations that has a quadrant. It is sorted with lagging provinces first, then by tourism share of the economy, highest first.
 
-```text
-A&F share of GDP (%) =
-current-price A&F GVA / current-price GDP × 100
+**Answer template.** "Priority provinces are [Province] (bring in more visitors), [Province] (help visitors spend more locally), and [Province] (focus on other industries first)."
+
+---
+
+## Recommendation framework
+
+Each province gets an action from its group. Province names come from the results.
+
+| Group | Action | Specific steps | Agencies |
+| --- | --- | --- | --- |
+| Few visitors, high earnings per visitor | **Bring in more visitors** | Improve road, port and airport links; feature in promotions; link to nearby leading destinations through circuits. First check that the output isn't mostly local demand. | DPWH, DOTr, TIEZA, DOT |
+| Many visitors, low earnings per visitor | **Help visitors spend more locally** | Multi-day packages and overnight experiences; connect local farmers and MSMEs to hotels and restaurants; accreditation and financing for local accommodation | DOT, LGUs, DTI, DA |
+| Few visitors, low earnings per visitor | **Focus on other industries first** | Prioritize other sectors or basic infrastructure; revisit tourism later | LGUs, NEDA/DEPDev |
+| Many visitors, high earnings per visitor | **Sustain and connect** | Maintain current performance; link to neighboring provinces through circuits | DOT, LGUs |
+| Leading destinations | **Spread visitors outward** | Regional circuits and joint packages that route visitors to nearby provinces; manage crowding and sustainability | DOT, LGUs |
+
+Overall recommendations:
+
+- **Prioritization:** among provinces beyond the leading destinations, give extra priority to lagging provinces.
+- **Promotion balance:** where AQ1 shows high concentration, national promotion should give more space to provinces beyond the leading destinations.
+- **Better data:** PSA and DOT should publish provincial tourism economic data, so planning doesn't depend on a proxy.
+
+These are priorities for planning and further study. They are not predictions of outcomes.
+
+---
+
+## Queries
+
+The dashboard datasets use these queries on the Analytics tables.
+
+### Query 1: Leading destinations
+
+```sql
+SELECT province_psgc,
+       province_name,
+       AVG(total_travelers)                                    AS avg_travelers_2019_2023,
+       RANK() OVER (ORDER BY AVG(total_travelers) DESC)        AS avg_travelers_rank,
+       RANK() OVER (ORDER BY AVG(total_travelers) DESC) <= 10  AS is_leading_destination
+FROM tuklas_dev.`05_analytics`.tourism_activity
+WHERE year BETWEEN 2019 AND 2023
+  AND activity_eligible
+GROUP BY province_psgc, province_name;
 ```
 
-**Analytical table:**  
-`tourism_economy`
+### Query 2: Share going to the leading destinations
+
+```sql
+WITH province_avg AS (
+  SELECT province_psgc, AVG(total_travelers) AS avg_travelers
+  FROM tuklas_dev.`05_analytics`.tourism_activity
+  WHERE year BETWEEN 2019 AND 2023 AND activity_eligible
+  GROUP BY province_psgc
+),
+leading AS (
+  SELECT province_psgc
+  FROM province_avg
+  QUALIFY RANK() OVER (ORDER BY avg_travelers DESC) <= 10
+)
+SELECT a.year,
+       SUM(CASE WHEN l.province_psgc IS NOT NULL THEN a.total_travelers ELSE 0 END) * 100.0
+         / SUM(a.total_travelers) AS leading_destination_share_pct
+FROM tuklas_dev.`05_analytics`.tourism_activity a
+LEFT JOIN leading l ON a.province_psgc = l.province_psgc
+WHERE a.year BETWEEN 2019 AND 2023 AND a.activity_eligible
+GROUP BY a.year
+ORDER BY a.year;;
+```
+
+### Query 3: Province profile, 2023
+
+```sql
+WITH leading AS (
+  SELECT province_psgc,
+         RANK() OVER (ORDER BY AVG(total_travelers) DESC) <= 10 AS is_leading_destination
+  FROM tuklas_dev.`05_analytics`.tourism_activity
+  WHERE year BETWEEN 2019 AND 2023 AND activity_eligible
+  GROUP BY province_psgc
+),
+base AS (
+  SELECT e.province_psgc, e.province_name, e.region_name,
+         e.travelers_2023, e.status_2023,
+         e.afs_gva_current_2023, e.afs_share_of_gdp_pct, e.gdp_per_capita_current_2023,
+         COALESCE(l.is_leading_destination, false) AS is_leading_destination,
+         CASE WHEN e.status_2023 <> 'not_reported'
+                   AND e.travelers_2023 > 0
+                   AND e.afs_gva_current_2023 IS NOT NULL
+              THEN e.afs_gva_current_2023 * 1000.0 / e.travelers_2023
+         END AS earnings_per_visitor
+  FROM tuklas_dev.`05_analytics`.tourism_economy e
+  LEFT JOIN leading l ON e.province_psgc = l.province_psgc
+),
+medians AS (
+  SELECT median(CASE WHEN earnings_per_visitor IS NOT NULL THEN travelers_2023 END) AS median_travelers,
+         median(earnings_per_visitor)                                               AS median_earnings_per_visitor,
+         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita
+  FROM base
+),
+classified AS (
+  SELECT b.*,
+         b.gdp_per_capita_current_2023 < m.median_gdp_per_capita AS is_lagging,
+         b.travelers_2023 < 10000                                 AS small_base_2023,
+         CASE
+           WHEN b.earnings_per_visitor IS NULL THEN 'Insufficient data'
+           WHEN b.travelers_2023 >= m.median_travelers
+                AND b.earnings_per_visitor >= m.median_earnings_per_visitor THEN 'Many visitors, high earnings per visitor'
+           WHEN b.travelers_2023 >= m.median_travelers                     THEN 'Many visitors, low earnings per visitor'
+           WHEN b.earnings_per_visitor >= m.median_earnings_per_visitor    THEN 'Few visitors, high earnings per visitor'
+           ELSE 'Few visitors, low earnings per visitor'
+         END AS quadrant
+  FROM base b
+  CROSS JOIN medians m
+)
+SELECT *,
+       CASE
+         WHEN is_leading_destination                                   THEN 'Spread visitors outward'
+         WHEN quadrant = 'Few visitors, high earnings per visitor'     THEN 'Bring in more visitors'
+         WHEN quadrant = 'Many visitors, low earnings per visitor'     THEN 'Help visitors spend more locally'
+         WHEN quadrant = 'Few visitors, low earnings per visitor'      THEN 'Focus on other industries first'
+         WHEN quadrant = 'Many visitors, high earnings per visitor'    THEN 'Sustain and connect'
+         ELSE 'Insufficient data'
+       END AS recommended_action
+FROM classified
+ORDER BY is_leading_destination, is_lagging DESC, afs_share_of_gdp_pct DESC NULLS LAST;
+```
+
+Medians are taken across all provinces with data, including the leading destinations, so each province is compared with the whole country.
 
 ---
 
-<a id="aq24"></a>
+## Dashboard pages
 
-### AQ2.4: Is tourism activity and recovery stronger in provinces whose local economy was already stronger in 2019?
+| Page | Answers | Main visuals |
+| --- | --- | --- |
+| 1. Where visitors go | AQ1 | KPI tiles (total travelers, share going to the leading destinations), map of travelers per 1,000 residents, top and bottom provinces, 2019–2023 trend |
+| 2. Earnings per visitor | AQ2 | Quadrant scatter of overnight travelers (log scale) against earnings per visitor, with median lines and the leading destinations marked; sorted bar of earnings per visitor |
+| 3. Tourism and wealth | AQ3 | GDP per capita against tourism share of the economy, with lagging provinces highlighted |
+| 4. Priority provinces | AQ4 | Recommendation table: province, GDP per capita, lagging flag, quadrant, tourism share, recommended action; KPI tiles by action |
 
-This addresses the second half of TECTF's question: whether tourism is only growing where the economic base was already strong.
-
-The following stored values are compared across provinces:
-
-- 2019 GDP per capita, current prices (`gdp_per_capita_current_2019`), as the baseline economic strength indicator;
-- 2023 tourism intensity (`tourism_intensity_per_1000_2023`); and
-- tourism change from 2019 to 2023 (`tourism_change_pct`).
-
-Stored values are displayed side by side, grouped by usual strong destinations and other places. No new formulas are introduced.
-
-A&F share of GDP is not used as a baseline. It is a 2023 value and describes the size of one sector, so it partly reflects the tourism growth being compared with it. A sector-size baseline would require a 2019 A&F share in Analytics.
-
-**Analytical table:**  
-`tourism_economy`
+Every page carries the proxy note as a footer.
 
 ---
 
-## Out of Scope
+## Wording rules
+
+We say "tourism-related activity", not "tourism", and we describe patterns, not causes.
+
+| Question | Possible phrasing | Intended meaning |
+| --- | --- | --- |
+| AQ1 | "These provinces get the most tourists." | "These provinces recorded the most overnight travelers." |
+| AQ2 | "Tourists spend ₱X per visit." / "Money is leaking out." | "Province Y generates ₱X in accommodation and food services output per overnight traveler, which may indicate low local spending." |
+| AQ3 | "Tourism causes growth." / "Tourism is X% of the economy." | "Accommodation and food services make up X% of Province Y's GDP." / "Provinces with higher GDP per capita tend to…" |
+| AQ4 | "Developing tourism in Province X will aid in its economy." | "Province X's tourism profile suggests [action] can potentially help, to be validated with local data." |
+
+Also:
+
+- For a general audience, "tourism-related output (accommodation and food services)" is written at first mention instead of "A&F".
+- GDP per capita is not a measure of wealth/poverty. We say "lagging" or "lower-income".
+- We say "earnings per visitor" and "visitors spend more locally", not "value capture" or "leakage".
+
+---
+
+## Out of scope
 
 - Causal claims about the effect of tourism on local economies (DL-008).
-- ROI, "best place to invest", or promotion-focus rankings (DL-008).
-- Treating A&F GVA as a measure of tourism output or revenue (DL-007).
-- Treating national tourism satellite account (PTSA) values as provincial values (DL-007).
+- Predicted returns, GDP gains or other guaranteed outcomes from any recommended action (DL-008).
+- Comparing pre- and post-pandemic levels.
+- Treating A&F GVA as tourism revenue or tourist spending (DL-007).
 
 ---
 
-## Comparison Thresholds
+## Notes and caveats
 
-These thresholds are display rules. They decide which label a province is shown with. They do not change any stored calculation, and a label is a prompt for closer investigation, not a finding. They are recorded in decisions DL-027 and DL-028 as working defaults, refining DL-006.
-
-**Small base**
-
-A figure is described as resting on a small base when the 2019 count behind it is small, because percentage changes on small counts are unstable.
-
-| Measure | Small base when |
-| --- | --- |
-| Overall recovery index and tourism change | 2019 overnight travelers are below 10,000 |
-| Segment recovery index (domestic, foreign, overseas Filipino) | 2019 segment travelers are below 1,000 |
-
-Small-base values are shown with their underlying traveler counts. A small base does not mean the value is wrong, and it is not a reason to remove a province.
-
-**Under review**
-
-A province is shown as "Under review", with no label, when either of the following holds:
-
-- its 2023 recovery index is above 400, because a multiple that large more often reflects a data problem than emergence; or
-- its 2019 baseline is under review, meaning its 2020 traveler count is higher than its 2019 count (DL-028).
-
-The stored values are still displayed, and the province is still counted in the recovery classes.
-
-**Possible emerging destination**
-
-A province is described as a possible emerging destination when all of the following hold:
-
-1. It is not a usual strong destination (not in the top 10 for 2019).
-2. Its recovery class is above 2019 in both 2022 and 2023.
-3. Its 2019 overnight travelers are at least 10,000.
-4. Its 2023 recovery index is at least 120 and at most 400.
-5. Its 2023 traveler count is at least 25,000 above its 2019 count.
-6. It is comparable to 2019 and its traveler value is neither partial nor missing in both years.
-7. Its 2019 baseline is not under review.
-
-The label describes a pattern in reported overnight travelers in accommodation establishments. It does not say the province has reached any level of tourism, that its growth will continue, or that it merits investment. Provinces that are above 2019 but do not meet every condition are shown as above 2019 without the label.
-
-Analytics now stores these flags and labels (`usual_strong_destination_2019`, `baseline_under_review_2019`, the small-base flags and `destination_label`), and the dashboard uses the stored values without applying any other calculation. The thresholds are set in the build notebook: usual top N = 10, small base 10,000 overall and 1,000 per segment, possible emerging base at least 10,000, index 120 to 400, and increase of at least 25,000.
-
----
-
-<a id="confirmed-results"></a>
-
-## Confirmed Results
-
-These results come from the persisted Analytics tables after the full run of `01_build_analytics` (36 checks) and `02_analytics_validation` (all checks passed, no failures) on 2026-10-14. Gold inputs were pinned at `dim_province` v83, `dim_year` v55 and `fact_province_year` v72. They are descriptions of reported overnight travelers, not causal findings.
-
-### AQ1.1: Concentration (2023 vs. 2019)
-
-| Measure | 2019 | 2023 |
-| --- | --- | --- |
-| Top 5 share of included overnight travelers | 24.16% | 31.75% |
-| Top 10 share of included overnight travelers | 40.40% | 44.59% |
-
-Each year's top 10 is ranked in that year. The 2019 top 10 used for "usual strong destinations" is fixed (see below).
-
-### Usual strong destinations (10, DL-025)
-
-Aklan, Albay, Batangas, Bohol, City of Cebu, City of Davao, City of Lapu-Lapu, Davao de Oro, National Capital Region (NCR), Rizal.
-
-### AQ1.2: Recovery (2023 vs. 2019)
-
-| Result | Count |
-| --- | --- |
-| Above 2019 | 39 |
-| Below 2019 | 52 |
-| Eligible for comparison | 91 |
-| Not comparable | 9 |
-| Total reporting units | 100 |
-
-Of the 39 above 2019, 3 are usual strong destinations: NCR (index 231.4), Batangas (154.1) and Rizal (113.2). The other 36 are other places.
-
-**Possible emerging destinations (13):** Antique, Aurora, Bukidnon, Bulacan, City of Iligan, City of Zamboanga, Guimaras, Lanao del Norte, Northern Samar, Pampanga, Sarangani, Sultan Kudarat, Surigao del Sur.
-
-**Under review (6):**
-
-| Unit | 2023 recovery index | Reason |
-| --- | --- | --- |
-| Camarines Sur | 2,884.0 | Baseline under review |
-| City of Isabela | 667.8 | Baseline under review |
-| Davao del Sur | 275.4 | Baseline under review |
-| Davao Occidental | 17,220.7 | Index above 400 |
-| Davao Oriental | 419.9 | Index above 400 |
-| Romblon | 860.6 | Index above 400 |
-
-Baseline under review flags three units (Camarines Sur, City of Isabela, Davao del Sur). Samar (119.3), Masbate (114.0) and Kalinga (109.9) are below the index of 120 and carry no label.
-
-### Small bases
-
-- Eight units have a 2019 overall base below 10,000.
-- Domestic segment: 0 of 52 eligible provinces are on a small base.
-- Foreign segment: 7 of 47 eligible provinces are on a small base.
-- Overseas Filipino segment: 17 of 26 eligible provinces are on a small base, so most overseas Filipino results need the small-base caveat.
-
-### AQ2.2: Alignment (travelers vs. real A&F GVA, 2019 to 2023)
-
-43 of 91 eligible units moved in opposite directions:
-
-| Pattern | Count |
-| --- | --- |
-| Travelers up, real A&F GVA down | 13 |
-| Travelers down, real A&F GVA up | 30 |
-
-### Example provinces (AQ2.1 and AQ2.3)
-
-| Province | Travelers vs. 2019 | Real A&F GVA vs. 2019 | A&F share of GDP (2023) | Pattern |
-| --- | --- | --- | --- | --- |
-| Aurora | +168.83% | -25.05% | 1.27% | Travelers up, business down |
-| Camiguin | -67.81% (32% of 2019) | -15.35% | 11.80% | Both down |
-| Pampanga | +81.83% | +6.50% | 2.65% | Both up |
-
-Aurora is a possible emerging destination by the rule above, and its real A&F GVA fell. This is a prompt to ask what changed (stays, spending, coverage or reporting), not an explanation.
-
----
-
-## Notes and Caveats
-
-- **Provinces** is used as the main client-facing term, although selected separately reported HUCs, City of Isabela, and NCR are also included in the analytical model.
-- Tourism activity is measured using **reported overnight travelers in accommodation establishments**, not unique visitors or all tourists. Figures are DOT-reported and can differ from arrival counts published by local governments, which often include same-day visitors.
-- Recovery is defined specifically as **reported overnight tourism activity relative to 2019**.
-- A valid 2019 baseline and `comparable_to_2019 = true` are required for recovery (DL-020).
-- Missing values are retained as NULL and are not replaced with zero. Missing does not mean zero (DL-009).
-- Valid ranks or classifications are not assigned to missing or ineligible values.
-- Special handling of individual areas is recorded in the decision log: unit definitions and BARMM coverage (DL-010), Boracay and Aklan (DL-013), Clark and Pampanga (DL-014), SBMA (DL-015), Cotabato City (DL-016), the treatment of `-` values (DL-019), per-year comparability (DL-020) and baselines under review (DL-028).
-- **Constant-price A&F GVA** is used for growth.
-- **Current-price A&F GVA and GDP** are used for A&F share of GDP.
-- A&F GVA is treated as a tourism-related economic proxy, not as a direct measure of tourism revenue. A&F output also includes activity unrelated to tourism.
-- Co-movement between tourism and economic indicators is interpreted as **association, not causation**. ProvInsights cannot show that tourism drives local economic growth.
-- Tourism change is unstable for small or unreliable 2019 bases and should be read with the underlying traveler counts.
-- Counts of provinces above 2019 follow the stored data and include provinces shown as "Under review". Of the 39 above 2019 in 2023, 3 are usual strong destinations (see Confirmed Results).
-- Recovery above 2019 does not by itself mean a province is an emerging destination. The "possible emerging destination" label applies only where every condition under Comparison Thresholds is met.
-- The usual strong destinations grouping is a display grouping based on 2019 stored values. It is not a judgement about destination quality or potential.
-- Figures in Confirmed Results come from the full run of `01_build_analytics` and `02_analytics_validation` on 2026-10-14, with no failed checks. They remain preliminary until the eligibility rules, treatment of partially reported data and the Proposed decisions (DL-025 to DL-028) are accepted.
-- Results are intended to support closer investigation; interventions or investment decisions are not prescribed.
-
----
-
-## Change Log
-
-This log compares the document with `main` (finalized in #30).
-
-| Section | Change |
-| --- | --- |
-| Structure | The three business questions were consolidated into two. The former BQ1 and BQ2 form the new BQ1, and the former BQ3 forms the new BQ2. |
-| Main Business Question | The question was reworded as a decision-support question. Prescriptive wording about where promotion should be focused and what support or intervention should follow was removed. "Emerging beyond" became "appearing beyond". |
-| Client Context | Added. It introduces the fictional TECTF client and maps its two-part question to the analytical questions. |
-| Question Overview | The supporting-analysis row became AQ2.4, a numbered question. |
-| Shared Definitions | Added "Usual strong destinations" (top 10 in 2019, DL-025), "Baseline economic strength" (2019 GDP per capita, current prices, DL-026) and "Baseline under review" (DL-028). Economic significance was clarified as a measure of sector size, not overall economic strength. The 100 reporting units were stated (DL-010). |
-| AQ1.2 and AQ2.2 | Results are also shown for usual strong destinations and for other places. This is a display grouping. The calculations are unchanged. AQ1.2 also carries the possible emerging destination label and the "Under review" mark where their conditions are met. |
-| AQ1.3 | Added coverage reporting and the statement that a missing segment figure does not mean there was no tourism in that segment. The calculation is unchanged. |
-| AQ2.1 | Added the link between tourism change and the Recovery Index (DL-022), the statement that only the number of provinces compared is reported unless Analytics stores a correlation, and a note that tourism change is unstable for small or unreliable 2019 bases (Davao Occidental, Camarines Sur). |
-| AQ2.4 | Added as a numbered question comparing tourism intensity and tourism change with 2019 economic strength. A&F share is described as a sector-size measure, not a baseline. |
-| Out of Scope | Retained from `main` in shortened form, with decision references. |
-| Comparison Thresholds | Added. Working defaults in DL-027 and DL-028 (refining DL-006): small-base thresholds for overall and segment figures, an "Under review" rule, and a seven-condition rule for the "possible emerging destination" label. |
-| Confirmed Results | Added. Verified counts and lists from the 2026-10-14 full run: concentration, usual strong destinations, recovery classes, possible emerging and under review lists, small-base counts, alignment, and the Aurora, Camiguin and Pampanga examples. |
-| Notes and Caveats | Added notes that findings are association and not causation, that recovery above 2019 does not indicate an emerging destination, that tourism change is unstable for small or unreliable bases, that counts include provinces under review, that the destination grouping is a display grouping, that DOT figures can differ from local government counts, and that figures are preliminary. Added references to the decision log entries on special handling. |
-| AQ1.1 and AQ2.3 | Question text and formulas are unchanged. |
+- Overnight travelers are DOT-reported counts in accommodation establishments. They can differ from local government arrival counts, which often include same-day visitors.
+- Missing values stay NULL and are never treated as zero (DL-009). Provinces DOT doesn't report (BARMM provinces and Sulu) have no traveler measures, rank or quadrant.
+- Provinces with `reported_partial` traveler data (NCR in every year, Sorsogon 2019) are included, with the status shown as a caveat (DL-019).
+- DOT's coverage of some provinces changes between years, for example Boracay in Aklan (DL-013) and Clark in Pampanga (DL-014). This affects their trend and their 2019–2023 average.
+- Region II foreign travelers include overseas Filipinos (DL-030). This doesn't affect total travelers.
+- Tourism share of the economy and earnings per visitor both use current prices from the same year.
+- Medians, quadrants and the lagging flag describe the provinces with data in 2023. They are relative positions, not national benchmarks.
+- Our results support planning priorities and further study, not investment decisions.
+- `tourism_recovery` and `traveler_segment_recovery` are also built in the Analytics layer. They describe recovery against 2019 and are kept as supporting tables, but they are not used to answer the business question.
