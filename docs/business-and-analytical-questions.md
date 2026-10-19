@@ -8,16 +8,27 @@ This document states what ProvInsights answers, how each term is defined, and wh
 - [Scope](#scope)
 - [Definitions](#definitions)
 - [Question overview](#question-overview)
-- [AQ1: Where do visitors go?](#aq1)
-- [AQ2: Which provinces earn more from each visitor, and which earn less?](#aq2)
-- [AQ3: Does tourism only do well in already-wealthy provinces?](#aq3)
-- [AQ4: Which provinces beyond the leading destinations should be prioritized, and what do they need?](#aq4)
+- [AQ1: Which provinces have the highest and lowest tourism activity?](#aq1)
+- [AQ2: Which provinces generate the highest and lowest tourism-related output per visitor?](#aq2)
+- [AQ3: Which provinces rely most on tourism, and are lower-income provinces among them?](#aq3)
+- [AQ4: Which provinces beyond the leading destinations should be prioritized, and what type of tourism development does each one need?](#aq4)
 - [Recommendation framework](#recommendation-framework)
 - [Queries](#queries)
 - [Dashboard pages](#dashboard-pages)
 - [Wording rules](#wording-rules)
 - [Out of scope](#out-of-scope)
 - [Notes and caveats](#notes-and-caveats)
+- [Open items](#open-items)
+
+---
+
+## Problem
+
+Philippine tourism is concentrated in a few places. In 2017, Boracay, an island of about 10 km², hosted one in three visitors to the country, and in 2018 it had to close for six months to recover from overcrowding and pollution. The pattern continues: in 2023, the 10 leading destinations received 43.7% of all overnight travelers, while many provinces with beaches, mountains and culture received far fewer.
+
+The Department of Tourism (DOT) responds to this in its [National Tourism Development Plan (NTDP) 2023-2028](https://www.visitcentralluzon.com/wp-content/uploads/2026/02/DOT-NTDP-23-00043-Department-of-Tourism-National-Tourism-Development-Plan-2023-2028.pdf). **Goal 4 is the equalization of tourism product development and promotion**: creating opportunities for emerging provinces (Objective 4.1) and linking them with key destinations through circuits and joint promotion (Objective 4.2). The plan also calls for product mapping across all regions and provinces (Objective 4.3) and for better tourism data and monitoring (Objectives 2.2 and 4.5).
+
+To act on this goal, planners need to know which provinces are left behind, what each one lacks, and where tourism is a realistic path. That evidence is scattered across DOT, PSA and PSGC data that use different formats, years and place names. ProvInsights brings these sources together so the question can be answered province by province.
 
 ---
 
@@ -25,12 +36,20 @@ This document states what ProvInsights answers, how each term is defined, and wh
 
 > **How can tourism development be planned to benefit provinces beyond the leading tourist destinations?**
 
-We framed the question as a decision, so our answer is a set of recommendations: which provinces to prioritize and what kind of support fits each one.
+We framed the question as a decision, so our answer is a set of recommendations: which provinces to prioritize and what type of support fits each one.
 
-- **"Tourism development"** is broader than investment. It covers access, promotion, links to local suppliers, and the option of focusing on other industries first.
-- **"Benefit"** covers both ways a province can gain from tourism: more visitors, or more earnings from each visitor.
+- **"Tourism development"** is an umbrella term for the support a province can receive. It is broader than investment and covers access (roads, ports, airports), promotion and tourism circuits, links between local suppliers and hotels and restaurants, and, where tourism is not yet a realistic path, the option of focusing on other industries first.
+- **"Benefit"** covers both ways a province can gain from tourism: more visitors, or more tourism-related output from each visitor.
+- **"Equalized tourism development"** is the NTDP's Goal 4: opening more of the Philippines to tourism and supporting destinations beyond the established ones. The NTDP describes it as a direction, not a numeric target. ProvInsights supports it by showing where tourism is concentrated (AQ1) and which provinces to prioritize and how (AQ2 to AQ4).
 
-Our four analytical questions build the answer in order. AQ1 shows that tourism is concentrated. AQ2 sorts provinces by what they need. AQ3 checks whether tourism is a realistic path outside the stronger economies. AQ4 turns these into named priorities.
+Our four analytical questions build the answer in order:
+
+| Step | Analytical question | Part of the business question it answers |
+| --- | --- | --- |
+| Find the gap | **AQ1** | Which provinces are the leading destinations, and which are left behind ("beyond the leading tourist destinations") |
+| Diagnose | **AQ2** | Whether a province needs more visitors or more output per visitor ("benefit") |
+| Check feasibility | **AQ3** | Whether tourism is a realistic path for lower-income provinces ("tourism development... to benefit") |
+| Plan | **AQ4** | Which provinces come first, and what type of tourism development each needs ("how can it be planned") |
 
 ---
 
@@ -38,10 +57,10 @@ Our four analytical questions build the answer in order. AQ1 shows that tourism 
 
 | Item | Value |
 | --- | --- |
-| Trend years | 2019–2023 |
+| Trend years | 2019-2023 |
 | Analysis year for AQ2 to AQ4 | 2023, the latest year with both DOT and PSA provincial data |
 | Units | 100 reporting units: provinces, HUCs that DOT reports separately, the City of Isabela, and NCR (DL-010). In this document, "province" means a reporting unit. |
-| Pre- versus post-pandemic comparison | Not used. 2019–2023 is shown as a plain trend, and 2020–2021 are labeled as COVID-19 years. |
+| Pre- versus post-pandemic comparison | Not used. 2019-2023 is shown as a plain trend, and 2020-2021 are labeled as COVID-19 years. |
 
 ---
 
@@ -51,8 +70,8 @@ Our four analytical questions build the answer in order. AQ1 shows that tourism 
 | --- | --- | --- |
 | **Overnight travelers** | Reported overnight travelers in accommodation establishments (DOT). Not unique visitors, and not day-trippers. | `total_travelers` |
 | **Tourism intensity** | Overnight travelers relative to population | Overnight travelers ÷ population × 1,000 (`tourism_intensity_per_1000`) |
-| **Leading tourist destinations** | The 10 provinces with the highest **average annual** overnight travelers, 2019–2023 | Average of `total_travelers` over the eligible years 2019–2023, ranked descending; rank ≤ 10. Averaging over the years a province has data means a missing year doesn't lower its rank. A tie at 10th adds an 11th province. |
-| **Provinces beyond the leading destinations** | Every province that is not a leading destination | — |
+| **Leading tourist destinations** | The 10 provinces with the highest **average annual** overnight travelers, 2019-2023 | Average of `total_travelers` over the eligible years 2019-2023, ranked descending; rank ≤ 10. Averaging over the years a province has data means a missing year doesn't lower its rank. A tie at 10th adds an 11th province. |
+| **Provinces beyond the leading destinations** | Every province that is not a leading destination | - |
 | **Tourism-related output** | Accommodation and food services (A&F) gross value added, current prices. Our proxy for tourism's economic output (DL-007). | `afs_gva_current_2023` |
 | **Earnings per visitor** | Tourism-related output generated per overnight traveler, in PhP | A&F GVA (thousand PhP) × 1,000 ÷ overnight travelers, 2023 |
 | **Tourism share of the economy** | How much of a province's economy is tourism-related activity | Current-price A&F GVA ÷ current-price GDP × 100, 2023 (`afs_share_of_gdp_pct`) |
@@ -60,18 +79,18 @@ Our four analytical questions build the answer in order. AQ1 shows that tourism 
 | **Lagging provinces** | Provinces with below-median GDP per capita | 2023 GDP per capita below the median of all provinces with data |
 | **Extending economic benefits** | Increasing tourism-related output in provinces beyond the leading destinations | Through more visitors, more earnings per visitor, or both |
 
-**Proxy note.** We use accommodation and food services as the proxy for tourism's economic output because PSA's tourism value added is only published nationally. Our results describe tourism-related patterns, not exact tourist spending. A&F does not capture jobs, other tourist spending (transport, tours, souvenirs), or where the income goes. Residents also eat out and stay in hotels, so A&F overstates tourism somewhat.
+**Proxy note.** We use accommodation and food services as the proxy for tourism's economic output because PSA's tourism value added is only published nationally. Our results describe tourism-related patterns, not exact tourist spending. A&F does not capture jobs, other tourist spending (transport, tours, souvenirs), or where the income goes. 
 
 ---
 
 ## Question overview
 
-| Analytical question | What it shows | Analytics tables |
-| --- | --- | --- |
-| **AQ1** Where do visitors go? | Tourism is concentrated in the leading destinations | `tourism_activity`, `tourism_concentration` |
-| **AQ2** Which provinces earn more from each visitor, and which earn less? | Which provinces need more visitors, and which need visitors to spend more | `tourism_economy`, `tourism_activity` |
-| **AQ3** Does tourism only do well in already-wealthy provinces? | Whether tourism is a realistic path outside the stronger economies | `tourism_economy` |
-| **AQ4** Which provinces beyond the leading destinations should be prioritized, and what do they need? | The answer to the business question | `tourism_economy`, `tourism_activity` |
+| Analytical question | What it shows | NTDP link | Analytics tables |
+| --- | --- | --- | --- |
+| **1.** Which provinces have the highest and lowest tourism activity? | Tourism is concentrated in the leading destinations, and some provinces are left behind | Goal 4; Obj. 2.2 | `tourism_activity`, `tourism_concentration` |
+| **2.** Which provinces generate the highest and lowest tourism-related output per visitor? | Which provinces need more visitors, and which need visitors to spend more locally | Obj. 4.1 | `tourism_economy`, `tourism_activity` |
+| **3.** Which provinces rely most and least on tourism-related activity, and is this limited to higher-income provinces? | Whether tourism is a realistic path for lower-income provinces, or whether other industries should come first | Goal 4 | `tourism_economy` |
+| **4.** Which provinces beyond the leading destinations should be prioritized, and what type of tourism development does each one need? | The answer to the business question | Obj. 4.1, 4.2, 7.5 | `tourism_economy`, `tourism_activity` |
 
 All tables are in `tuklas_dev.05_analytics` and are built by `notebooks/05_analytics/01_build_analytics.ipynb`. Leading destinations, earnings per visitor, quadrants and recommended actions are derived from these tables by the queries in [Queries](#queries).
 
@@ -79,11 +98,11 @@ All tables are in `tuklas_dev.05_analytics` and are built by `notebooks/05_analy
 
 <a id="aq1"></a>
 
-## AQ1: Where do visitors go?
+## AQ1: Which provinces have the highest and lowest tourism activity?
 
-**Which provinces receive the most overnight travelers, and how concentrated is tourism in the leading destinations?**
+**Which provinces receive the most and the fewest overnight travelers, and how concentrated is tourism in the leading destinations?**
 
-**Why it matters.** It shows that tourism's benefits are concentrated, which is why the business question needs asking. It also identifies the leading destinations used in AQ2 to AQ4.
+  It shows that tourism's benefits are concentrated, which is why the business question needs asking, and it names the provinces that are left behind. It also identifies the leading destinations used in AQ2 to AQ4: the 10 provinces with the highest average annual overnight travelers, 2019-2023. Its headline measure, the share of travelers going to the leading destinations, shows how concentrated tourism is.
 
 | Measure | Source |
 | --- | --- |
@@ -96,17 +115,17 @@ All tables are in `tuklas_dev.05_analytics` and are built by `notebooks/05_analy
 
 Only rows with `activity_eligible = true` are counted. Rows not reported by DOT are excluded, never treated as zero.
 
-**Answer template.** "The 10 leading destinations received X% of all overnight travelers in 2023. [Province] and [Province] lead in volume, while [Province] stands out relative to its population."
+**Answer template.** "The 10 leading destinations received X% of all overnight travelers in 2023. [Province] and [Province] lead in volume, while [Province] stands out relative to its population. [Province] and [Province] recorded the fewest overnight travelers."
 
 ---
 
 <a id="aq2"></a>
 
-## AQ2: Which provinces earn more from each visitor, and which earn less?
+## AQ2: Which provinces generate the highest and lowest tourism-related output per visitor?
 
-**How do provinces beyond the leading destinations compare in tourism-related earnings per visitor?**
+**How do provinces beyond the leading destinations compare in tourism-related output (accommodation and food services) per overnight traveler?** On the dashboard and in the presentation, this measure is called "earnings per visitor".
 
-**Why it matters.** It separates provinces that need more visitors from those that need visitors to spend more. This is what makes different recommendations possible.
+  It separates provinces that need more visitors from those that need visitors to spend more. This is what makes different recommendations possible.
 
 | Measure | Source |
 | --- | --- |
@@ -133,11 +152,11 @@ Each province is placed against the 2023 medians of overnight travelers and earn
 
 <a id="aq3"></a>
 
-## AQ3: Does tourism only do well in already-wealthy provinces?
+## AQ3: Which provinces rely most on tourism, and are lower-income provinces among them?
 
 **How does the tourism share of each province's economy compare with its GDP per capita?**
 
-**Why it matters.** It checks whether tourism is a realistic path outside the stronger economies, or whether other industries should come first.
+  It checks whether tourism is a realistic path for lower-income (lagging) provinces, or whether other industries should come first.
 
 | Measure | Source |
 | --- | --- |
@@ -153,9 +172,9 @@ Each province is placed against the 2023 medians of overnight travelers and earn
 
 <a id="aq4"></a>
 
-## AQ4: Which provinces beyond the leading destinations should be prioritized, and what do they need?
+## AQ4: Which provinces beyond the leading destinations should be prioritized, and what type of tourism development does each one need?
 
-**Why it matters.** This is the answer to the business question.
+This is the answer to the business question. Each recommended action is one type of tourism development, and the priority list points NTDP Objective 4.1 ("emerging and potential" provinces) at named provinces.
 
 [Query 3](#query-3-province-profile-2023) gives one row per province with its leading-destination flag, lagging flag, quadrant, tourism share and recommended action. The priority list is every province beyond the leading destinations that has a quadrant. It is sorted with lagging provinces first, then by tourism share of the economy, highest first.
 
@@ -179,7 +198,6 @@ Overall recommendations:
 
 - **Prioritization:** among provinces beyond the leading destinations, give extra priority to lagging provinces.
 - **Promotion balance:** where AQ1 shows high concentration, national promotion should give more space to provinces beyond the leading destinations.
-- **Better data:** PSA and DOT should publish provincial tourism economic data, so planning doesn't depend on a proxy.
 
 These are priorities for planning and further study. They are not predictions of outcomes.
 
@@ -292,7 +310,7 @@ Medians are taken across all provinces with data, including the leading destinat
 
 | Page | Answers | Main visuals |
 | --- | --- | --- |
-| 1. Where visitors go | AQ1 | KPI tiles (total travelers, share going to the leading destinations), map of travelers per 1,000 residents, top and bottom provinces, 2019–2023 trend |
+| 1. Where visitors go | AQ1 | KPI tiles (total travelers, share going to the leading destinations), map of travelers per 1,000 residents, top and bottom provinces, 2019-2023 trend |
 | 2. Earnings per visitor | AQ2 | Quadrant scatter of overnight travelers (log scale) against earnings per visitor, with median lines and the leading destinations marked; sorted bar of earnings per visitor |
 | 3. Tourism and wealth | AQ3 | GDP per capita against tourism share of the economy, with lagging provinces highlighted |
 | 4. Priority provinces | AQ4 | Recommendation table: province, GDP per capita, lagging flag, quadrant, tourism share, recommended action; KPI tiles by action |
@@ -317,6 +335,7 @@ Also:
 - For a general audience, "tourism-related output (accommodation and food services)" is written at first mention instead of "A&F".
 - GDP per capita is not a measure of wealth/poverty. We say "lagging" or "lower-income".
 - We say "earnings per visitor" and "visitors spend more locally", not "value capture" or "leakage".
+- We do not say "wealthy" or "already-wealthy". We say "higher-income" and "lower-income" or "lagging".
 
 ---
 
@@ -334,9 +353,9 @@ Also:
 - Overnight travelers are DOT-reported counts in accommodation establishments. They can differ from local government arrival counts, which often include same-day visitors.
 - Missing values stay NULL and are never treated as zero (DL-009). Provinces DOT doesn't report (BARMM provinces and Sulu) have no traveler measures, rank or quadrant.
 - Provinces with `reported_partial` traveler data (NCR in every year, Sorsogon 2019) are included, with the status shown as a caveat (DL-019).
-- DOT's coverage of some provinces changes between years, for example Boracay in Aklan (DL-013) and Clark in Pampanga (DL-014). This affects their trend and their 2019–2023 average.
-- Region II foreign travelers include overseas Filipinos (DL-030). This doesn't affect total travelers.
+- DOT's coverage of some provinces changes between years, for example Boracay in Aklan (DL-013) and Clark in Pampanga (DL-014). This affects their trend and their 2019-2023 average.
 - Tourism share of the economy and earnings per visitor both use current prices from the same year.
 - Medians, quadrants and the lagging flag describe the provinces with data in 2023. They are relative positions, not national benchmarks.
 - Our results support planning priorities and further study, not investment decisions.
 - `tourism_recovery` and `traveler_segment_recovery` are also built in the Analytics layer. They describe recovery against 2019 and are kept as supporting tables, but they are not used to answer the business question.
+
