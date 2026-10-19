@@ -23,6 +23,8 @@ Job name in Databricks: **ProvInsights PH - End-to-End Pipeline**
 
 ### Run order
 
+![ProvInsights pipeline task graph](../docs/images/pipeline_graph.svg)
+
 ```text
 ingestion_setup
  ├─ ingest_psa
