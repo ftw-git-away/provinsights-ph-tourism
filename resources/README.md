@@ -38,13 +38,17 @@ silver_setup ─ silver_geography ─┬─ silver_dot
         ▼
 gold_setup ─┬─ gold_dim_province ─┐
             └─ gold_dim_year ─────┴─ gold_fact_province_year ─ gold_run_evidence
-        │
-        ▼
-analytics ─ analytics_validation ─ analytics_run_evidence
+                                                                      │  (after gold_run_evidence)
+                                                                      ▼
+                                   analytics ─ analytics_validation ─ analytics_run_evidence
 ```
 
-Each layer starts with its setup task, which waits for the whole previous layer. Tasks also
-keep explicit dependencies on the tables they read.
+The job runs in layers. Each layer starts with its setup task, which waits for the whole
+previous layer, so each task depends only on the step directly before it. Tasks in the same
+step run in parallel.
+
+If you remove a setup task, add direct dependencies on the tables each task reads, or the
+layers can run out of order.
 
 ### Tasks
 
@@ -56,14 +60,14 @@ keep explicit dependencies on the tables they read.
 | 01 Ingestion | `ingest_dot` | `notebooks/01_ingestion/03_ingest_dot.ipynb` | `ingestion_setup` |
 | 01 Ingestion | `ingest_psa_ds18_pdf` | `notebooks/01_ingestion/04_ingest_psa_ds18_pdf.ipynb` | `ingestion_setup` |
 | 03 Silver | `silver_setup` | `notebooks/03_silver/00_silver_setup.ipynb` | `ingest_psa`, `ingest_psgc`, `ingest_dot`, `ingest_psa_ds18_pdf` |
-| 03 Silver | `silver_geography` | `notebooks/03_silver/01_silver_geography.ipynb` | `silver_setup`, `ingest_psgc`, `ingest_dot` |
-| 03 Silver | `silver_dot` | `notebooks/03_silver/02_silver_dot.ipynb` | `silver_geography`, `ingest_dot` |
-| 03 Silver | `silver_psa_economy` | `notebooks/03_silver/03_silver_psa_economy.ipynb` | `silver_geography`, `ingest_psa` |
-| 03 Silver | `silver_population` | `notebooks/03_silver/04_silver_population.ipynb` | `silver_geography`, `ingest_psa`, `ingest_psa_ds18_pdf` |
-| 04 Gold | `gold_setup` | `notebooks/04_gold/00_gold_setup.ipynb` | `silver_geography`, `silver_dot`, `silver_psa_economy`, `silver_population` |
-| 04 Gold | `gold_dim_province` | `notebooks/04_gold/01_gold_dim_province.ipynb` | `gold_setup`, `silver_geography` |
-| 04 Gold | `gold_dim_year` | `notebooks/04_gold/02_gold_dim_year.ipynb` | `gold_setup`, `silver_dot`, `silver_psa_economy`, `silver_population` |
-| 04 Gold | `gold_fact_province_year` | `notebooks/04_gold/03_gold_fact_province_year.ipynb` | `gold_dim_province`, `gold_dim_year`, `silver_dot`, `silver_psa_economy`, `silver_population` |
+| 03 Silver | `silver_geography` | `notebooks/03_silver/01_silver_geography.ipynb` | `silver_setup` |
+| 03 Silver | `silver_dot` | `notebooks/03_silver/02_silver_dot.ipynb` | `silver_geography` |
+| 03 Silver | `silver_psa_economy` | `notebooks/03_silver/03_silver_psa_economy.ipynb` | `silver_geography` |
+| 03 Silver | `silver_population` | `notebooks/03_silver/04_silver_population.ipynb` | `silver_geography` |
+| 04 Gold | `gold_setup` | `notebooks/04_gold/00_gold_setup.ipynb` | `silver_dot`, `silver_psa_economy`, `silver_population` |
+| 04 Gold | `gold_dim_province` | `notebooks/04_gold/01_gold_dim_province.ipynb` | `gold_setup` |
+| 04 Gold | `gold_dim_year` | `notebooks/04_gold/02_gold_dim_year.ipynb` | `gold_setup` |
+| 04 Gold | `gold_fact_province_year` | `notebooks/04_gold/03_gold_fact_province_year.ipynb` | `gold_dim_province`, `gold_dim_year` |
 | 04 Gold | `gold_run_evidence` | `notebooks/04_gold/04_gold_run_evidence.ipynb` | `gold_fact_province_year` |
 | 05 Analytics | `analytics` | `notebooks/05_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
 | 05 Analytics | `analytics_validation` | `notebooks/05_analytics/02_analytics_validation.ipynb` | `analytics` |
@@ -82,8 +86,8 @@ data-quality checks before writing; results go to `06_data_quality.dq_results`, 
 | Setting | Value | Why |
 | --- | --- | --- |
 | `max_concurrent_runs` | `1` | Two runs never write the same tables at the same time |
-| `timeout_seconds` (job) | `10800` (2 h) | Stops a stuck run; review after the first full run |
-| `timeout_seconds` (task) | 600–2100 | Every task has its own limit; analytics limits are ~3× the longest observed run |
+| `timeout_seconds` (job) | `10800` (3 h) | Stops a stuck run; review after the first full run |
+| `timeout_seconds` (task) | 600–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run |
 | Retries | 2 retries, 30 s apart | Ingestion tasks only, since they call external sources |
 | Failure emails | `${var.alert_email}` | See below |
 | Skipped / cancelled runs | No alert | Avoids noise from manual cancels |
@@ -110,7 +114,8 @@ addresses under `on_failure:` in `tourism_pipeline.yml` (one `- email` per line)
    - `task_key`: unique, lowercase, e.g. `silver_<table>`
    - `notebook_path`: relative to `resources/jobs/`, so it starts with `../../`
      (e.g. `../../notebooks/03_silver/05_silver_example.ipynb`)
-   - `depends_on`: every task whose tables the notebook reads
+   - `depends_on`: the step directly before it in its layer (the layer's setup task if it's
+     the first one). Don't add dependencies on earlier layers; the setup tasks already cover them.
    - `timeout_seconds`: always; add retries only for tasks that call external sources
 4. Validate:
 
