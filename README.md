@@ -2,40 +2,43 @@
 
 [![CI](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml)
 
-**Philippine Province-Level Tourism, Recovery, and Economic Analytics Project**
+**Philippine Province-Level Tourism and Economic Analytics Project**
 
-ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data to show where tourism is concentrated, which provinces are back to their 2019 level, and whether tourism and local hotel and restaurant activity move together. The client is a fictional persona, the Tourism-Economy Convergence Task Force (TECTF), which asks whether tourism growth is reaching beyond the usual strong destinations.
+ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data to show where tourism is concentrated, how much tourism-related output each province generates per visitor, and which provinces beyond the leading destinations should be prioritized for tourism development.
 
-**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. Accommodation and food services (A&F) GVA is an economic proxy that includes spending unrelated to tourism. Findings support descriptive comparisons and further investigation, not causal or investment-return claims. A missing value is never treated as zero.
+**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. Accommodation and food services (A&F) GVA is an economic proxy that includes spending unrelated to tourism. Findings support planning priorities and further study, not causal or investment-return claims. A missing value is never treated as zero.
 
 ## Analytical scope
 
-The canonical questions, definitions, thresholds and confirmed results are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md).
+> **How can tourism development be planned to benefit provinces beyond the leading tourist destinations?**
 
-| Business question | Analytical questions | Analytics table |
+The questions, definitions, queries and recommendation framework are in [docs/business-and-analytical-questions.md](docs/business-and-analytical-questions.md).
+
+| Analytical question | What it shows | Analytics tables |
 | --- | --- | --- |
-| **BQ1:** Which provinces stand out in tourism activity and recovery, and which appear to be lagging? | AQ1.1 activity, intensity and concentration | `tourism_activity`, `tourism_concentration` |
-| | AQ1.2 recovery relative to 2019 | `tourism_recovery` |
-| | AQ1.3 recovery by traveler type (domestic, foreign, overseas Filipino) among provinces below 2019 | `traveler_segment_recovery` |
-| **BQ2:** How are changes in tourism associated with changes in local tourism-related economic activity? | AQ2.1 tourism change and real A&F growth | `tourism_economy` |
-| | AQ2.2 alignment and divergence | `tourism_economy` |
-| | AQ2.3 economic significance of A&F | `tourism_economy` |
-| | AQ2.4 tourism outcomes versus the 2019 economic base | `tourism_economy` |
+| **AQ1:** Where do visitors go? | Concentration of overnight travelers in the 10 leading destinations | `tourism_activity`, `tourism_concentration` |
+| **AQ2:** Which provinces earn more from each visitor, and which earn less? | Earnings per visitor and each province's quadrant | `tourism_economy`, `tourism_activity` |
+| **AQ3:** Does tourism only do well in already-wealthy provinces? | Tourism share of the economy against GDP per capita | `tourism_economy` |
+| **AQ4:** Which provinces beyond the leading destinations should be prioritized, and what do they need? | A recommended action for every province | `tourism_economy`, `tourism_activity` |
 
-The baseline year is **2019**, the comparison years are **2022 and 2023**, and the headline year is **2023**. Source data covers 2019–2024. The "usual strong destinations" are the ten most visited units in 2019.
+Trends cover **2019-2023**, and AQ2 to AQ4 use **2023**, the latest year with both DOT and PSA provincial data. The leading destinations are the 10 provinces with the highest average annual overnight travelers over 2019-2023. Source data in the pipeline covers 2019-2024.
 
 ## Data sources
 
 | Source | Role |
 | --- | --- |
-| DOT overnight-traveler reports | Provincial tourism activity and recovery |
+| DOT overnight-traveler reports | Provincial tourism activity |
 | PSA population sources | Population denominators for intensity |
 | PSA provincial GDP, GDP per capita, and A&F GVA | Economic comparisons: current prices for shares, constant prices for growth |
 | PSGC | Geographic reference and historical crosswalk |
 
-See [Source assessment](docs/consolidated-data-sources.md) and [Data sources](docs/data-sources.md) for identifiers and limitations.
+See [Source assessment](docs/consolidated-data-sources.md) for identifiers and limitations.
 
 ## How the pipeline works
+
+![ProvInsights architecture](docs/images/architecture.png)
+
+Full description, design decisions and limitations: [docs/architecture.md](docs/architecture.md). How to run, check and fix the pipeline: [docs/runbook.md](docs/runbook.md).
 
 ```text
 Government source files
@@ -70,8 +73,9 @@ docs/
   gold-run-evidence.md
   analytics-run-evidence.md
   project-decision-log.md
-  architecture.md                 # placeholder
-  runbook.md                      # placeholder
+  architecture.md                 # architecture, design decisions, limitations
+  runbook.md                      # how to run, check and fix the pipeline
+  images/architecture.png
 notebooks/
   01_ingestion/                   # sources to Bronze
   03_silver/
@@ -81,7 +85,6 @@ resources/
   jobs/tourism_pipeline.yml       # end-to-end Databricks job
   seeds/                          # reviewed crosswalk files
 databricks.yml                    # Databricks bundle
-src/                              # folder guidance; pipeline logic lives in the notebooks
 tests/
   README.md                       # validation guidance, no automated tests yet
 dashboard/
@@ -124,7 +127,7 @@ databricks bundle run -t dev -p <profile> tourism_pipeline --var="alert_email=<y
 
 Use the [Decision log](docs/project-decision-log.md) for approved choices. Preserve original source artifacts and keep credentials out of Git.
 
-CI checks repository structure, Python files under `src/`, notebook structure, syntax in marked Python and SQL cells, and the Databricks bundle. It does not run the notebooks or validate source data.
+CI checks repository structure, notebook structure, syntax in marked Python and SQL cells, and the Databricks bundle. It does not run the notebooks or validate source data.
 
 ## Team and handoff
 
@@ -132,4 +135,4 @@ CI checks repository structure, Python files under `src/`, notebook structure, s
 
 Use the GitHub Project and issues for assignments and checkpoints.
 
-**Handoff status: partly ready.** The ingestion, Silver, Gold and Analytics notebooks, the job definition, and run evidence for Gold and Analytics are in the repository. Still missing: the architecture and runbook documents, automated tests in `tests/`, and a dashboard guide.
+**Handoff status: partly ready.** The ingestion, Silver, Gold and Analytics notebooks, the job definition, run evidence for Gold and Analytics, the architecture document and the runbook are in the repository. Still missing: automated tests in `tests/` and a dashboard guide.
