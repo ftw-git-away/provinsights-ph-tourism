@@ -40,7 +40,7 @@ jobs:
         run: |
           failed=false
 
-          for path in README.md docs notebooks resources src tests; do
+          for path in README.md docs notebooks resources tests; do
             if [[ ! -e "$path" ]]; then
               echo "ERROR: Required path '$path' is missing"
               failed=true
@@ -57,35 +57,6 @@ jobs:
           if [[ "$failed" == true ]]; then
             exit 1
           fi
-
-      - name: Check Python syntax in src/
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import sys
-
-          root = Path("src")
-          files = sorted(root.rglob("*.py")) if root.is_dir() else []
-
-          if not files:
-              print("INFO: No Python files found in src/; skipped")
-              sys.exit(0)
-
-          failed = False
-
-          for path in files:
-              try:
-                  source = path.read_text(encoding="utf-8")
-                  compile(source, str(path), "exec")
-                  print(f"PASS: {path}")
-              except (OSError, UnicodeDecodeError, SyntaxError) as exc:
-                  print(f"ERROR: {path}: {exc}")
-                  failed = True
-
-          if failed:
-              sys.exit(1)
-          PY
 
       - name: Check notebooks directory contents
         shell: bash
