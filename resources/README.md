@@ -84,6 +84,7 @@ Notebook folders are numbered by pipeline step, and each writes to its own schem
 | `02_silver` | `03_silver` |
 | `03_gold` | `04_gold` |
 | `04_analytics` | `05_analytics` |
+| `99_maintenance` | none: one-off notebooks run by hand, not part of the job (e.g. dropping stale `02_bronze` tables) |
 
 Data-quality results from every layer go to `06_data_quality`.
 

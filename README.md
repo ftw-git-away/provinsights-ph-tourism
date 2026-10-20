@@ -141,6 +141,7 @@ notebooks/
   02_silver/
   03_gold/
   04_analytics/                   # build, validation, run evidence
+  99_maintenance/                 # one-off maintenance, run by hand (not in the job)
 resources/
   jobs/tourism_pipeline.yml       # end-to-end Databricks job
   seeds/                          # reviewed crosswalk files
