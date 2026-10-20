@@ -7,11 +7,26 @@ import yaml
 from _helpers import JOB_FILE, REPO_ROOT
 
 RESOURCES_README = REPO_ROOT / "resources" / "README.md"
+DASHBOARD_RESOURCES = REPO_ROOT / "resources" / "dashboards"
+TASK_TYPES = ("notebook_task", "dashboard_task")
+DASHBOARD_LAYER = "99_dashboard"  # sorts after every notebook layer, so it must wait for all of 05_analytics
 
 
 def layer_of(task):
-    """Layer folder of a task's notebook, e.g. '03_silver'."""
+    """Layer of a task: its notebook folder (e.g. '03_silver'), or DASHBOARD_LAYER for dashboard refreshes."""
+    if "dashboard_task" in task:
+        return DASHBOARD_LAYER
     return task["notebook_task"]["notebook_path"].split("/")[-2]
+
+
+def load_dashboards():
+    """Dashboard resources defined in resources/dashboards/*.yml, keyed by resource name."""
+    dashboards = {}
+    for path in sorted(DASHBOARD_RESOURCES.glob("*.yml")):
+        bundle = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        for name, dashboard in bundle.get("resources", {}).get("dashboards", {}).items():
+            dashboards[name] = (path, dashboard)
+    return dashboards
 
 
 class JobDefinitionTests(unittest.TestCase):
@@ -42,13 +57,45 @@ class JobDefinitionTests(unittest.TestCase):
         self.assertTrue(keys, "The job has no tasks")
         self.assertEqual(len(keys), len(set(keys)), "Duplicate task_key in the job")
 
-    def test_every_notebook_path_exists(self):
+    def test_every_task_has_one_supported_type(self):
         for key, task in self.tasks.items():
             with self.subTest(task=key):
-                relative = task.get("notebook_task", {}).get("notebook_path", "")
+                types = [t for t in TASK_TYPES if t in task]
+                self.assertEqual(len(types), 1, f"{key}: expected exactly one of {TASK_TYPES}, found {types}")
+
+    def test_every_notebook_path_exists(self):
+        for key, task in self.tasks.items():
+            if "notebook_task" not in task:
+                continue
+            with self.subTest(task=key):
+                relative = task["notebook_task"].get("notebook_path", "")
                 self.assertTrue(relative.startswith("../../notebooks/"), f"{key}: unexpected path {relative!r}")
                 self.assertTrue((JOB_FILE.parent / relative).resolve().is_file(),
                                 f"{key}: notebook not found: {relative}")
+
+    def test_dashboard_tasks_refresh_a_bundle_dashboard(self):
+        """Each dashboard_task points to a dashboard defined in resources/dashboards/ and uses ${var.warehouse_id}."""
+        dashboards = load_dashboards()
+        for key, task in self.tasks.items():
+            if "dashboard_task" not in task:
+                continue
+            with self.subTest(task=key):
+                ref = task["dashboard_task"].get("dashboard_id", "")
+                match = re.fullmatch(r"\$\{resources\.dashboards\.([a-z0-9_]+)\.id\}", ref)
+                self.assertIsNotNone(match, f"{key}: dashboard_id must be ${{resources.dashboards.<name>.id}}, got {ref!r}")
+                self.assertIn(match.group(1), dashboards, f"{key}: no dashboard {match.group(1)!r} in resources/dashboards/")
+                self.assertEqual(task["dashboard_task"].get("warehouse_id"), "${var.warehouse_id}",
+                                 f"{key}: warehouse_id must be ${{var.warehouse_id}}")
+
+    def test_dashboard_files_exist(self):
+        """Every dashboard resource uses ${var.warehouse_id} and its .lvdash.json file exists."""
+        for name, (path, dashboard) in load_dashboards().items():
+            with self.subTest(dashboard=name):
+                self.assertEqual(dashboard.get("warehouse_id"), "${var.warehouse_id}",
+                                 f"{path.name}: warehouse_id must be ${{var.warehouse_id}}")
+                relative = dashboard.get("file_path", "")
+                self.assertTrue(relative.endswith(".lvdash.json"), f"{path.name}: unexpected file_path {relative!r}")
+                self.assertTrue((path.parent / relative).resolve().is_file(), f"{path.name}: file not found: {relative}")
 
     def test_dependencies_point_to_existing_tasks(self):
         for key in self.tasks:
@@ -75,8 +122,9 @@ class JobDefinitionTests(unittest.TestCase):
     def test_each_layer_starts_after_the_whole_previous_layer(self):
         """The first task(s) of every layer must (directly or indirectly) wait for every task of the layer before.
 
-        Layers come from the notebook folders (01_ingestion, 03_silver, 04_gold, 05_analytics), so adding a task
-        to a layer needs no change here, but a task that the next layer does not wait for fails.
+        Layers come from the notebook folders (01_ingestion, 03_silver, 04_gold, 05_analytics), followed by the
+        dashboard refresh, so adding a task to a layer needs no change here, but a task that the next layer does
+        not wait for fails.
         """
         layers = {}
         for key, task in self.tasks.items():
