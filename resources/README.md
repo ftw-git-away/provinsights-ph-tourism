@@ -3,10 +3,20 @@
 Databricks resources deployed by the bundle defined in [`databricks.yml`](../databricks.yml).
 
 ```text
-resources/
-├── jobs/
-│   └── tourism_pipeline.yml   # End-to-end pipeline job
-└── seeds/                     # Reviewed reference files used by notebooks (see seeds/README.md)
+   resources/
+   ├── jobs/
+   │   └── tourism_pipeline.yml   # End-to-end pipeline job
+   ├── dashboards/
+   │   └── provinsights.dashboard.yml   # AI/BI dashboard (file in ../dashboard/)
+   └── seeds/                     # Reviewed reference files used by notebooks (see seeds/README.md)
+```
+
+   Every `*.yml` file in `resources/jobs/` and `resources/dashboards/` is loaded by the bundle through:
+
+```yaml
+   include:
+     - resources/jobs/*.yml
+     - resources/dashboards/*.yml
 ```
 
 Every `*.yml` file in `resources/jobs/` is loaded by the bundle through:
@@ -37,9 +47,13 @@ flowchart LR
   subgraph analytics_layer["Analytics"]
     analytics --> analytics_validation --> analytics_run_evidence
   end
+  subgraph dashboard_layer["Dashboard"]
+    refresh_dashboard
+  end
   ingest_psa & ingest_psgc & ingest_dot & ingest_psa_ds18_pdf --> silver_setup
   silver_dot & silver_psa_economy & silver_population --> gold_setup
   gold_run_evidence --> analytics
+  analytics_run_evidence --> refresh_dashboard
 ```
 Update this diagram whenever tasks or `depends_on` change in `resources/jobs/tourism_pipeline.yml`.
 
@@ -72,6 +86,7 @@ layers can run out of order.
 | 05 Analytics | `analytics` | `notebooks/05_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
 | 05 Analytics | `analytics_validation` | `notebooks/05_analytics/02_analytics_validation.ipynb` | `analytics` |
 | 05 Analytics | `analytics_run_evidence` | `notebooks/05_analytics/03_analytics_run_evidence.ipynb` | `analytics_validation` |
+| Dashboard | `refresh_dashboard` | Dashboard `provinsights` (`dashboard/provinsights.lvdash.json`) | `analytics_run_evidence` |
 
 There is no `02_bronze` folder: the ingestion notebooks in `01_ingestion` write the Bronze
 tables themselves, so the layer numbers go from `01` to `03`. The `02` prefix stays reserved
@@ -87,7 +102,7 @@ data-quality checks before writing; results go to `06_data_quality.dq_results`, 
 | --- | --- | --- |
 | `max_concurrent_runs` | `1` | Two runs never write the same tables at the same time |
 | `timeout_seconds` (job) | `10800` (3 h) | Stops a stuck run; review after the first full run |
-| `timeout_seconds` (task) | 900–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run. Setup and run-evidence tasks get 1800 s to allow for serverless compute waits |
+| `timeout_seconds` (task) | 900–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run. Setup, run-evidence, and dashboard tasks get 1800 s to allow for serverless compute waits |
 | Retries | 2 retries, 30 s apart | Ingestion tasks only, since they call external sources |
 | Failure emails | `${var.alert_email}` | See below |
 | Skipped / cancelled runs | No alert | Avoids noise from manual cancels |
