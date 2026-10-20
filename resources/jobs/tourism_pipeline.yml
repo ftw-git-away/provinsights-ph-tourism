@@ -175,5 +175,5 @@ resources:
           depends_on:
             - task_key: analytics_run_evidence
           dashboard_task:
-            dashboard_id: ${resources.dashboards.provinsights.id}
+            dashboard_id: ${var.dashboard_id}
             warehouse_id: ${var.warehouse_id}
