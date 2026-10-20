@@ -90,7 +90,7 @@
         "SELECT province_name AS place, region_name, unit_type, year, latitude, longitude, total_travelers,\n",
         "       ROUND(tourism_intensity_per_1000, 0) AS tourism_intensity_per_1000, intensity_rank,\n",
         "       CASE WHEN tourism_intensity_per_1000 < 100 THEN 'Under 100' WHEN tourism_intensity_per_1000 < 300 THEN '100-300'\n",
-        "            WHEN tourism_intensity_per_1000 < 1000 THEN '300-1,000' ELSE '1,000 or more' END AS intensity_band\n",
+        "            WHEN tourism_intensity_per_1000 < 1000 THEN '300-999' ELSE '1,000 or more' END AS intensity_band\n",
         "FROM tourism_activity\n",
         "WHERE year BETWEEN 2019 AND 2023 AND intensity_eligible AND latitude IS NOT NULL\n"
       ],
@@ -171,8 +171,8 @@
         "  SELECT *,\n",
         "         CASE quadrant\n",
         "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-output'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-output'\n",
         "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
@@ -259,8 +259,8 @@
         "  SELECT *,\n",
         "         CASE quadrant\n",
         "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-output'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-output'\n",
         "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
@@ -347,8 +347,8 @@
         "  SELECT *,\n",
         "         CASE quadrant\n",
         "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-output'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-output'\n",
         "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
@@ -436,8 +436,8 @@
         "  SELECT *,\n",
         "         CASE quadrant\n",
         "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-output'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-output'\n",
         "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
@@ -529,7 +529,7 @@
               "lines": [
                 "# <span style=\"font-size:35px;line-height:1.5\">What are we missing when we only look at the usual destinations?</span>\n",
                 "\n",
-                "<span style=\"font-size:20px\">**Business question:** How can tourism activity and tourism-related output across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development?</span>\n"
+                "<span style=\"font-size:20px\">**Business question:**</span><span style=\"font-size: 20px;\"> How can tourism and economic data across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development?</span>"
               ]
             }
           },
@@ -537,7 +537,7 @@
             "x": 0,
             "y": 0,
             "width": 12,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -547,15 +547,15 @@
               "lines": [
                 "## Why this matters\n",
                 "\n",
-                "Philippine tourism is concentrated in a few places: in 2023, the 10 leading destinations received **43.7% of all overnight travelers**. The DOT's National Tourism Development Plan 2023-2028 responds with Goal 4, equalized tourism development: opening more of the country to tourism and supporting destinations beyond the established ones. ProvInsights gives a consistent province-by-province view of tourism activity and tourism-related output, so the provinces that are easy to miss become visible.\n"
+                "Philippine tourism is concentrated in a few places: in 2023, the 10 leading destinations received **43.7% of all overnight travelers**. The DOT's National Tourism Development Plan 2023-2028 responds with Goal 4, equalized tourism development: opening more of the country to tourism and supporting destinations beyond the established ones. ProvInsights gives a consistent province-by-province view of tourism and economic data, so the provinces beyond the leading destinations that are easy to miss become visible."
               ]
             }
           },
           "position": {
             "x": 0,
-            "y": 3,
+            "y": 4,
             "width": 6,
-            "height": 5
+            "height": 4
           }
         },
         {
@@ -573,9 +573,9 @@
           },
           "position": {
             "x": 6,
-            "y": 3,
+            "y": 4,
             "width": 6,
-            "height": 5
+            "height": 4
           }
         },
         {
@@ -620,7 +620,7 @@
             "x": 0,
             "y": 14,
             "width": 12,
-            "height": 4
+            "height": 3
           }
         },
         {
@@ -628,15 +628,15 @@
             "name": "w100",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
+                "> <span style=\"color:#8C96A3;font-size:14px\">***Note:***</span><span style=\"color:#8C96A3;font-size:14px\">*&#32;money figures use PSA’s provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism’s own value only for the whole country, so we use this as a stand-in. It also includes residents’ spending, so read it as a pattern, not exact tourist spending.*</span>"
               ]
             }
           },
           "position": {
             "x": 0,
-            "y": 18,
+            "y": 17,
             "width": 12,
-            "height": 1
+            "height": 2
           }
         }
       ],
@@ -672,7 +672,7 @@
             "name": "w005",
             "queries": [
               {
-                "name": "dashboards/01f1cc10775311cbacc1fb0d721c1934/datasets/01f1cc1077541240be37adb03d24a854_year",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9173f9cf5b3af4355e05f_year",
                 "query": {
                   "datasetName": "ds_aq1_year",
                   "fields": [
@@ -689,7 +689,7 @@
                 }
               },
               {
-                "name": "dashboards/01f1cc10775311cbacc1fb0d721c1934/datasets/01f1cc107754124e83bfa781edb9633d_year",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9174480e4ea494cd756e0_year",
                 "query": {
                   "datasetName": "ds_aq1_rank",
                   "fields": [
@@ -706,7 +706,7 @@
                 }
               },
               {
-                "name": "dashboards/01f1cc10775311cbacc1fb0d721c1934/datasets/01f1cc1077541250b8d8f9aa7967c160_year",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91745b78b96b364141f25_year",
                 "query": {
                   "datasetName": "ds_aq1_map",
                   "fields": [
@@ -749,15 +749,15 @@
                 "fields": [
                   {
                     "fieldName": "year",
-                    "queryName": "dashboards/01f1cc10775311cbacc1fb0d721c1934/datasets/01f1cc1077541240be37adb03d24a854_year"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9173f9cf5b3af4355e05f_year"
                   },
                   {
                     "fieldName": "year",
-                    "queryName": "dashboards/01f1cc10775311cbacc1fb0d721c1934/datasets/01f1cc107754124e83bfa781edb9633d_year"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9174480e4ea494cd756e0_year"
                   },
                   {
                     "fieldName": "year",
-                    "queryName": "dashboards/01f1cc10775311cbacc1fb0d721c1934/datasets/01f1cc1077541250b8d8f9aa7967c160_year"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91745b78b96b364141f25_year"
                   }
                 ]
               }
@@ -1038,8 +1038,24 @@
                           "themeColorType": "visualizationColors",
                           "position": 3
                         }
+                      },
+                      {
+                        "value": "300-999",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 1
+                        }
                       }
-                    ]
+                    ],
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "1,000 or more",
+                        "300-999",
+                        "100-300",
+                        "Under 100"
+                      ]
+                    }
                   }
                 },
                 "size": {
@@ -1085,7 +1101,7 @@
           "position": {
             "x": 0,
             "y": 6,
-            "width": 5,
+            "width": 6,
             "height": 12
           }
         },
@@ -1180,9 +1196,9 @@
             }
           },
           "position": {
-            "x": 5,
+            "x": 6,
             "y": 6,
-            "width": 7,
+            "width": 6,
             "height": 12
           }
         },
@@ -1200,8 +1216,8 @@
                       "expression": "`year`"
                     },
                     {
-                      "name": "sum(total_travelers)",
-                      "expression": "SUM(`total_travelers`)"
+                      "name": "sum(leading_destination_share_pct)",
+                      "expression": "SUM(`leading_destination_share_pct`)"
                     }
                   ],
                   "disaggregated": false
@@ -1213,11 +1229,11 @@
                 "showTitle": true,
                 "showDescription": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Tourism has nearly recovered from COVID-19</span>",
+                  "value": "<span style=\"font-size:24px\">Share of travelers going to the leading destinations, 2019–2023</span>",
                   "fields": []
                 },
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Total overnight travelers per year. 2020-2021 reflect COVID-19 travel restrictions. Not affected by the Year filter.*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Share of all overnight travelers that went to the 10 leading destinations, each year. 2020-2021 reflect COVID-19 travel restrictions. Not affected by the Year filter.*</span>",
                   "fields": []
                 }
               },
@@ -1240,19 +1256,20 @@
                   }
                 },
                 "y": {
-                  "fieldName": "sum(total_travelers)",
+                  "fieldName": "sum(leading_destination_share_pct)",
                   "format": {
                     "type": "number-plain",
-                    "abbreviation": "compact",
+                    "abbreviation": "none",
                     "decimalPlaces": {
                       "type": "exact",
-                      "places": 0
+                      "places": 1
                     }
                   },
-                  "displayName": "Overnight travelers",
+                  "displayName": "Share of travelers (%)",
                   "scale": {
                     "type": "quantitative"
-                  }
+                  },
+                  "formatTemplate": "{{ @formatted }}%"
                 }
               },
               "data": {
@@ -1353,23 +1370,7 @@
             "x": 0,
             "y": 24,
             "width": 12,
-            "height": 8
-          }
-        },
-        {
-          "widget": {
-            "name": "w015",
-            "multilineTextboxSpec": {
-              "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use hotel and restaurant output as a stand-in for tourism, because PSA doesn’t publish tourism’s value by province. They show patterns, not exact tourist spending.*</span>"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 32,
-            "width": 12,
-            "height": 1
+            "height": 9
           }
         }
       ],
@@ -1405,10 +1406,9 @@
             "name": "f107",
             "queries": [
               {
-                "name": "f107_ds_profile",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_map_group",
                 "query": {
                   "datasetName": "ds_profile",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "map_group",
@@ -1418,27 +1418,28 @@
                       "name": "map_group_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "map_group",
-                    "queryName": "f107_ds_profile"
-                  }
-                ]
-              },
               "frame": {
                 "showTitle": true,
                 "title": {
                   "value": "<span style=\"font-size: 20px;\">Group</span>",
                   "fields": []
                 }
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "map_group",
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_map_group"
+                  }
+                ]
               }
             }
           },
@@ -1463,7 +1464,6 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "NOT `is_leading_destination`"
@@ -1471,25 +1471,26 @@
                     {
                       "expression": "`group_label` = 'Established'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Established</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Many visitors, high output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -1529,33 +1530,33 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "NOT `is_leading_destination`"
                     },
                     {
-                      "expression": "`group_label` = 'Busy but low-earning'"
+                      "expression": "`group_label` = 'Busy but low-output'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Busy but low-earning</span>",
+                  "value": "<span style=\"font-size: 18px;\">Busy but low-output</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Many visitors, low output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -1595,33 +1596,33 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "NOT `is_leading_destination`"
                     },
                     {
-                      "expression": "`group_label` = 'Small but high-earning'"
+                      "expression": "`group_label` = 'Small but high-output'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Small but high-earning</span>",
+                  "value": "<span style=\"font-size: 18px;\">Small but high-output</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Few visitors, high output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -1661,7 +1662,6 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "NOT `is_leading_destination`"
@@ -1669,25 +1669,26 @@
                     {
                       "expression": "`group_label` = 'Limited activity'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Limited activity</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Few visitors, low output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -1718,7 +1719,7 @@
             "name": "w112",
             "multilineTextboxSpec": {
               "lines": [
-                "> **Example:** Bataan and Southern Leyte each had about **220,000** overnight travelers in 2023. Each visitor to Bataan came with **₱28,178** of tourism-related output; in Southern Leyte, **₱1,688**. Same visitor numbers, very different output. (Part of a high figure can be residents' own spending: see the note below.)\n"
+                "> **Example:** Bataan and Southern Leyte each had about **220,000** overnight travelers in 2023. Each visitor to Bataan came with **₱28,178** of tourism-related output; in Southern Leyte, **₱1,688**. Same visitor numbers, very different output. (Part of a high figure can be residents' own spending: see below.)\n"
               ]
             }
           },
@@ -1747,46 +1748,45 @@
                       "expression": "`place`"
                     },
                     {
-                      "name": "travelers_2023",
-                      "expression": "`travelers_2023`"
-                    },
-                    {
-                      "name": "earnings_per_visitor",
-                      "expression": "`earnings_per_visitor`"
-                    },
-                    {
                       "name": "what_the_data_shows",
                       "expression": "`what_the_data_shows`"
                     },
                     {
                       "name": "small_base_2023",
                       "expression": "`small_base_2023`"
+                    },
+                    {
+                      "name": "travelers_2023",
+                      "expression": "`travelers_2023`"
+                    },
+                    {
+                      "name": "earnings_per_visitor",
+                      "expression": "`earnings_per_visitor`"
                     }
                   ],
-                  "disaggregated": true,
                   "filters": [
                     {
                       "expression": "`earnings_per_visitor` IS NOT NULL"
                     }
-                  ]
+                  ],
+                  "disaggregated": true
                 }
               }
             ],
             "spec": {
-              "version": 3,
-              "widgetType": "scatter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Each province placed in one of four groups, 2023</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Each dot is one province. Right = more overnight travelers; up = more tourism-related output per traveler. Lines = 2023 medians. Grey = the 10 leading destinations.*</span>",
                   "fields": []
                 }
               },
+              "version": 3,
               "annotations": [
                 {
                   "type": "horizontal-line",
@@ -1813,10 +1813,10 @@
                   }
                 }
               ],
+              "widgetType": "scatter",
               "encodings": {
                 "x": {
                   "fieldName": "travelers_2023",
-                  "displayName": "Overnight travelers, 2023",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -1825,6 +1825,7 @@
                       "places": 0
                     }
                   },
+                  "displayName": "Overnight travelers, 2023",
                   "scale": {
                     "type": "quantitative",
                     "fn": {
@@ -1834,7 +1835,6 @@
                 },
                 "y": {
                   "fieldName": "earnings_per_visitor",
-                  "displayName": "Output per visitor (PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -1843,6 +1843,7 @@
                       "places": 0
                     }
                   },
+                  "displayName": "Output per visitor (PHP)",
                   "scale": {
                     "type": "quantitative"
                   }
@@ -1862,11 +1863,11 @@
                         "color": "#2E9E6B"
                       },
                       {
-                        "value": "Busy but low-earning",
+                        "value": "Busy but low-output",
                         "color": "#F2B705"
                       },
                       {
-                        "value": "Small but high-earning",
+                        "value": "Small but high-output",
                         "color": "#0038A8"
                       },
                       {
@@ -1912,9 +1913,12 @@
                 "\n",
                 "| Group | What the data shows | What to look at |\n",
                 "| :--- | :--- | :--- |\n",
-                "| **Established** | Many visitors, high output per visitor | Do the benefits reach nearby provinces? |\n| **Busy but low-earning** | Many visitors, low output per visitor | Where does visitor spending go? |\n| **Small but high-earning** | Few visitors, high output per visitor | What keeps visitor numbers low? (Check first that the output isn't mostly residents' spending.) |\n| **Limited activity** | Few visitors, low output per visitor | How does tourism compare with other sectors here? |\n",
+                "| **Established** | Many visitors, high output per visitor | Do the benefits reach nearby provinces? |\n",
+                "| **Busy but low-output** | Many visitors, low output per visitor | Where does visitor spending go? |\n",
+                "| **Small but high-output** | Few visitors, high output per visitor | What keeps visitor numbers low? (Check first that the output isn't mostly residents' spending.) |\n",
+                "| **Limited activity** | Few visitors, low output per visitor | How does tourism compare with other sectors here? |\n",
                 "\n",
-                "<span style=\"color: #8C96A3;\">*The 10 leading destinations are shown in grey: 6 are Established and 4 are Busy but low-earning.*</span>\n"
+                "<span style=\"color: #8C96A3;\">*The 10 leading destinations are shown in grey: 6 are Established and 4 are Busy but low-output.*</span>\n"
               ]
             }
           },
@@ -1923,119 +1927,6 @@
             "y": 8,
             "width": 4,
             "height": 11
-          }
-        },
-        {
-          "widget": {
-            "name": "w115",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_profile",
-                  "fields": [
-                    {
-                      "name": "place",
-                      "expression": "`place`"
-                    },
-                    {
-                      "name": "sum(earnings_per_visitor)",
-                      "expression": "SUM(`earnings_per_visitor`)"
-                    },
-                    {
-                      "name": "group_label",
-                      "expression": "`group_label`"
-                    }
-                  ],
-                  "disaggregated": false,
-                  "filters": [
-                    {
-                      "expression": "NOT `is_leading_destination`"
-                    },
-                    {
-                      "expression": "`earnings_per_visitor` IS NOT NULL"
-                    }
-                  ]
-                }
-              }
-            ],
-            "spec": {
-              "version": 3,
-              "widgetType": "bar",
-              "frame": {
-                "showTitle": true,
-                "title": {
-                  "value": "<span style=\"font-size: 24px;\">Output per visitor, provinces beyond the top 10 destinations</span>",
-                  "fields": []
-                },
-                "showDescription": true,
-                "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Sorted from highest. Pick a group in the filter above to compare provinces within it.*</span>",
-                  "fields": []
-                }
-              },
-              "encodings": {
-                "x": {
-                  "fieldName": "sum(earnings_per_visitor)",
-                  "displayName": "Output per visitor (PHP)",
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "none",
-                    "decimalPlaces": {
-                      "type": "exact",
-                      "places": 0
-                    }
-                  },
-                  "scale": {
-                    "type": "quantitative"
-                  }
-                },
-                "y": {
-                  "fieldName": "place",
-                  "displayName": "Province",
-                  "scale": {
-                    "type": "categorical",
-                    "sort": {
-                      "by": "x-reversed"
-                    }
-                  }
-                },
-                "color": {
-                  "fieldName": "group_label",
-                  "displayName": "Group",
-                  "scale": {
-                    "type": "categorical",
-                    "mappings": [
-                      {
-                        "value": "Established",
-                        "color": "#2E9E6B"
-                      },
-                      {
-                        "value": "Busy but low-earning",
-                        "color": "#F2B705"
-                      },
-                      {
-                        "value": "Small but high-earning",
-                        "color": "#0038A8"
-                      },
-                      {
-                        "value": "Limited activity",
-                        "color": "#CE1126"
-                      }
-                    ]
-                  }
-                }
-              },
-              "data": {
-                "queryName": "main_query"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 19,
-            "width": 12,
-            "height": 14
           }
         },
         {
@@ -2049,25 +1940,9 @@
           },
           "position": {
             "x": 0,
-            "y": 33,
+            "y": 19,
             "width": 12,
             "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "w100",
-            "multilineTextboxSpec": {
-              "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 35,
-            "width": 12,
-            "height": 1
           }
         }
       ],
@@ -2094,8 +1969,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "width": 9,
-            "height": 3
+            "width": 12,
+            "height": 5
           }
         },
         {
@@ -2103,10 +1978,9 @@
             "name": "f118",
             "queries": [
               {
-                "name": "f118_ds_profile",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_destination_group",
                 "query": {
                   "datasetName": "ds_profile",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "destination_group",
@@ -2116,14 +1990,14 @@
                       "name": "destination_group_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "f118_ds_aq3_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91746afb08c2812dc29f0_destination_group",
                 "query": {
                   "datasetName": "ds_aq3_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "destination_group",
@@ -2133,37 +2007,38 @@
                       "name": "destination_group_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "destination_group",
-                    "queryName": "f118_ds_profile"
-                  },
-                  {
-                    "fieldName": "destination_group",
-                    "queryName": "f118_ds_aq3_table"
-                  }
-                ]
-              },
               "frame": {
                 "showTitle": true,
                 "title": {
                   "value": "<span style=\"font-size: 20px;\">Show</span>",
                   "fields": []
                 }
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "destination_group",
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_destination_group"
+                  },
+                  {
+                    "fieldName": "destination_group",
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91746afb08c2812dc29f0_destination_group"
+                  }
+                ]
               }
             }
           },
           "position": {
-            "x": 9,
-            "y": 0,
+            "x": 0,
+            "y": 5,
             "width": 3,
             "height": 3
           }
@@ -2182,7 +2057,6 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`is_lagging`"
@@ -2190,91 +2064,26 @@
                     {
                       "expression": "`is_high_output`"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Lagging provinces with high output per visitor</span>",
+                  "value": "<span style=\"font-size:18px\">Lagging provinces with high output per visitor (out of 43)</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*The answer: high output per visitor is found in lower-income provinces too*</span>",
                   "fields": []
                 }
               },
-              "encodings": {
-                "value": {
-                  "fieldName": "count(*)",
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "none",
-                    "decimalPlaces": {
-                      "type": "exact",
-                      "places": 0
-                    }
-                  }
-                }
-              },
-              "data": {
-                "queryName": "main_query"
-              }
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 3,
-            "width": 3,
-            "height": 3
-          }
-        },
-        {
-          "widget": {
-            "name": "w120",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_profile",
-                  "fields": [
-                    {
-                      "name": "count(*)",
-                      "expression": "COUNT(`*`)"
-                    }
-                  ],
-                  "disaggregated": false,
-                  "filters": [
-                    {
-                      "expression": "`is_lagging`"
-                    },
-                    {
-                      "expression": "`earnings_per_visitor` IS NOT NULL"
-                    }
-                  ]
-                }
-              }
-            ],
-            "spec": {
               "version": 2,
               "widgetType": "counter",
-              "frame": {
-                "showTitle": true,
-                "title": {
-                  "value": "<span style=\"font-size: 18px;\">Lagging provinces with output data</span>",
-                  "fields": []
-                },
-                "showDescription": true,
-                "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*GDP per capita below the 2023 median, with travelers and A&F output*</span>",
-                  "fields": []
-                }
-              },
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -2295,7 +2104,7 @@
           },
           "position": {
             "x": 3,
-            "y": 3,
+            "y": 5,
             "width": 3,
             "height": 3
           }
@@ -2314,7 +2123,6 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "NOT `is_lagging`"
@@ -2322,25 +2130,26 @@
                     {
                       "expression": "`is_high_output`"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Higher-income provinces with high output per visitor</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*For comparison: more common, but not exclusive*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -2361,7 +2170,7 @@
           },
           "position": {
             "x": 6,
-            "y": 3,
+            "y": 5,
             "width": 3,
             "height": 3
           }
@@ -2385,20 +2194,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Correlation: income vs output per visitor</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*0 = no linear relationship, 1 = rise together. Weak: income explains little of it*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "avg(correlation)",
@@ -2419,7 +2228,7 @@
           },
           "position": {
             "x": 9,
-            "y": 3,
+            "y": 5,
             "width": 3,
             "height": 3
           }
@@ -2442,23 +2251,22 @@
                       "expression": "`place`"
                     },
                     {
-                      "name": "gdp_per_capita_thousand",
-                      "expression": "`gdp_per_capita_thousand`"
-                    },
-                    {
-                      "name": "earnings_per_visitor",
-                      "expression": "`earnings_per_visitor`"
-                    },
-                    {
                       "name": "map_group",
                       "expression": "`map_group`"
                     },
                     {
                       "name": "small_base_2023",
                       "expression": "`small_base_2023`"
+                    },
+                    {
+                      "name": "gdp_per_capita_thousand",
+                      "expression": "`gdp_per_capita_thousand`"
+                    },
+                    {
+                      "name": "earnings_per_visitor",
+                      "expression": "`earnings_per_visitor`"
                     }
                   ],
-                  "disaggregated": true,
                   "filters": [
                     {
                       "expression": "`earnings_per_visitor` IS NOT NULL"
@@ -2466,25 +2274,25 @@
                     {
                       "expression": "`gdp_per_capita_thousand` IS NOT NULL"
                     }
-                  ]
+                  ],
+                  "disaggregated": true
                 }
               }
             ],
             "spec": {
-              "version": 3,
-              "widgetType": "scatter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Income vs output per visitor, 2023</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Each dot is one province. Yellow dots above the horizontal line = lower-income provinces with high output per visitor.*</span>",
                   "fields": []
                 }
               },
+              "version": 3,
               "annotations": [
                 {
                   "type": "horizontal-line",
@@ -2511,10 +2319,10 @@
                   }
                 }
               ],
+              "widgetType": "scatter",
               "encodings": {
                 "x": {
                   "fieldName": "gdp_per_capita_thousand",
-                  "displayName": "GDP per capita, 2023 (thousand PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -2523,6 +2331,7 @@
                       "places": 0
                     }
                   },
+                  "displayName": "GDP per capita, 2023 (thousand PHP)",
                   "scale": {
                     "type": "quantitative",
                     "fn": {
@@ -2532,7 +2341,6 @@
                 },
                 "y": {
                   "fieldName": "earnings_per_visitor",
-                  "displayName": "Output per visitor (PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -2541,6 +2349,7 @@
                       "places": 0
                     }
                   },
+                  "displayName": "Output per visitor (PHP)",
                   "scale": {
                     "type": "quantitative"
                   }
@@ -2584,7 +2393,7 @@
           },
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 8,
             "width": 8,
             "height": 11
           }
@@ -2607,30 +2416,30 @@
                       "expression": "MEDIAN(`earnings_per_visitor`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`earnings_per_visitor` IS NOT NULL"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
-              "widgetType": "bar",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Median output per visitor by income group</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*2023, PHP*</span>",
                   "fields": []
                 }
               },
+              "version": 3,
+              "widgetType": "bar",
               "encodings": {
                 "x": {
                   "fieldName": "wealth_group",
@@ -2641,7 +2450,6 @@
                 },
                 "y": {
                   "fieldName": "median(earnings_per_visitor)",
-                  "displayName": "Median output per visitor (PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -2650,6 +2458,7 @@
                       "places": 0
                     }
                   },
+                  "displayName": "Median output per visitor (PHP)",
                   "scale": {
                     "type": "quantitative"
                   }
@@ -2679,7 +2488,7 @@
           },
           "position": {
             "x": 8,
-            "y": 6,
+            "y": 8,
             "width": 4,
             "height": 11
           }
@@ -2727,20 +2536,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Lagging provinces, by output per visitor</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Highest first. \"Yes\" rows are lower-income provinces with high output per visitor; read small-base rows with the traveler count.*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
@@ -2799,7 +2608,7 @@
           },
           "position": {
             "x": 0,
-            "y": 17,
+            "y": 19,
             "width": 12,
             "height": 8
           }
@@ -2815,25 +2624,9 @@
           },
           "position": {
             "x": 0,
-            "y": 25,
-            "width": 12,
-            "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "w100",
-            "multilineTextboxSpec": {
-              "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
             "y": 27,
             "width": 12,
-            "height": 1
+            "height": 2
           }
         }
       ],
@@ -2869,10 +2662,9 @@
             "name": "f128",
             "queries": [
               {
-                "name": "f128_ds_aq4_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_Group",
                 "query": {
                   "datasetName": "ds_aq4_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "Group",
@@ -2882,27 +2674,28 @@
                       "name": "Group_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "Group",
-                    "queryName": "f128_ds_aq4_table"
-                  }
-                ]
-              },
               "frame": {
                 "showTitle": true,
                 "title": {
                   "value": "<span style=\"font-size: 20px;\">Group</span>",
                   "fields": []
                 }
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "Group",
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_Group"
+                  }
+                ]
               }
             }
           },
@@ -2918,10 +2711,9 @@
             "name": "f129",
             "queries": [
               {
-                "name": "f129_ds_aq4_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_Lagging",
                 "query": {
                   "datasetName": "ds_aq4_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "Lagging",
@@ -2931,27 +2723,28 @@
                       "name": "Lagging_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "Lagging",
-                    "queryName": "f129_ds_aq4_table"
-                  }
-                ]
-              },
               "frame": {
                 "showTitle": true,
                 "title": {
                   "value": "<span style=\"font-size: 20px;\">Lagging (lower-income)</span>",
                   "fields": []
                 }
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "Lagging",
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_Lagging"
+                  }
+                ]
               }
             }
           },
@@ -2967,10 +2760,9 @@
             "name": "f130",
             "queries": [
               {
-                "name": "f130_ds_aq4_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_High output per visitor",
                 "query": {
                   "datasetName": "ds_aq4_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "High output per visitor",
@@ -2980,27 +2772,28 @@
                       "name": "High output per visitor_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
-              "widgetType": "filter-multi-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "High output per visitor",
-                    "queryName": "f130_ds_aq4_table"
-                  }
-                ]
-              },
               "frame": {
                 "showTitle": true,
                 "title": {
                   "value": "<span style=\"font-size: 20px;\">High output per visitor</span>",
                   "fields": []
                 }
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "High output per visitor",
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_High output per visitor"
+                  }
+                ]
               }
             }
           },
@@ -3030,20 +2823,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Provinces shown</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Changes with the filters*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -3083,7 +2876,6 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`Lagging` = 'Yes'"
@@ -3091,25 +2883,26 @@
                     {
                       "expression": "`High output per visitor` = 'Yes'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Lagging, with high output per visitor</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*3 of them have under 10,000 travelers: check before naming*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -3198,20 +2991,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "symbol-map",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Where they are</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Each dot is a province beyond the top 10 destinations. Colour = group; size = overnight travelers.*</span>",
+                  "value": "<span style=\"color:#8C96A3\">*Each dot is a province beyond the top 10 destinations. Colour = group; size = overnight travelers.&#32;&#32;*</span>\n\n<span style=\"color: #8C96A3;\">*Groups are explained on page 2. These are questions the data raises, not recommendations*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "symbol-map",
               "encodings": {
                 "coordinates": {
                   "coordinateType": "longitude-latitude",
@@ -3233,11 +3026,11 @@
                         "color": "#2E9E6B"
                       },
                       {
-                        "value": "Busy but low-earning",
+                        "value": "Busy but low-output",
                         "color": "#F2B705"
                       },
                       {
-                        "value": "Small but high-earning",
+                        "value": "Small but high-output",
                         "color": "#0038A8"
                       },
                       {
@@ -3249,7 +3042,6 @@
                 },
                 "size": {
                   "fieldName": "Overnight travelers",
-                  "displayName": "Overnight travelers",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "compact",
@@ -3260,7 +3052,8 @@
                   },
                   "scale": {
                     "type": "quantitative"
-                  }
+                  },
+                  "displayName": "Overnight travelers"
                 },
                 "extra": [
                   {
@@ -3314,29 +3107,7 @@
           "position": {
             "x": 0,
             "y": 5,
-            "width": 6,
-            "height": 12
-          }
-        },
-        {
-          "widget": {
-            "name": "w134",
-            "multilineTextboxSpec": {
-              "lines": [
-                "## What the data shows, by group\n",
-                "\n",
-                "| Group | What the data shows | What to look at |\n",
-                "| :--- | :--- | :--- |\n",
-                "| **Established** | Many visitors, high output per visitor | Do the benefits reach nearby provinces? |\n| **Busy but low-earning** | Many visitors, low output per visitor | Where does visitor spending go? |\n| **Small but high-earning** | Few visitors, high output per visitor | What keeps visitor numbers low? (Check first that the output isn't mostly residents' spending.) |\n| **Limited activity** | Few visitors, low output per visitor | How does tourism compare with other sectors here? |\n",
-                "\n",
-                "These are questions the data raises, not recommendations. Answering them needs information the data does not have: access, infrastructure, safety, governance and local plans.\n"
-              ]
-            }
-          },
-          "position": {
-            "x": 6,
-            "y": 5,
-            "width": 6,
+            "width": 12,
             "height": 12
           }
         },
@@ -3395,20 +3166,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Priority provinces</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Lagging provinces first, then by tourism share of the economy. Priorities for a closer look, not predictions.*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
@@ -3472,22 +3243,6 @@
             "width": 12,
             "height": 12
           }
-        },
-        {
-          "widget": {
-            "name": "w100",
-            "multilineTextboxSpec": {
-              "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 29,
-            "width": 12,
-            "height": 1
-          }
         }
       ],
       "pageType": "PAGE_TYPE_CANVAS",
@@ -3527,8 +3282,8 @@
                 "| **Leading tourist destinations** | The 10 provinces with the highest average annual overnight travelers from 2019 to 2023 | Average over the eligible years, ranked; rank ≤ 10 |\n",
                 "| **Tourism-related output** | Gross value added of accommodation and food services (A&F), current prices, from PSA. A proxy, because PSA publishes tourism value added only nationally | A&F GVA, 2023 |\n",
                 "| **Output per visitor** | How much hotel and restaurant output a province generates for each overnight traveler, in pesos | A&F GVA (thousand PHP) × 1,000 ÷ overnight travelers, 2023 |\n",
-                "| **Groups (quadrant)** | Established (many visitors, high output per visitor), Busy but low-earning (many, low), Small but high-earning (few, high), Limited activity (few, low) | Each province compared with the 2023 medians of travelers (279,150) and output per visitor (₱8,652) |\n",
-                "| **High output per visitor** | Output per visitor at or above the 2023 median | ≥ ₱8,652 (the Established and Small but high-earning groups) |\n",
+                "| **Groups (quadrant)** | Established (many visitors, high output per visitor), Busy but low-output (many, low), Small but high-output (few, high), Limited activity (few, low) | Each province compared with the 2023 medians of travelers (279,150) and output per visitor (₱8,652) |\n",
+                "| **High output per visitor** | Output per visitor at or above the 2023 median | ≥ ₱8,652 (the Established and Small but high-output groups) |\n",
                 "| **GDP per capita** | Provincial GDP per person at current prices, from PSA | 2023 |\n",
                 "| **Lagging (lower-income) provinces** | Provinces whose 2023 GDP per capita is below the median of all provinces with data. An income indicator, not a measure of poverty | Below ₱140,165 in 2023 |\n",
                 "| **Tourism share of the economy** | How much of a province's economy is hotel and restaurant activity (used to order the priority list) | Current-price A&F GVA ÷ current-price GDP × 100, 2023 |\n",
@@ -3588,20 +3343,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Where the numbers come from</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*tuklas_dev.05_analytics: tourism_activity, tourism_concentration and tourism_economy, built by notebooks/05_analytics/01_build_analytics.*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
@@ -3623,7 +3378,7 @@
             "x": 0,
             "y": 20,
             "width": 12,
-            "height": 3
+            "height": 5
           }
         }
       ],
@@ -3650,8 +3405,8 @@
           "position": {
             "x": 0,
             "y": 0,
-            "width": 9,
-            "height": 3
+            "width": 12,
+            "height": 4
           }
         },
         {
@@ -3659,10 +3414,9 @@
             "name": "f141",
             "queries": [
               {
-                "name": "f141_ds_appx_recovery",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91748a543c29039164a57_comparison_year",
                 "query": {
                   "datasetName": "ds_appx_recovery",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "comparison_year",
@@ -3672,28 +3426,13 @@
                       "name": "comparison_year_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
-              "widgetType": "filter-single-select",
-              "encodings": {
-                "fields": [
-                  {
-                    "fieldName": "comparison_year",
-                    "queryName": "f141_ds_appx_recovery"
-                  }
-                ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": {
-                  "value": "<span style=\"font-size: 20px;\">Comparison year</span>",
-                  "fields": []
-                }
-              },
               "selection": {
                 "defaultSelection": {
                   "values": {
@@ -3705,12 +3444,28 @@
                     ]
                   }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<span style=\"font-size: 20px;\">Comparison year</span>",
+                  "fields": []
+                }
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "comparison_year",
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91748a543c29039164a57_comparison_year"
+                  }
+                ]
               }
             }
           },
           "position": {
-            "x": 9,
-            "y": 0,
+            "x": 0,
+            "y": 4,
             "width": 3,
             "height": 3
           }
@@ -3729,30 +3484,30 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`status` = 'Above 2019'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Back above 2019</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Selected comparison year*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -3772,9 +3527,9 @@
             }
           },
           "position": {
-            "x": 0,
-            "y": 3,
-            "width": 4,
+            "x": 3,
+            "y": 4,
+            "width": 3,
             "height": 3
           }
         },
@@ -3792,30 +3547,30 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`status` = 'Below 2019'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Still below 2019</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Selected comparison year*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -3835,9 +3590,9 @@
             }
           },
           "position": {
-            "x": 4,
-            "y": 3,
-            "width": 4,
+            "x": 6,
+            "y": 4,
+            "width": 3,
             "height": 3
           }
         },
@@ -3855,30 +3610,30 @@
                       "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`status` = 'Not assessed'"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "counter",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 18px;\">Not assessed</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*No 2019 count, no comparison-year count, or not comparable*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "counter",
               "encodings": {
                 "value": {
                   "fieldName": "count(*)",
@@ -3898,9 +3653,9 @@
             }
           },
           "position": {
-            "x": 8,
-            "y": 3,
-            "width": 4,
+            "x": 9,
+            "y": 4,
+            "width": 3,
             "height": 3
           }
         },
@@ -3914,42 +3669,41 @@
                   "datasetName": "ds_appx_recovery",
                   "fields": [
                     {
-                      "name": "place",
-                      "expression": "`place`"
+                      "name": "status",
+                      "expression": "`status`"
                     },
                     {
                       "name": "sum(pct_of_2019_chart)",
                       "expression": "SUM(`pct_of_2019_chart`)"
                     },
                     {
-                      "name": "status",
-                      "expression": "`status`"
+                      "name": "place",
+                      "expression": "`place`"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`recovery_eligible`"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
-              "widgetType": "bar",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Travelers as % of the 2019 level</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*100 = back to 2019. Values above 400 are drawn at 400; the table on the right has the exact values.*</span>",
                   "fields": []
                 }
               },
+              "version": 3,
               "annotations": [
                 {
                   "type": "vertical-line",
@@ -3964,10 +3718,10 @@
                   }
                 }
               ],
+              "widgetType": "bar",
               "encodings": {
                 "x": {
                   "fieldName": "sum(pct_of_2019_chart)",
-                  "displayName": "% of 2019 level",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -3976,6 +3730,7 @@
                       "places": 0
                     }
                   },
+                  "displayName": "% of 2019 level",
                   "scale": {
                     "type": "quantitative"
                   }
@@ -4019,7 +3774,7 @@
           },
           "position": {
             "x": 0,
-            "y": 6,
+            "y": 7,
             "width": 8,
             "height": 16
           }
@@ -4063,20 +3818,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Every place, exact values</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Includes values above 400 and the places not assessed, with the reason.*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
@@ -4124,7 +3879,7 @@
           },
           "position": {
             "x": 8,
-            "y": 6,
+            "y": 7,
             "width": 4,
             "height": 16
           }
@@ -4140,25 +3895,9 @@
           },
           "position": {
             "x": 0,
-            "y": 22,
+            "y": 23,
             "width": 12,
             "height": 2
-          }
-        },
-        {
-          "widget": {
-            "name": "w100",
-            "multilineTextboxSpec": {
-              "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 24,
-            "width": 12,
-            "height": 1
           }
         }
       ],
@@ -4186,7 +3925,7 @@
             "x": 0,
             "y": 0,
             "width": 12,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -4212,41 +3951,26 @@
               }
             ],
             "spec": {
-              "version": 3,
-              "widgetType": "bar",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Places with enough data, by traveler type</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Out of the 52 places below 2019. The rest have no 2019 count or DOT combines the types.*</span>",
                   "fields": []
                 }
               },
+              "version": 3,
+              "widgetType": "bar",
               "encodings": {
                 "x": {
                   "fieldName": "traveler_type",
                   "displayName": "Traveler type",
                   "scale": {
                     "type": "categorical"
-                  }
-                },
-                "y": {
-                  "fieldName": "count_if(assessed)",
-                  "displayName": "Places assessed",
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "none",
-                    "decimalPlaces": {
-                      "type": "exact",
-                      "places": 0
-                    }
-                  },
-                  "scale": {
-                    "type": "quantitative"
                   }
                 },
                 "color": {
@@ -4269,6 +3993,21 @@
                       }
                     ]
                   }
+                },
+                "y": {
+                  "fieldName": "count_if(assessed)",
+                  "displayName": "Places assessed",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "none",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 0
+                    }
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 }
               },
               "data": {
@@ -4278,7 +4017,7 @@
           },
           "position": {
             "x": 0,
-            "y": 3,
+            "y": 4,
             "width": 4,
             "height": 9
           }
@@ -4301,30 +4040,30 @@
                       "expression": "MEDIAN(`pct_of_2019`)"
                     }
                   ],
-                  "disaggregated": false,
                   "filters": [
                     {
                       "expression": "`assessed`"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
-              "widgetType": "bar",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">Middle place: travelers as % of 2019, by traveler type</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Places below their 2019 level in 2023. 100 = back to 2019.*</span>",
                   "fields": []
                 }
               },
+              "version": 3,
+              "widgetType": "bar",
               "encodings": {
                 "x": {
                   "fieldName": "traveler_type",
@@ -4335,7 +4074,6 @@
                 },
                 "y": {
                   "fieldName": "median(pct_of_2019)",
-                  "displayName": "% of 2019 (median)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -4344,6 +4082,7 @@
                       "places": 0
                     }
                   },
+                  "displayName": "% of 2019 (median)",
                   "scale": {
                     "type": "quantitative"
                   }
@@ -4377,7 +4116,7 @@
           },
           "position": {
             "x": 4,
-            "y": 3,
+            "y": 4,
             "width": 8,
             "height": 9
           }
@@ -4413,20 +4152,20 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
               "frame": {
                 "showTitle": true,
+                "showDescription": true,
                 "title": {
                   "value": "<span style=\"font-size: 24px;\">By place and traveler type</span>",
                   "fields": []
                 },
-                "showDescription": true,
                 "description": {
                   "value": "<span style=\"color: #8C96A3;\">*Blank = not assessed (no 2019 count, or DOT combines foreign and overseas Filipino travelers).*</span>",
                   "fields": []
                 }
               },
+              "version": 2,
+              "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
@@ -4452,25 +4191,9 @@
           },
           "position": {
             "x": 0,
-            "y": 12,
+            "y": 13,
             "width": 12,
             "height": 8
-          }
-        },
-        {
-          "widget": {
-            "name": "w100",
-            "multilineTextboxSpec": {
-              "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
-              ]
-            }
-          },
-          "position": {
-            "x": 0,
-            "y": 20,
-            "width": 12,
-            "height": 1
           }
         }
       ],
@@ -4480,18 +4203,15 @@
     {
       "name": "global_filters",
       "displayName": "Global Filters",
-      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
-      "layoutVersion": "GRID_V1",
       "layout": [
         {
           "widget": {
             "name": "filter_region",
             "queries": [
               {
-                "name": "filter_region_ds_aq1_rank",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9174480e4ea494cd756e0_region_name",
                 "query": {
                   "datasetName": "ds_aq1_rank",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4501,14 +4221,14 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_region_ds_aq1_map",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91745b78b96b364141f25_region_name",
                 "query": {
                   "datasetName": "ds_aq1_map",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4518,14 +4238,14 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_region_ds_aq1_leading",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917458b68f50e7af358cb_region_name",
                 "query": {
                   "datasetName": "ds_aq1_leading",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4535,14 +4255,14 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_region_ds_profile",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_region_name",
                 "query": {
                   "datasetName": "ds_profile",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4552,14 +4272,14 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_region_ds_aq3_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91746afb08c2812dc29f0_region_name",
                 "query": {
                   "datasetName": "ds_aq3_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4569,14 +4289,14 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_region_ds_aq4_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_region_name",
                 "query": {
                   "datasetName": "ds_aq4_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4586,14 +4306,14 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_region_ds_appx_recovery",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91748a543c29039164a57_region_name",
                 "query": {
                   "datasetName": "ds_appx_recovery",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4603,14 +4323,14 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_region_ds_appx_segments",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917488b72c930f53df502_region_name",
                 "query": {
                   "datasetName": "ds_appx_segments",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "region_name",
@@ -4620,52 +4340,56 @@
                       "name": "region_name_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Region",
+                  "fields": []
+                }
+              },
               "widgetType": "filter-multi-select",
               "encodings": {
                 "fields": [
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_aq1_rank"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9174480e4ea494cd756e0_region_name"
                   },
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_aq1_map"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91745b78b96b364141f25_region_name"
                   },
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_aq1_leading"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917458b68f50e7af358cb_region_name"
                   },
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_profile"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_region_name"
                   },
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_aq3_table"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91746afb08c2812dc29f0_region_name"
                   },
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_aq4_table"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_region_name"
                   },
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_appx_recovery"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91748a543c29039164a57_region_name"
                   },
                   {
                     "fieldName": "region_name",
-                    "queryName": "filter_region_ds_appx_segments"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917488b72c930f53df502_region_name"
                   }
                 ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Region"
               }
             }
           },
@@ -4681,10 +4405,9 @@
             "name": "filter_unit_type",
             "queries": [
               {
-                "name": "filter_unit_type_ds_aq1_rank",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9174480e4ea494cd756e0_unit_type",
                 "query": {
                   "datasetName": "ds_aq1_rank",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4694,14 +4417,14 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_unit_type_ds_aq1_map",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91745b78b96b364141f25_unit_type",
                 "query": {
                   "datasetName": "ds_aq1_map",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4711,14 +4434,14 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_unit_type_ds_aq1_leading",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917458b68f50e7af358cb_unit_type",
                 "query": {
                   "datasetName": "ds_aq1_leading",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4728,14 +4451,14 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_unit_type_ds_profile",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_unit_type",
                 "query": {
                   "datasetName": "ds_profile",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4745,14 +4468,14 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_unit_type_ds_aq3_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91746afb08c2812dc29f0_unit_type",
                 "query": {
                   "datasetName": "ds_aq3_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4762,14 +4485,14 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_unit_type_ds_aq4_table",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_unit_type",
                 "query": {
                   "datasetName": "ds_aq4_table",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4779,14 +4502,14 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_unit_type_ds_appx_recovery",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91748a543c29039164a57_unit_type",
                 "query": {
                   "datasetName": "ds_appx_recovery",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4796,14 +4519,14 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               },
               {
-                "name": "filter_unit_type_ds_appx_segments",
+                "name": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917488b72c930f53df502_unit_type",
                 "query": {
                   "datasetName": "ds_appx_segments",
-                  "disaggregated": false,
                   "fields": [
                     {
                       "name": "unit_type",
@@ -4813,52 +4536,56 @@
                       "name": "unit_type_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Type of unit",
+                  "fields": []
+                }
+              },
               "widgetType": "filter-multi-select",
               "encodings": {
                 "fields": [
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_aq1_rank"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a9174480e4ea494cd756e0_unit_type"
                   },
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_aq1_map"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91745b78b96b364141f25_unit_type"
                   },
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_aq1_leading"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917458b68f50e7af358cb_unit_type"
                   },
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_profile"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917468e75571b5062e054_unit_type"
                   },
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_aq3_table"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91746afb08c2812dc29f0_unit_type"
                   },
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_aq4_table"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91747b8171e49d4d6cc86_unit_type"
                   },
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_appx_recovery"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a91748a543c29039164a57_unit_type"
                   },
                   {
                     "fieldName": "unit_type",
-                    "queryName": "filter_unit_type_ds_appx_segments"
+                    "queryName": "dashboards/01f1cca4d4a81bb89087694de6694906/datasets/01f1cca4d4a917488b72c930f53df502_unit_type"
                   }
                 ]
-              },
-              "frame": {
-                "showTitle": true,
-                "title": "Type of unit"
               }
             }
           },
@@ -4869,7 +4596,9 @@
             "height": 2
           }
         }
-      ]
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
     }
   ],
   "uiSettings": {
@@ -4911,11 +4640,11 @@
           "color": "#2E9E6B"
         },
         {
-          "value": "Busy but low-earning",
+          "value": "Busy but low-output",
           "color": "#F2B705"
         },
         {
-          "value": "Small but high-earning",
+          "value": "Small but high-output",
           "color": "#0038A8"
         },
         {
@@ -4963,7 +4692,7 @@
           "color": "#8EA9DB"
         },
         {
-          "value": "300-1,000",
+          "value": "300-999",
           "color": "#4F78C4"
         },
         {

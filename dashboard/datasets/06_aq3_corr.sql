@@ -49,8 +49,8 @@ labelled AS (
   SELECT *,
          CASE quadrant
            WHEN 'Many visitors, high earnings per visitor' THEN 'Established'
-           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'
-           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'
+           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-output'
+           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-output'
            WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'
            ELSE 'Insufficient data'
          END AS group_label,
