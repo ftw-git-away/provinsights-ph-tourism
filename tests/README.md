@@ -1,83 +1,60 @@
 # Tests and Validation
 
-Tests and validation are responsible for **checking that the resulting data is correct and meets the project's rules**.
+Tests and validation check that the pipeline's data is correct and follows the project's rules. There are two kinds:
 
-## Validation by Pipeline Layer
+| Kind | Where it runs | What it needs | When |
+| --- | --- | --- | --- |
+| **Unit tests** (`tests/unit/`) | GitHub Actions (CI) | Repository files only: no Databricks, no network | Every push and pull request |
+| **Data-quality checks** (in the pipeline notebooks) | Databricks job `tourism_pipeline` | The tables in `tuklas_dev` | Every pipeline run |
 
-Validation is organized by the layer or component being checked.
+## Unit tests (`tests/unit/`)
 
-| Scope      | Validation                                                  |
-| ---------- | ----------------------------------------------------------- |
-| Ingestion  | Source availability, file/API response, required metadata   |
-| Bronze     | Schema, record ingestion, duplicates, source tracking       |
-| Silver     | Data types, required fields, transformations, relationships |
-| Gold       | Table grain, keys, joins, measures, business rules          |
-| Analytics  | Metrics, calculations, expected outputs                     |
-| End-to-end | Complete pipeline and final data-quality checks             |
+| File | Checks | What it covers |
+| --- | --- | --- |
+| `test_job_definition.py` | YAML | `resources/jobs/tourism_pipeline.yml`: 18 unique tasks, every notebook path exists, every `depends_on` points to a real task, no cycles, setup tasks wait for the whole previous layer, every task has a timeout, retries only on `ingest_*` tasks, failure emails and one run at a time |
+| `test_notebook_python.py` | Python | Every notebook has a markdown cell; every Python cell compiles (including notebooks without a `%python` magic); `CATALOG` is `tuklas_dev`; no tokens or passwords; `dq(...)` uses a documented severity (`BLOCK`, `REVIEW`, `LOG`) |
+| `test_notebook_sql.py` | SQL | Every `%sql` cell and every `spark.sql("...")` string parses as Databricks SQL (`sqlglot`) |
+| `test_seeds.py` | CSV data | The four seeds in `resources/seeds/`: row counts and columns, unique keys, allowed `row_role` values, 10-digit PSGC codes, every unit code is one of the 100 reporting units, coordinates inside the Philippines, DOT validity years in order |
+| `test_docs_alignment.py` | Docs | Every DQ check ID used in a Silver notebook is listed in `docs/data-quality-rules.md` |
 
+Run them locally:
 
-## Validation Principles
-
-### 1. Validate each layer
-
-A problem should be detected as close as possible to where it is introduced.
-
-```text
-Source
-  ↓
-Ingestion ──→ Validate
-  ↓
-Bronze ─────→ Validate
-  ↓
-Silver ─────→ Validate
-  ↓
-Gold ───────→ Validate
-  ↓
-Analytics ──→ Validate
-  ↓
-End-to-End → Validate
+```bash
+python -m pip install sqlglot pyyaml
+python -m unittest discover -s tests/unit -t tests/unit -v
 ```
 
-### 2. Separate creation from validation
+When a test fails, the message names the file, task, cell or seed row. Fix the code, or, if the change is intended (for example a new task or seed row), update the test and the matching README in the same pull request.
 
-Do not hide important quality checks inside transformation logic to make it easier to understand **what the pipeline does** and **how we know it worked**.
+## Data-quality checks by layer
 
+A problem should be caught as close as possible to where it is introduced, so each layer checks its own output.
 
-For example:
+| Layer | What is checked | Where |
+| --- | --- | --- |
+| Ingestion | Source file found, extraction reconciles with printed totals, required metadata | Ingestion notebooks (`notebooks/01_ingestion/`) |
+| Bronze | Schema, record counts, duplicates, source tracking | Written during ingestion; `01_bronze_validation` is a draft |
+| Silver | Data types, required fields, crosswalk matches, one row per unit and year | `DQ-COM-*`, `DQ-DOT-*`, `DQ-PSA-*`, `DQ-POP-*` checks in each Silver notebook ([rules](../docs/data-quality-rules.md)) |
+| Gold | Table grain, keys, joins, measures | `DQ-GLD-*` checks in each Gold notebook, summarised by `gold_run_evidence` ([evidence](../docs/gold-run-evidence.md)) |
+| Analytics | Metrics, calculations, expected outputs | `05_analytics/02_analytics_validation`, summarised by `analytics_run_evidence` ([evidence](../docs/analytics-run-evidence.md)) |
 
-```text
-03_silver/
-└── tourism.py              # Creates Silver table
+Every check writes one row to `tuklas_dev.06_data_quality.dq_results` with its ID, severity and status. A failed `BLOCK` check fails its task, and the job skips every task after it, so bad data never reaches the next layer.
 
-tests/
-└── test_tourism.py         # Checks Silver table
-```
+| Severity | When it fails |
+| --- | --- |
+| `BLOCK` | The task fails and the pipeline stops |
+| `REVIEW` | The run continues; the result must be reviewed |
+| `LOG` | Recorded for information only |
 
+### Creation and validation
 
-### 3. Test important behavior
+Checks run inside the notebook that builds the table, just before it is written, so a bad table is never saved. Their results are kept separate from the data in `dq_results`, and each check is documented with its ID, so it is always clear what was checked and whether it passed.
 
-Tests should cover areas such as:
+## Not yet in place
 
-* Schema and data types
-* Required fields
-* Primary/business keys
-* Duplicate records
-* Null or invalid values
-* Source-to-target mappings
-* Geographic relationships
-* Time periods
-* Business rules
-* Rerun/idempotency behavior
-* Final analytical outputs
-
-
-Tests requiring Databricks data or external services can be executed in the appropriate development or integration environment.
-
-## End-to-End Quality Gate
-
-The final pipeline should have a consolidated quality check that verifies the important requirements for the completed data product. A failed critical validation should cause the pipeline to fail.
-
-The specific framework used for the end-to-end quality gate will be documented once selected.
+- **Consolidated end-to-end quality gate:** one final task that confirms every critical check passed for the run. The framework is still to be chosen.
+- **Gold rules document:** Gold checks (`DQ-GLD-*`) are listed in the run evidence, not in a rules document like `docs/data-quality-rules.md`.
+- **Bronze validation:** `01_bronze_validation` is still a draft.
 
 ## Goal
 
