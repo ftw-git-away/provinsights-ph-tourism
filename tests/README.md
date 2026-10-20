@@ -11,18 +11,24 @@ Tests and validation check that the pipeline's data is correct and follows the p
 
 | File | Checks | What it covers |
 | --- | --- | --- |
-| `test_job_definition.py` | YAML | `resources/jobs/tourism_pipeline.yml`: 18 unique tasks, every notebook path exists, every `depends_on` points to a real task, no cycles, setup tasks wait for the whole previous layer, every task has a timeout, retries only on `ingest_*` tasks, failure emails and one run at a time |
-| `test_notebook_python.py` | Python | Every notebook has a markdown cell; every Python cell compiles (including notebooks without a `%python` magic); `CATALOG` is `tuklas_dev`; no tokens or passwords; `dq(...)` uses a documented severity (`BLOCK`, `REVIEW`, `LOG`) |
-| `test_notebook_sql.py` | SQL | Every `%sql` cell and every `spark.sql("...")` string parses as Databricks SQL (`sqlglot`) |
-| `test_seeds.py` | CSV data | The four seeds in `resources/seeds/`: row counts and columns, unique keys, allowed `row_role` values, 10-digit PSGC codes, every unit code is one of the 100 reporting units, coordinates inside the Philippines, DOT validity years in order |
-| `test_docs_alignment.py` | Docs | Every DQ check ID used in a Silver notebook is listed in `docs/data-quality-rules.md` |
+| `test_job_definition.py` | YAML | `resources/jobs/tourism_pipeline.yml`: unique task keys, every notebook path exists, every `depends_on` points to a real task, no cycles, each layer (by notebook folder) starts only after every task of the previous layer, every task has a timeout, retries only on `ingest_*` tasks, failure emails and one run at a time; the Tasks table and Run order diagram in `resources/README.md` list the same tasks as the job |
+| `test_notebook_python.py` | Python | Every notebook is valid JSON with valid cell types and a markdown cell; every Python cell compiles (including notebooks without a `%python` magic); `CATALOG` is `tuklas_dev`; no tokens or passwords; every `dq(...)` call uses a documented severity (`BLOCK`, `REVIEW`, `LOG`), passed by position or as `severity=` |
+| `test_notebook_sql.py` | SQL | Every `%sql` cell and every `spark.sql("...")` literal parses as Databricks SQL (`sqlglot`) |
+| `test_seeds.py` | CSV data | The four seeds in `resources/seeds/`: row counts and columns, unique keys, allowed `row_role` values, 10-digit PSGC codes, every unit code (and every HUC's `from_unit_psgc_code`) is one of the 100 reporting units, coordinates inside the Philippines, DOT validity years in order |
+| `test_docs_alignment.py` | Docs | Silver checks match both ways: every `dq("ID", ...)` call in a Silver notebook is a row in section 6 of `docs/data-quality-rules.md`, and every row there is run by a Silver notebook. Mentions in markdown or comments do not count |
 
-Run them locally:
+Run them locally (versions are pinned in `tests/requirements.txt`, the same file CI uses):
 
 ```bash
-python -m pip install sqlglot pyyaml
+python -m pip install -r tests/requirements.txt
 python -m unittest discover -s tests/unit -t tests/unit -v
 ```
+
+**Limits of the static checks**
+
+- `spark.sql(variable)` calls are not checked, because the SQL is only known at run time. Only string and f-string literals are parsed.
+- Statements that `sqlglot` cannot model (currently only `SHOW`) are allowed through unparsed. Any other statement it cannot parse fails the test.
+- Gold `dq(...)` checks are not matched against a document yet (see "Not yet in place").
 
 When a test fails, the message names the file, task, cell or seed row. Fix the code, or, if the change is intended (for example a new task or seed row), update the test and the matching README in the same pull request.
 
@@ -46,6 +52,20 @@ Every check writes one row to `tuklas_dev.06_data_quality.dq_results` with its I
 | `REVIEW` | The run continues; the result must be reviewed |
 | `LOG` | Recorded for information only |
 
+### Important behaviour and where it is covered
+
+| Behaviour | Covered by |
+| --- | --- |
+| Schema and data types | Types set when each table is built; `DQ-COM` checks in Silver |
+| Required fields, null or invalid values | Silver `DQ-*` checks (e.g. `DQ-COM-06`, `DQ-COM-07`) |
+| Primary/business keys, duplicates | One row per unit and year (`DQ-COM-03`); unique seed keys (`test_seeds.py`) |
+| Source-to-target mappings | Seed crosswalks checked by `test_seeds.py`; new or renamed source labels fail `DQ-DOT-03`, `DQ-PSA-01`, `DQ-POP-01/02`; mapping documented in [`docs/schema-and-source-to-target-mapping.md`](../docs/schema-and-source-to-target-mapping.md) |
+| Geographic relationships | PSGC units and crosswalks (`DQ-GEO-*`, `DQ-XW-*`); unit codes and coordinates in `test_seeds.py` |
+| Time periods | Seed validity years (`test_seeds.py`); year checks in each Silver notebook |
+| Business rules | Silver checks per source; Gold `DQ-GLD-*`; analytics validation |
+| Rerun / idempotency | Silver notebooks overwrite each whole table (`write_silver`), so a rerun gives the same result. Not tested automatically yet |
+| Final analytical outputs | `02_analytics_validation` and `analytics_run_evidence` |
+
 ### Creation and validation
 
 Checks run inside the notebook that builds the table, just before it is written, so a bad table is never saved. Their results are kept separate from the data in `dq_results`, and each check is documented with its ID, so it is always clear what was checked and whether it passed.
@@ -55,6 +75,7 @@ Checks run inside the notebook that builds the table, just before it is written,
 - **Consolidated end-to-end quality gate:** one final task that confirms every critical check passed for the run. The framework is still to be chosen.
 - **Gold rules document:** Gold checks (`DQ-GLD-*`) are listed in the run evidence, not in a rules document like `docs/data-quality-rules.md`.
 - **Bronze validation:** `01_bronze_validation` is still a draft.
+- **Rerun test:** a check that running a notebook twice gives identical tables.
 
 ## Goal
 
