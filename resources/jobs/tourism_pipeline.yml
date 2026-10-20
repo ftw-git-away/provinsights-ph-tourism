@@ -168,3 +168,12 @@ resources:
             - task_key: analytics_validation
           notebook_task:
             notebook_path: ../../notebooks/05_analytics/03_analytics_run_evidence.ipynb
+
+        # Dashboard (refreshes after analytics evidence)
+        - task_key: refresh_dashboard
+          timeout_seconds: 1800   # allows serverless warehouse start-up
+          depends_on:
+            - task_key: analytics_run_evidence
+          dashboard_task:
+            dashboard_id: ${resources.dashboards.provinsights.id}
+            warehouse_id: ${var.warehouse_id}
