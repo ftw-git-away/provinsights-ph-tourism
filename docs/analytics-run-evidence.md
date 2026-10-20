@@ -1,6 +1,6 @@
 # Analytics Layer Run Evidence (Issue #60)
 
-This document confirms that the BQ1 and BQ2 Analytics tables (`tuklas_dev`, schema `05_analytics`) are correct, consistent with Gold, and safe to use for downstream analysis. The results were produced by `03_analytics_run_evidence`, a read-only notebook that reads the Analytics tables, `05_analytics.analytics_run_log` and `06_data_quality.dq_results`.
+This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analytics`) are correct, consistent with Gold, and safe to use for downstream analysis. The results were produced by `03_analytics_run_evidence`, a read-only notebook that reads the Analytics tables, `05_analytics.analytics_run_log` and `06_data_quality.dq_results`.
 
 > **Note:** Grain, keys, eligibility, classification, recomputation of every metric and reconciliation to Gold are checked by `01_build_analytics` and `02_analytics_validation`, which save their results to `dq_results` and `analytics_run_log`. This evidence reports those results without repeating them, and adds a comparison against the source files and a summary of exclusions, segment coverage and caveats.
 
@@ -159,6 +159,6 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 - **Price basis.** A&F growth uses constant prices; A&F share uses current prices (confirmed in Section 2).
 - **Segment coverage.** Foreign recovery is not shown for units where DOT prints foreign travelers and overseas Filipinos together (`foreign_includes_overseas_filipinos`). Most overseas Filipino exclusions come from 2019 values that DOT printed as `-` (DL-019), not real zeros. Coverage should be shown next to these metrics (e.g. "26 of 52").
 - **`reported_partial`.** Partly reported units (NCR) remain eligible; the team decision on DL-019 is still open. NCR's missing cities differ between 2019 and 2023, so its recovery index should be read with that caveat.
-- **Labels are display rules, not findings.** `possible_emerging` and `under_review` follow DL-006, DL-027 and DL-028; `above_2019` alone does not mean emerging.
-- **Cotabato.** Its population includes the Special Geographic Area while its GDP does not (proposed DL-025).
+- **Labels are display rules, not findings.** `possible_emerging` and `under_review` follow DL-006, DL-028 and DL-029; `above_2019` alone does not mean emerging.
+- **Cotabato.** Its population includes the Special Geographic Area while its GDP does not (DL-025).
 - **Interpretation.** A&F GVA is a proxy for tourism-related activity; findings are associations, not causes (DL-007, DL-008).
