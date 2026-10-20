@@ -1,6 +1,0 @@
-resources:
-  dashboards:
-    provinsights:
-      display_name: "ProvInsights PH - Tourism Dashboard"
-      warehouse_id: ${var.warehouse_id}
-      file_path: ../../dashboard/provinsights.lvdash.json
