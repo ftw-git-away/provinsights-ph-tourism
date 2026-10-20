@@ -28,11 +28,12 @@ A Databricks AI/BI dashboard on tourism across the 100 reporting units. It shows
 
 ## Build and update
 
-1. Run the Analytics notebook so `tuklas_dev.05_analytics` exists.
-2. **Dashboards → Create dashboard → ⋮ → Import dashboard from file** → `dashboard/provinsights.lvdash.json`.
-3. Reconcile the test units below.
-4. To change a **query**: edit the file in `datasets/`, run `python dashboard/tools/build_lvdash.py` from the repo root, and re-import. Editing only the `.sql` file changes nothing in Databricks.
-5. To change the **layout**: edit in Databricks, then **⋮ → Export dashboard**, save it as `dashboard/provinsights.lvdash.json`, and run `python dashboard/tools/build_lvdash.py --check` to confirm the SQL still matches.
+The shared dashboard lives in Databricks and keeps one link. It is **not** deployed by the bundle: the `refresh_dashboard` job task (#85) refreshes it at the end of every pipeline run, using `dashboard_id` and `warehouse_id` in `databricks.yml`. This folder keeps the exported JSON and the dataset SQL so the queries are versioned and reviewable.
+
+1. **Change a query:** edit the file in `datasets/`, then paste the same SQL into that dataset on the shared dashboard's **Data** tab and publish. Run `python dashboard/tools/build_lvdash.py` so the JSON here matches.
+2. **Change the layout or text:** edit the shared dashboard in Databricks and publish. Then **⋮ → Export dashboard**, save the file as `dashboard/provinsights.lvdash.json`, and run `python dashboard/tools/build_lvdash.py --check`.
+3. **Re-create the dashboard** (only if it was deleted): **Dashboards → Create dashboard → ⋮ → Import dashboard from file** with `provinsights.lvdash.json`. Importing creates a **new** dashboard ID, so update `dashboard_id` in `databricks.yml` in a PR.
+4. After a data change, reconcile the test units below.
 
 ## Datasets
 
@@ -135,17 +136,6 @@ Whole-dashboard checks, 2023:
 - AQ4: 13 lagging provinces beyond the top 10 have high output per visitor; 3 of them are small base (Zamboanga Sibugay, Quirino, Apayao).
 - Appendix A: 39 above 2019, 52 below, 9 not assessed. Appendix B coverage: domestic 52, foreign 47, overseas Filipino 26 of 52.
 
-## Deploying with the bundle
+## Refresh
 
-Add `resources/dashboards/provinsights.yml`:
-
-```yaml
-resources:
-  dashboards:
-    provinsights:
-      display_name: ProvInsights PH Tourism
-      file_path: ../../dashboard/provinsights.lvdash.json
-      warehouse_id: <SQL warehouse ID>
-```
-
-Then add `- resources/dashboards/*.yml` under `include:` in `databricks.yml`. `deploy.yml` already redeploys on changes under `dashboard/**`.
+`refresh_dashboard` runs after `analytics_run_evidence` in `tourism_pipeline` and refreshes the shared dashboard (`${var.dashboard_id}`) on `${var.warehouse_id}`. The job runs as the deployer, who needs at least **Can Run** on the dashboard. See `resources/README.md` for the task table.
