@@ -1,15 +1,16 @@
 # ProvInsights dashboard
 
-A Databricks AI/BI dashboard on tourism across the 100 reporting units. It shows where visitors go, how much tourism-related output each visitor brings, how much each economy relies on tourism, and which provinces outside the usual destinations warrant closer attention. It does not make recommendations or claim causes (DL-008).
+A Databricks AI/BI dashboard on tourism across the 100 reporting units. It shows where visitors go, how provinces compare on visitors and tourism-related output per visitor, whether high output per visitor is limited to higher-income provinces, and which provinces beyond the top 10 destinations warrant closer attention. It does not make recommendations or claim causes (DL-008).
 
-**Business question:** Which provinces beyond the usual destinations warrant closer attention, based on their tourism activity and the tourism-related output it generates? (See `docs/business-and-analytical-questions.md`.)
+**Business question:** How can tourism activity and tourism-related output across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development? (See `docs/business-and-analytical-questions.md`.)
 
-**Rule:** every chart and KPI reads the Analytics tables in `tuklas_dev.05_analytics`. Dataset queries only rename, label, reshape and filter, with one exception: the document's **Query 1–3** (leading destinations, their yearly share, and the 2023 province profile: earnings per visitor, medians, groups, lagging, tourism-dependent). These are used exactly as written in the document, so the dashboard and the document can't disagree. Any other new number goes into `notebooks/05_analytics/01_build_analytics` first.
+**Rule:** every chart and KPI reads the Analytics tables in `tuklas_dev.05_analytics`. Dataset queries only rename, label, reshape and filter, with one exception: the document's **Query 1–3** (leading destinations, their yearly share, and the 2023 province profile: output per visitor, medians, groups, lagging). These are used exactly as written in the document, so the dashboard and the document can't disagree. Any other new number goes into `notebooks/05_analytics/01_build_analytics` first.
 
 ## Why the pages changed (Oct 19 refocus and mentor feedback)
 
-- The business question changed on Oct 19, with one analytical question (AQ) per page.
-- Roselle's feedback: keep a question the data can answer, show rather than prescribe, name the quadrants, and tell the "before ProvInsights" story. So page 4 shows **what stands out** and **what to look at**, not recommended actions or lead agencies. The data can't speak to access, infrastructure, investment or governance.
+- The business question was finalised after the Oct 19 refocus, with one analytical question (AQ) per page.
+- Roselle's feedback: keep a question the data can answer, show rather than prescribe, name the quadrants, and tell the "before ProvInsights" story. So page 4 shows **what the data shows** and **what to look at**, not recommended actions or lead agencies. The data can't speak to access, infrastructure, investment or governance.
+- Group names are the descriptive ones agreed in the final document (Established, Busy but low-earning, Small but high-earning, Limited activity). "Emerging" was dropped because the data doesn't show growth: of the 21 provinces in that group, 11 are above their 2019 level and 10 below.
 - The earlier recovery pages are kept as **Appendix A and B** for context. They are not part of the four AQs.
 
 ## Status
@@ -17,10 +18,10 @@ A Databricks AI/BI dashboard on tourism across the 100 reporting units. It shows
 | Page | Question | Ready? |
 | --- | --- | --- |
 | Start here | What are we missing when we only look at the usual destinations? | Yes |
-| 1. Where visitors go | AQ1: highest and lowest tourism activity, and concentration in the leading destinations | Yes |
-| 2. Same visitors, different benefits | AQ2: if two provinces attract the same number of visitors, do they benefit the same way? | Yes |
-| 3. Tourism and wealth | AQ3: which provinces rely most on tourism, and are lower-income provinces among them? | Yes |
-| 4. Provinces to watch | AQ4: which provinces outside the usual destinations warrant closer attention, and why? | Yes |
+| 1. Where visitors go | AQ1: Which provinces have the highest and lowest tourism activity, and how is it distributed? | Yes |
+| 2. Visitors and output per visitor | AQ2: How do provinces compare on both the number of visitors and the tourism-related output per visitor? | Yes |
+| 3. Output and income | AQ3: Is high tourism-related output per visitor found only in higher-income provinces? | Yes |
+| 4. Provinces to watch | AQ4: Which provinces beyond the top 10 destinations warrant closer attention, and what does the data show for each? | Yes |
 | Definitions | Terms, data notes, out of scope, lineage | Yes |
 | Appendix A. Tourism recovery | Supporting: places above or below 2019 | Yes |
 | Appendix B. Traveler recovery | Supporting: traveler types behind among places below 2019 | Yes |
@@ -44,8 +45,8 @@ One file per dataset. Each file starts with a header (`-- dataset:`, `-- display
 | `03_aq1_map.sql` | `ds_aq1_map` | unit × year (442) | `tourism_activity` | Page 1 map |
 | `04_aq1_leading.sql` | `ds_aq1_leading` | unit (10) | `tourism_activity`, `tourism_economy` (Query 1) | Page 1 table |
 | `05_profile_2023.sql` | `ds_profile` | unit (100) | Query 3 + group names | Pages 2-4 |
-| `06_aq3_corr.sql` | `ds_aq3_corr` | one row | Query 3 | Page 3 correlation |
-| `07_aq3_table.sql` | `ds_aq3_table` | lagging unit (50) | Query 3 | Page 3 table |
+| `06_aq3_corr.sql` | `ds_aq3_corr` | one row | Query 3 | Page 3 correlation (GDP per capita vs output per visitor) |
+| `07_aq3_table.sql` | `ds_aq3_table` | lagging unit with output data (43) | Query 3 | Page 3 table |
 | `08_aq4_table.sql` | `ds_aq4_table` | unit beyond the leading 10, with a group (83) | Query 3 | Page 4 filters, map, table |
 | `09_lineage.sql` | `ds_lineage` | one row | `tourism_activity` | Definitions |
 | `10_appx_recovery.sql` | `ds_appx_recovery` | unit × comparison year (200) | `tourism_recovery` | Appendix A |
@@ -62,29 +63,29 @@ Files 05-08 carry the same Query 3 block. `build_lvdash.py` stops if they differ
 | Year | `year` | Page 1 (not the trend line) | single-select, default 2023 |
 | Group | `map_group` | Page 2 | multi-select |
 | Show | `destination_group` (leading destinations / beyond) | Page 3 | multi-select |
-| Group, Lagging, Tourism-dependent | `Group`, `Lagging`, `Tourism-dependent` | Page 4 | multi-select |
+| Group, Lagging, High output per visitor | `Group`, `Lagging`, `High output per visitor` | Page 4 | multi-select |
 | Comparison year | `comparison_year` | Appendix A | single-select, default 2023 |
 
 ## Pages
 
 **1. Where visitors go.** Counters: total overnight travelers, share to the 10 leading destinations, provinces reported. Map: travelers (size) and travelers per 1,000 residents (colour). Bar: top and bottom 10. Line: travelers 2019-2023. Table: the 10 leading destinations.
 
-**2. Same visitors, different benefits.** Counters: provinces beyond the leading destinations in each group. Example callout (Bataan vs Southern Leyte). Scatter: travelers vs earnings per visitor with the 2023 medians (279,150; ₱8,652), leading destinations in grey. Group guide. Bar: earnings per visitor, sorted.
+**2. Visitors and output per visitor.** Counters: provinces beyond the top 10 in each group. Example callout (Bataan vs Southern Leyte). Scatter "Each province placed in one of four groups": travelers vs output per visitor with the 2023 medians (279,150; ₱8,652), leading destinations in grey. Group guide. Bar: output per visitor, sorted.
 
-**3. Tourism and wealth.** Counters: lagging and tourism-dependent (the answer), lagging, median tourism share, correlation (supporting). Scatter: GDP per capita vs tourism share. Bar: average share by income group. Table: lagging provinces by tourism share.
+**3. Output and income.** Counters: lagging provinces with high output per visitor (the answer), lagging provinces with output data, higher-income provinces with high output per visitor, correlation (supporting). Scatter: GDP per capita vs output per visitor with both medians. Bar: median output per visitor by income group. Table: lagging provinces by output per visitor, small bases marked.
 
-**4. Provinces to watch.** Filters and counters (provinces shown; lagging and tourism-dependent). Map by group. "What to look at" guide. Table: group, what stands out, what to look at, lagging, tourism-dependent, share, travelers, earnings per visitor, small base.
+**4. Provinces to watch.** Filters (Group, Lagging, High output per visitor) and counters (provinces shown; lagging with high output per visitor). Map by group. "What the data shows" guide. Table: group, what the data shows, what to look at, lagging, high output per visitor, tourism share, travelers, output per visitor, small base. Ordered lagging first, then by tourism share of the economy, as the document defines priority provinces.
 
 **Appendix A and B.** Recovery against 2019 (counters, sorted bar drawn up to 400 with exact values in the table, places not assessed with the reason), and traveler types among the 52 places below 2019 (coverage, median by type, table).
 
-**Groups** (2023 medians of travelers and earnings per visitor):
+**Groups** (2023 medians of travelers and output per visitor):
 
 | Group | What the data shows | What to look at |
 | --- | --- | --- |
-| Tourism Leaders | Many visitors, high earnings per visitor | Do the benefits reach nearby provinces? |
-| Visitor Magnets | Many visitors, low earnings per visitor | Where does visitor spending go? |
-| High-Value Niches | Few visitors, high earnings per visitor | What keeps visitor numbers low? (Check that the output isn't mostly residents' spending.) |
-| Emerging Tourism Areas | Few visitors, low earnings per visitor | If tourism-dependent: what holds visitors back? Otherwise: how does tourism compare with other sectors? |
+| Established | Many visitors, high output per visitor | Do the benefits reach nearby provinces? |
+| Busy but low-earning | Many visitors, low output per visitor | Where does visitor spending go? |
+| Small but high-earning | Few visitors, high output per visitor | What keeps visitor numbers low? (Check that the output isn't mostly residents' spending.) |
+| Limited activity | Few visitors, low output per visitor | How does tourism compare with other sectors here? |
 
 Wording on every page: "moves with", "stands out", "warrants a closer look". Never "drives", "causes" or "should invest".
 
@@ -93,11 +94,12 @@ Wording on every page: "moves with", "stands out", "warrants a closer look". Nev
 ### Definitions (Definitions page)
 
 - **Province (reporting unit):** one of 100 areas: 82 provinces, 16 highly urbanized cities, the City of Isabela and NCR.
-- **Overnight travelers:** travelers counted by DOT in accommodation establishments. Not unique visitors, not day-trippers.
+- **Overnight travelers (visitors):** travelers counted by DOT in accommodation establishments. Not unique visitors, not same-day visitors.
 - **Leading tourist destinations:** the 10 provinces with the highest average annual overnight travelers, 2019-2023.
-- **Earnings per visitor:** A&F GVA (thousand PHP) × 1,000 ÷ overnight travelers, 2023.
-- **Tourism share of the economy:** current-price A&F GVA ÷ current-price GDP × 100, 2023.
-- **Lagging (lower-income):** 2023 GDP per capita below the median. **Tourism-dependent:** 2023 tourism share above the median (1.9%).
+- **Tourism-related output:** A&F GVA at current prices (PSA), a proxy because PSA publishes tourism value added only nationally.
+- **Output per visitor:** A&F GVA (thousand PHP) × 1,000 ÷ overnight travelers, 2023. **High output per visitor:** at or above the 2023 median (₱8,652).
+- **Tourism share of the economy:** current-price A&F GVA ÷ current-price GDP × 100, 2023. Used to order the priority list.
+- **Lagging (lower-income):** 2023 GDP per capita below the median (₱140,165). An income indicator, not a poverty measure.
 - **Small base:** under 10,000 travelers in 2023; kept, marked "Check before naming".
 
 ### Data notes (all pages)
@@ -114,22 +116,23 @@ Wording on every page: "moves with", "stands out", "warrants a closer look". Nev
 
 Check these in the dashboard against `05_analytics`. The expected values come from a local run on the current tables.
 
-| Unit | Type | 2023 travelers | 2023 rank | Intensity / 1,000 | Leading? | Group (page 2) | Earnings per visitor (₱) | A&F share | Lagging | Tourism-dependent | Recovery 2023 (App. A) |
+| Unit | Type | 2023 travelers | 2023 rank | Intensity / 1,000 | Leading? | Group (page 2) | Output per visitor (₱) | A&F share | Lagging | High output per visitor | Recovery 2023 (App. A) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Quezon | Province | 1,264,181 | 12 | 543.0 | Yes | Tourism Leaders | 10,449 | 4.05% | Yes | Yes | 97.1 |
-| Pampanga | Province | 1,655,887 | 5 | 671.6 | Yes | Tourism Leaders | 10,288 | 2.65% | No | Yes | 181.8 |
-| Aklan | Province | 2,200,138 | 4 | 3,544.4 | Yes | Visitor Magnets | 1,222 | 3.24% | Yes | Yes | not assessed |
-| Basilan | Province | blank | — | blank | No | Insufficient data | blank | 0.10% | Yes | No | not assessed |
-| City of Angeles | HUC | 157,666 | 66 | 277.1 | No | High-Value Niches | 52,368 | 5.17% | No | Yes | 223.7 |
-| City of Isabela | Independent city | 101,238 | 76 | 748.2 | No | Emerging Tourism Areas | 467 | 0.33% | Yes | No | 667.8 |
-| NCR | NCR | 7,027,445 | 1 | 492.7 | Yes | Tourism Leaders | 13,890 | 1.29% | No | No | 231.4 |
-| Mountain Province | Province | 142,219 | 69 | 898.9 | No | Emerging Tourism Areas | 8,295 | 6.11% | Yes | Yes | 79.6 |
+| Quezon | Province | 1,264,181 | 12 | 543.0 | Yes | Established | 10,449 | 4.05% | Yes | Yes | 97.1 |
+| Pampanga | Province | 1,655,887 | 5 | 671.6 | Yes | Established | 10,288 | 2.65% | No | Yes | 181.8 |
+| Aklan | Province | 2,200,138 | 4 | 3,544.4 | Yes | Busy but low-earning | 1,222 | 3.24% | Yes | No | not assessed |
+| Basilan | Province | blank | — | blank | No | Insufficient data | blank | 0.10% | Yes | — | not assessed |
+| City of Angeles | HUC | 157,666 | 66 | 277.1 | No | Small but high-earning | 52,368 | 5.17% | No | Yes | 223.7 |
+| City of Isabela | Independent city | 101,238 | 76 | 748.2 | No | Limited activity | 467 | 0.33% | Yes | No | 667.8 |
+| NCR | NCR | 7,027,445 | 1 | 492.7 | Yes | Established | 13,890 | 1.29% | No | Yes | 231.4 |
+| Mountain Province | Province | 142,219 | 69 | 898.9 | No | Limited activity | 8,295 | 6.11% | Yes | No | 79.6 |
 
 Whole-dashboard checks, 2023:
 
 - 43.7% of travelers went to the 10 leading destinations; 93 provinces reported.
-- Beyond the leading destinations: Tourism Leaders 16, Visitor Magnets 21, High-Value Niches 25, Emerging Tourism Areas 21 (83). The 10 leading destinations: 6 Tourism Leaders, 4 Visitor Magnets. 7 have insufficient data.
-- 50 lagging, 14 of them tourism-dependent (10 outside the leading destinations). Median tourism share 1.88%. Correlation 0.48.
+- Beyond the top 10: Established 16, Busy but low-earning 21, Small but high-earning 25, Limited activity 21 (83). The 10 leading destinations: 6 Established, 4 Busy but low-earning. 7 have insufficient data.
+- AQ3: 14 of the 43 lagging provinces with output data have high output per visitor (33 of 50 higher-income). Median output per visitor ₱5,634 (lagging) vs ₱11,051. Correlation 0.19 (0.35 by rank).
+- AQ4: 13 lagging provinces beyond the top 10 have high output per visitor; 3 of them are small base (Zamboanga Sibugay, Quirino, Apayao).
 - Appendix A: 39 above 2019, 52 below, 9 not assessed. Appendix B coverage: domestic 52, foreign 47, overseas Filipino 26 of 52.
 
 ## Deploying with the bundle

@@ -1,8 +1,8 @@
 -- dataset: ds_profile
 -- display: Province profile, 2023 (Query 3 with group names)
 -- source: tuklas_dev.05_analytics (tourism_activity, tourism_economy)
--- used by: Pages 2-4: one row per place, 2023. Query 3 plus group names, what stands out, what to look at
-SELECT place, region_name, unit_type, latitude, longitude, is_leading_destination, destination_group, map_group, group_label, travelers_2023, ROUND(earnings_per_visitor, 0) AS earnings_per_visitor, small_base_2023, ROUND(afs_share_of_gdp_pct, 2) AS afs_share_of_gdp_pct, gdp_per_capita_thousand, wealth_group, is_lagging, is_tourism_dependent, what_stands_out, what_to_look_at
+-- used by: Pages 2-4: one row per province, 2023. Query 3 plus group names, what the data shows, what to look at
+SELECT place, region_name, unit_type, latitude, longitude, is_leading_destination, destination_group, map_group, group_label, travelers_2023, ROUND(earnings_per_visitor, 0) AS earnings_per_visitor, small_base_2023, ROUND(afs_share_of_gdp_pct, 2) AS afs_share_of_gdp_pct, gdp_per_capita_thousand, wealth_group, is_lagging, is_high_output, what_the_data_shows, what_to_look_at
 FROM (
 WITH leading AS (
   SELECT province_psgc,
@@ -27,14 +27,12 @@ base AS (
 medians AS (
   SELECT median(CASE WHEN earnings_per_visitor IS NOT NULL THEN travelers_2023 END) AS median_travelers,
          median(earnings_per_visitor)                                               AS median_earnings_per_visitor,
-         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita,
-         median(afs_share_of_gdp_pct)                                               AS median_tourism_share
+         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita
   FROM base
 ),
 classified AS (
   SELECT b.*,
          b.gdp_per_capita_current_2023 < m.median_gdp_per_capita AS is_lagging,
-         b.afs_share_of_gdp_pct > m.median_tourism_share          AS is_tourism_dependent,
          b.travelers_2023 < 10000                                 AS small_base_2023,
          CASE
            WHEN b.earnings_per_visitor IS NULL THEN 'Insufficient data'
@@ -50,29 +48,28 @@ classified AS (
 labelled AS (
   SELECT *,
          CASE quadrant
-           WHEN 'Many visitors, high earnings per visitor' THEN 'Tourism Leaders'
-           WHEN 'Many visitors, low earnings per visitor'  THEN 'Visitor Magnets'
-           WHEN 'Few visitors, high earnings per visitor'  THEN 'High-Value Niches'
-           WHEN 'Few visitors, low earnings per visitor'   THEN 'Emerging Tourism Areas'
+           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'
+           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'
+           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'
+           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'
            ELSE 'Insufficient data'
          END AS group_label,
          CASE
            WHEN quadrant = 'Insufficient data' THEN 'Not enough data to place in a group'
-           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and each brings in a lot'
-           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors come, but each brings in little'
-           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Each visitor brings in a lot, but visitors are few'
-           WHEN is_tourism_dependent THEN 'Few visitors, but tourism is already a big part of the economy'
-           ELSE 'Few visitors, and tourism is still a small part of the economy'
-         END AS what_stands_out,
+           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and high output per visitor'
+           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors, but low output per visitor'
+           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Few visitors, but high output per visitor'
+           ELSE 'Few visitors, and low output per visitor'
+         END AS what_the_data_shows,
          CASE
            WHEN quadrant = 'Insufficient data' THEN NULL
            WHEN is_leading_destination THEN 'Do its visitors also reach nearby provinces?'
            WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Do the benefits reach nearby provinces?'
            WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Where does visitor spending go?'
            WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'What keeps visitor numbers low?'
-           WHEN is_tourism_dependent THEN 'Tourism already matters here: what holds visitors back?'
            ELSE 'How does tourism compare with other sectors here?'
-         END AS what_to_look_at
+         END AS what_to_look_at,
+         quadrant IN ('Many visitors, high earnings per visitor', 'Few visitors, high earnings per visitor') AS is_high_output
   FROM classified
 )
 SELECT l.*, e.unit_type, e.latitude, e.longitude,

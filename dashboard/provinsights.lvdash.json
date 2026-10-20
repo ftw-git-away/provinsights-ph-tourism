@@ -124,7 +124,7 @@
       "name": "ds_profile",
       "displayName": "Province profile, 2023 (Query 3 with group names)",
       "queryLines": [
-        "SELECT place, region_name, unit_type, latitude, longitude, is_leading_destination, destination_group, map_group, group_label, travelers_2023, ROUND(earnings_per_visitor, 0) AS earnings_per_visitor, small_base_2023, ROUND(afs_share_of_gdp_pct, 2) AS afs_share_of_gdp_pct, gdp_per_capita_thousand, wealth_group, is_lagging, is_tourism_dependent, what_stands_out, what_to_look_at\n",
+        "SELECT place, region_name, unit_type, latitude, longitude, is_leading_destination, destination_group, map_group, group_label, travelers_2023, ROUND(earnings_per_visitor, 0) AS earnings_per_visitor, small_base_2023, ROUND(afs_share_of_gdp_pct, 2) AS afs_share_of_gdp_pct, gdp_per_capita_thousand, wealth_group, is_lagging, is_high_output, what_the_data_shows, what_to_look_at\n",
         "FROM (\n",
         "WITH leading AS (\n",
         "  SELECT province_psgc,\n",
@@ -149,14 +149,12 @@
         "medians AS (\n",
         "  SELECT median(CASE WHEN earnings_per_visitor IS NOT NULL THEN travelers_2023 END) AS median_travelers,\n",
         "         median(earnings_per_visitor)                                               AS median_earnings_per_visitor,\n",
-        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita,\n",
-        "         median(afs_share_of_gdp_pct)                                               AS median_tourism_share\n",
+        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita\n",
         "  FROM base\n",
         "),\n",
         "classified AS (\n",
         "  SELECT b.*,\n",
         "         b.gdp_per_capita_current_2023 < m.median_gdp_per_capita AS is_lagging,\n",
-        "         b.afs_share_of_gdp_pct > m.median_tourism_share          AS is_tourism_dependent,\n",
         "         b.travelers_2023 < 10000                                 AS small_base_2023,\n",
         "         CASE\n",
         "           WHEN b.earnings_per_visitor IS NULL THEN 'Insufficient data'\n",
@@ -172,29 +170,28 @@
         "labelled AS (\n",
         "  SELECT *,\n",
         "         CASE quadrant\n",
-        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Tourism Leaders'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Visitor Magnets'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'High-Value Niches'\n",
-        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Emerging Tourism Areas'\n",
+        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN 'Not enough data to place in a group'\n",
-        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and each brings in a lot'\n",
-        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors come, but each brings in little'\n",
-        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Each visitor brings in a lot, but visitors are few'\n",
-        "           WHEN is_tourism_dependent THEN 'Few visitors, but tourism is already a big part of the economy'\n",
-        "           ELSE 'Few visitors, and tourism is still a small part of the economy'\n",
-        "         END AS what_stands_out,\n",
+        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and high output per visitor'\n",
+        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors, but low output per visitor'\n",
+        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Few visitors, but high output per visitor'\n",
+        "           ELSE 'Few visitors, and low output per visitor'\n",
+        "         END AS what_the_data_shows,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN NULL\n",
         "           WHEN is_leading_destination THEN 'Do its visitors also reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Do the benefits reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Where does visitor spending go?'\n",
         "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'What keeps visitor numbers low?'\n",
-        "           WHEN is_tourism_dependent THEN 'Tourism already matters here: what holds visitors back?'\n",
         "           ELSE 'How does tourism compare with other sectors here?'\n",
-        "         END AS what_to_look_at\n",
+        "         END AS what_to_look_at,\n",
+        "         quadrant IN ('Many visitors, high earnings per visitor', 'Few visitors, high earnings per visitor') AS is_high_output\n",
         "  FROM classified\n",
         ")\n",
         "SELECT l.*, e.unit_type, e.latitude, e.longitude,\n",
@@ -213,9 +210,9 @@
     },
     {
       "name": "ds_aq3_corr",
-      "displayName": "AQ3: correlation, 2023",
+      "displayName": "AQ3: correlation of GDP per capita and output per visitor, 2023",
       "queryLines": [
-        "SELECT CORR(gdp_per_capita_current_2023, afs_share_of_gdp_pct) AS correlation, COUNT(*) AS provinces\n",
+        "SELECT CORR(gdp_per_capita_current_2023, earnings_per_visitor) AS correlation, COUNT(*) AS provinces\n",
         "FROM (\n",
         "WITH leading AS (\n",
         "  SELECT province_psgc,\n",
@@ -240,14 +237,12 @@
         "medians AS (\n",
         "  SELECT median(CASE WHEN earnings_per_visitor IS NOT NULL THEN travelers_2023 END) AS median_travelers,\n",
         "         median(earnings_per_visitor)                                               AS median_earnings_per_visitor,\n",
-        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita,\n",
-        "         median(afs_share_of_gdp_pct)                                               AS median_tourism_share\n",
+        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita\n",
         "  FROM base\n",
         "),\n",
         "classified AS (\n",
         "  SELECT b.*,\n",
         "         b.gdp_per_capita_current_2023 < m.median_gdp_per_capita AS is_lagging,\n",
-        "         b.afs_share_of_gdp_pct > m.median_tourism_share          AS is_tourism_dependent,\n",
         "         b.travelers_2023 < 10000                                 AS small_base_2023,\n",
         "         CASE\n",
         "           WHEN b.earnings_per_visitor IS NULL THEN 'Insufficient data'\n",
@@ -263,29 +258,28 @@
         "labelled AS (\n",
         "  SELECT *,\n",
         "         CASE quadrant\n",
-        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Tourism Leaders'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Visitor Magnets'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'High-Value Niches'\n",
-        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Emerging Tourism Areas'\n",
+        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN 'Not enough data to place in a group'\n",
-        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and each brings in a lot'\n",
-        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors come, but each brings in little'\n",
-        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Each visitor brings in a lot, but visitors are few'\n",
-        "           WHEN is_tourism_dependent THEN 'Few visitors, but tourism is already a big part of the economy'\n",
-        "           ELSE 'Few visitors, and tourism is still a small part of the economy'\n",
-        "         END AS what_stands_out,\n",
+        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and high output per visitor'\n",
+        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors, but low output per visitor'\n",
+        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Few visitors, but high output per visitor'\n",
+        "           ELSE 'Few visitors, and low output per visitor'\n",
+        "         END AS what_the_data_shows,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN NULL\n",
         "           WHEN is_leading_destination THEN 'Do its visitors also reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Do the benefits reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Where does visitor spending go?'\n",
         "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'What keeps visitor numbers low?'\n",
-        "           WHEN is_tourism_dependent THEN 'Tourism already matters here: what holds visitors back?'\n",
         "           ELSE 'How does tourism compare with other sectors here?'\n",
-        "         END AS what_to_look_at\n",
+        "         END AS what_to_look_at,\n",
+        "         quadrant IN ('Many visitors, high earnings per visitor', 'Few visitors, high earnings per visitor') AS is_high_output\n",
         "  FROM classified\n",
         ")\n",
         "SELECT l.*, e.unit_type, e.latitude, e.longitude,\n",
@@ -297,16 +291,16 @@
         "FROM labelled l\n",
         "JOIN tourism_economy e USING (province_psgc)\n",
         ") p\n",
-        "WHERE afs_share_of_gdp_pct IS NOT NULL AND gdp_per_capita_current_2023 IS NOT NULL\n"
+        "WHERE earnings_per_visitor IS NOT NULL AND gdp_per_capita_current_2023 IS NOT NULL\n"
       ],
       "catalog": "tuklas_dev",
       "schema": "05_analytics"
     },
     {
       "name": "ds_aq3_table",
-      "displayName": "AQ3: lagging provinces by tourism share (table)",
+      "displayName": "AQ3: lagging provinces by output per visitor (table)",
       "queryLines": [
-        "SELECT place AS `Province`, region_name, unit_type, destination_group, map_group AS `Group`, ROUND(gdp_per_capita_current_2023, 0) AS `GDP per capita (PHP)`, ROUND(afs_share_of_gdp_pct, 1) AS `Tourism share of the economy (%)`, CASE WHEN is_tourism_dependent THEN 'Yes' ELSE 'No' END AS `Tourism-dependent`\n",
+        "SELECT place AS `Province`, region_name, unit_type, destination_group, map_group AS `Group`, ROUND(earnings_per_visitor, 0) AS `Output per visitor (PHP)`, ROUND(gdp_per_capita_current_2023, 0) AS `GDP per capita (PHP)`, travelers_2023 AS `Overnight travelers`, CASE WHEN is_high_output THEN 'Yes' ELSE 'No' END AS `High output per visitor`, CASE WHEN small_base_2023 THEN 'Check before naming: under 10,000 travelers' END AS `Small base`\n",
         "FROM (\n",
         "WITH leading AS (\n",
         "  SELECT province_psgc,\n",
@@ -331,14 +325,12 @@
         "medians AS (\n",
         "  SELECT median(CASE WHEN earnings_per_visitor IS NOT NULL THEN travelers_2023 END) AS median_travelers,\n",
         "         median(earnings_per_visitor)                                               AS median_earnings_per_visitor,\n",
-        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita,\n",
-        "         median(afs_share_of_gdp_pct)                                               AS median_tourism_share\n",
+        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita\n",
         "  FROM base\n",
         "),\n",
         "classified AS (\n",
         "  SELECT b.*,\n",
         "         b.gdp_per_capita_current_2023 < m.median_gdp_per_capita AS is_lagging,\n",
-        "         b.afs_share_of_gdp_pct > m.median_tourism_share          AS is_tourism_dependent,\n",
         "         b.travelers_2023 < 10000                                 AS small_base_2023,\n",
         "         CASE\n",
         "           WHEN b.earnings_per_visitor IS NULL THEN 'Insufficient data'\n",
@@ -354,29 +346,28 @@
         "labelled AS (\n",
         "  SELECT *,\n",
         "         CASE quadrant\n",
-        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Tourism Leaders'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Visitor Magnets'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'High-Value Niches'\n",
-        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Emerging Tourism Areas'\n",
+        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN 'Not enough data to place in a group'\n",
-        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and each brings in a lot'\n",
-        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors come, but each brings in little'\n",
-        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Each visitor brings in a lot, but visitors are few'\n",
-        "           WHEN is_tourism_dependent THEN 'Few visitors, but tourism is already a big part of the economy'\n",
-        "           ELSE 'Few visitors, and tourism is still a small part of the economy'\n",
-        "         END AS what_stands_out,\n",
+        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and high output per visitor'\n",
+        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors, but low output per visitor'\n",
+        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Few visitors, but high output per visitor'\n",
+        "           ELSE 'Few visitors, and low output per visitor'\n",
+        "         END AS what_the_data_shows,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN NULL\n",
         "           WHEN is_leading_destination THEN 'Do its visitors also reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Do the benefits reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Where does visitor spending go?'\n",
         "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'What keeps visitor numbers low?'\n",
-        "           WHEN is_tourism_dependent THEN 'Tourism already matters here: what holds visitors back?'\n",
         "           ELSE 'How does tourism compare with other sectors here?'\n",
-        "         END AS what_to_look_at\n",
+        "         END AS what_to_look_at,\n",
+        "         quadrant IN ('Many visitors, high earnings per visitor', 'Few visitors, high earnings per visitor') AS is_high_output\n",
         "  FROM classified\n",
         ")\n",
         "SELECT l.*, e.unit_type, e.latitude, e.longitude,\n",
@@ -388,8 +379,8 @@
         "FROM labelled l\n",
         "JOIN tourism_economy e USING (province_psgc)\n",
         ") p\n",
-        "WHERE is_lagging AND afs_share_of_gdp_pct IS NOT NULL\n",
-        "ORDER BY afs_share_of_gdp_pct DESC\n"
+        "WHERE is_lagging AND earnings_per_visitor IS NOT NULL\n",
+        "ORDER BY earnings_per_visitor DESC\n"
       ],
       "catalog": "tuklas_dev",
       "schema": "05_analytics"
@@ -398,7 +389,7 @@
       "name": "ds_aq4_table",
       "displayName": "AQ4: provinces outside the leading destinations, 2023",
       "queryLines": [
-        "SELECT place AS `Province`, region_name, unit_type, latitude, longitude, group_label AS `Group`, what_stands_out AS `What stands out`, what_to_look_at AS `What to look at`, CASE WHEN is_lagging THEN 'Yes' ELSE 'No' END AS `Lagging`, CASE WHEN is_tourism_dependent THEN 'Yes' ELSE 'No' END AS `Tourism-dependent`, ROUND(afs_share_of_gdp_pct, 1) AS `Tourism share (%)`, travelers_2023 AS `Overnight travelers`, ROUND(earnings_per_visitor, 0) AS `Earnings per visitor (PHP)`, ROUND(gdp_per_capita_current_2023, 0) AS `GDP per capita (PHP)`, CASE WHEN small_base_2023 THEN 'Check before naming: under 10,000 travelers' END AS `Small base`\n",
+        "SELECT place AS `Province`, region_name, unit_type, latitude, longitude, group_label AS `Group`, what_the_data_shows AS `What the data shows`, what_to_look_at AS `What to look at`, CASE WHEN is_lagging THEN 'Yes' ELSE 'No' END AS `Lagging`, CASE WHEN is_high_output THEN 'Yes' ELSE 'No' END AS `High output per visitor`, ROUND(afs_share_of_gdp_pct, 1) AS `Tourism share (%)`, travelers_2023 AS `Overnight travelers`, ROUND(earnings_per_visitor, 0) AS `Output per visitor (PHP)`, ROUND(gdp_per_capita_current_2023, 0) AS `GDP per capita (PHP)`, CASE WHEN small_base_2023 THEN 'Check before naming: under 10,000 travelers' END AS `Small base`\n",
         "FROM (\n",
         "WITH leading AS (\n",
         "  SELECT province_psgc,\n",
@@ -423,14 +414,12 @@
         "medians AS (\n",
         "  SELECT median(CASE WHEN earnings_per_visitor IS NOT NULL THEN travelers_2023 END) AS median_travelers,\n",
         "         median(earnings_per_visitor)                                               AS median_earnings_per_visitor,\n",
-        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita,\n",
-        "         median(afs_share_of_gdp_pct)                                               AS median_tourism_share\n",
+        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita\n",
         "  FROM base\n",
         "),\n",
         "classified AS (\n",
         "  SELECT b.*,\n",
         "         b.gdp_per_capita_current_2023 < m.median_gdp_per_capita AS is_lagging,\n",
-        "         b.afs_share_of_gdp_pct > m.median_tourism_share          AS is_tourism_dependent,\n",
         "         b.travelers_2023 < 10000                                 AS small_base_2023,\n",
         "         CASE\n",
         "           WHEN b.earnings_per_visitor IS NULL THEN 'Insufficient data'\n",
@@ -446,29 +435,28 @@
         "labelled AS (\n",
         "  SELECT *,\n",
         "         CASE quadrant\n",
-        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Tourism Leaders'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Visitor Magnets'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'High-Value Niches'\n",
-        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Emerging Tourism Areas'\n",
+        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
+        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-earning'\n",
+        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-earning'\n",
+        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
         "           ELSE 'Insufficient data'\n",
         "         END AS group_label,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN 'Not enough data to place in a group'\n",
-        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and each brings in a lot'\n",
-        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors come, but each brings in little'\n",
-        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Each visitor brings in a lot, but visitors are few'\n",
-        "           WHEN is_tourism_dependent THEN 'Few visitors, but tourism is already a big part of the economy'\n",
-        "           ELSE 'Few visitors, and tourism is still a small part of the economy'\n",
-        "         END AS what_stands_out,\n",
+        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and high output per visitor'\n",
+        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors, but low output per visitor'\n",
+        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Few visitors, but high output per visitor'\n",
+        "           ELSE 'Few visitors, and low output per visitor'\n",
+        "         END AS what_the_data_shows,\n",
         "         CASE\n",
         "           WHEN quadrant = 'Insufficient data' THEN NULL\n",
         "           WHEN is_leading_destination THEN 'Do its visitors also reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Do the benefits reach nearby provinces?'\n",
         "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Where does visitor spending go?'\n",
         "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'What keeps visitor numbers low?'\n",
-        "           WHEN is_tourism_dependent THEN 'Tourism already matters here: what holds visitors back?'\n",
         "           ELSE 'How does tourism compare with other sectors here?'\n",
-        "         END AS what_to_look_at\n",
+        "         END AS what_to_look_at,\n",
+        "         quadrant IN ('Many visitors, high earnings per visitor', 'Few visitors, high earnings per visitor') AS is_high_output\n",
         "  FROM classified\n",
         ")\n",
         "SELECT l.*, e.unit_type, e.latitude, e.longitude,\n",
@@ -541,7 +529,7 @@
               "lines": [
                 "# <span style=\"font-size:35px;line-height:1.5\">What are we missing when we only look at the usual destinations?</span>\n",
                 "\n",
-                "<span style=\"font-size:20px\">**Business question:** Which provinces beyond the usual destinations warrant closer attention, based on their tourism activity and the tourism-related output it generates?</span>\n"
+                "<span style=\"font-size:20px\">**Business question:** How can tourism activity and tourism-related output across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development?</span>\n"
               ]
             }
           },
@@ -559,7 +547,7 @@
               "lines": [
                 "## Why this matters\n",
                 "\n",
-                "Talk about Philippine tourism usually comes back to the same few places: in 2023, **4 in 10 overnight travelers went to just 10 provinces**. The DOT's National Tourism Development Plan 2023-2028 aims to extend tourism to more of the country (Goal 4). That conversation is hard to have when only a handful of destinations are visible. ProvInsights does not tell stakeholders what to do; it shows the provinces that are easy to miss.\n"
+                "Philippine tourism is concentrated in a few places: in 2023, the 10 leading destinations received **43.7% of all overnight travelers**. The DOT's National Tourism Development Plan 2023-2028 responds with Goal 4, equalized tourism development: opening more of the country to tourism and supporting destinations beyond the established ones. ProvInsights gives a consistent province-by-province view of tourism activity and tourism-related output, so the provinces that are easy to miss become visible.\n"
               ]
             }
           },
@@ -599,10 +587,10 @@
                 "\n",
                 "| Page | Question it answers |\n",
                 "| --- | --- |\n",
-                "| **1. Where visitors go** | Where do visitors go, and how concentrated is tourism in the leading destinations? |\n",
-                "| **2. Same visitors, different benefits** | If two provinces attract the same number of visitors, do they benefit from tourism in the same way? |\n",
-                "| **3. Tourism and wealth** | Which provinces rely most on tourism, and are lower-income provinces among them? |\n",
-                "| **4. Provinces to watch** | Which provinces outside the usual destinations warrant closer attention, and why? |\n",
+                "| **1. Where visitors go** | AQ1: Which provinces have the highest and lowest tourism activity, and how is it distributed? |\n",
+                "| **2. Visitors and output per visitor** | AQ2: How do provinces compare on both the number of visitors and the tourism-related output per visitor? |\n",
+                "| **3. Output and income** | AQ3: Is high tourism-related output per visitor found only in higher-income provinces? |\n",
+                "| **4. Provinces to watch** | AQ4: Which provinces beyond the top 10 destinations warrant closer attention, and what does the data show for each? |\n",
                 "| **Definitions** | The terms, how each is calculated, and what the data can and cannot show |\n",
                 "| **Appendix A and B** | Supporting: recovery compared with 2019, overall and by traveler type |\n"
               ]
@@ -622,7 +610,7 @@
               "lines": [
                 "## Try one question\n",
                 "\n",
-                "*Which lower-income provinces outside the usual destinations already rely on tourism?* Open **4. Provinces to watch**, set **Lagging = Yes** and **Tourism-dependent = Yes**. The map and list narrow to these provinces, each with what stands out and what to look at next.\n",
+                "*Which lower-income provinces outside the top 10 already generate high output per visitor?* Open **4. Provinces to watch**, set **Lagging = Yes** and **High output per visitor = Yes**. The map and list narrow to these provinces, each with what the data shows and what to look at next.\n",
                 "\n",
                 "On these pages \"province\" means a reporting unit: 82 provinces, 16 highly urbanized cities DOT reports separately, the City of Isabela and NCR. Page 1 covers 2019-2023; pages 2-4 use 2023, the latest year with both DOT and PSA provincial data.\n"
               ]
@@ -640,7 +628,7 @@
             "name": "w100",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use hotel and restaurant output (accommodation and food services) as a stand-in for tourism, because PSA doesn’t publish tourism’s value by province. They show patterns, not exact tourist spending.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
               ]
             }
           },
@@ -666,7 +654,7 @@
               "lines": [
                 "# <span style=\"font-size:35px;line-height:1.5\">4 in 10 travelers go to just 10 provinces</span>\n",
                 "\n",
-                "<span style=\"font-size:20px\">Which provinces have the highest and lowest tourism activity? </span>\n",
+                "<span style=\"font-size:20px\">Which provinces have the highest and lowest tourism activity, and how is it distributed?</span>\n",
                 "\n",
                 "<span style=\"font-size: 16px;\">***Leading destinations***</span><span style=\"font-size: 16px;\">*&#32;= the 10 provinces with the highest average annual overnight travelers, 2019-2023.&#32; </span><span style=\"font-size: 16px;\">**Tourism activity**</span><span style=\"font-size: 16px;\">&#32;= overnight travelers in accommodation establishments, as reported by DOT.*</span>"
               ]
@@ -1390,18 +1378,18 @@
     },
     {
       "name": "aq2",
-      "displayName": "2. Same visitors, different benefits",
+      "displayName": "2. Visitors and output per visitor",
       "layout": [
         {
           "widget": {
             "name": "w106",
             "multilineTextboxSpec": {
               "lines": [
-                "# <span style=\"font-size:35px;line-height:1.5\">Same visitors, different benefits</span>\n",
+                "# <span style=\"font-size:35px;line-height:1.5\">Same number of visitors does not mean the same output</span>\n",
                 "\n",
-                "<span style=\"font-size:20px\">If two provinces attract the same number of visitors, do they benefit from tourism in the same way? (2023)</span>\n",
+                "<span style=\"font-size:20px\">How do provinces compare on both the number of visitors and the tourism-related output per visitor? (2023)</span>\n",
                 "\n",
-                "<span style=\"font-size: 16px;\">***Earnings per visitor***</span><span style=\"font-size: 16px;\">*&#32;= tourism-related output (hotel and restaurant output) per overnight traveler.&#32; *</span><span style=\"font-size: 16px;\">***Groups***</span><span style=\"font-size: 16px;\">*&#32;= each province compared with the 2023 medians of travelers and earnings per visitor.&#32; *</span>"
+                "<span style=\"font-size: 16px;\">***Visitors***</span><span style=\"font-size: 16px;\">*&#32;= overnight travelers reported by DOT.&#32; *</span><span style=\"font-size: 16px;\">***Output per visitor***</span><span style=\"font-size: 16px;\">*&#32;= accommodation and food services output ÷ overnight travelers, in pesos.&#32; *</span><span style=\"font-size: 16px;\">***Groups***</span><span style=\"font-size: 16px;\">*&#32;= each province compared with the 2023 medians of both.&#32; *</span>"
               ]
             }
           },
@@ -1481,7 +1469,7 @@
                       "expression": "NOT `is_leading_destination`"
                     },
                     {
-                      "expression": "`group_label` = 'Tourism Leaders'"
+                      "expression": "`group_label` = 'Established'"
                     }
                   ]
                 }
@@ -1493,12 +1481,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Tourism Leaders</span>",
+                  "value": "<span style=\"font-size: 18px;\">Established</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Many visitors, high earnings per visitor. Provinces beyond the leading destinations*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Many visitors, high output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
@@ -1547,7 +1535,7 @@
                       "expression": "NOT `is_leading_destination`"
                     },
                     {
-                      "expression": "`group_label` = 'Visitor Magnets'"
+                      "expression": "`group_label` = 'Busy but low-earning'"
                     }
                   ]
                 }
@@ -1559,12 +1547,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Visitor Magnets</span>",
+                  "value": "<span style=\"font-size: 18px;\">Busy but low-earning</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Many visitors, low earnings per visitor. Provinces beyond the leading destinations*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Many visitors, low output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
@@ -1613,7 +1601,7 @@
                       "expression": "NOT `is_leading_destination`"
                     },
                     {
-                      "expression": "`group_label` = 'High-Value Niches'"
+                      "expression": "`group_label` = 'Small but high-earning'"
                     }
                   ]
                 }
@@ -1625,12 +1613,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">High-Value Niches</span>",
+                  "value": "<span style=\"font-size: 18px;\">Small but high-earning</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Few visitors, high earnings per visitor. Provinces beyond the leading destinations*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Few visitors, high output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
@@ -1679,7 +1667,7 @@
                       "expression": "NOT `is_leading_destination`"
                     },
                     {
-                      "expression": "`group_label` = 'Emerging Tourism Areas'"
+                      "expression": "`group_label` = 'Limited activity'"
                     }
                   ]
                 }
@@ -1691,12 +1679,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Emerging Tourism Areas</span>",
+                  "value": "<span style=\"font-size: 18px;\">Limited activity</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Few visitors, low earnings per visitor. Provinces beyond the leading destinations*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Few visitors, low output per visitor. Provinces beyond the top 10*</span>",
                   "fields": []
                 }
               },
@@ -1730,7 +1718,7 @@
             "name": "w112",
             "multilineTextboxSpec": {
               "lines": [
-                "> **Example:** Bataan and Southern Leyte each had about **220,000** overnight travelers in 2023. Each visitor to Bataan came with **₱28,178** of tourism-related output; in Southern Leyte, **₱1,688**. Same visitor numbers, very different benefit. (Part of a high figure can be residents' own spending: see the note below.)\n"
+                "> **Example:** Bataan and Southern Leyte each had about **220,000** overnight travelers in 2023. Each visitor to Bataan came with **₱28,178** of tourism-related output; in Southern Leyte, **₱1,688**. Same visitor numbers, very different output. (Part of a high figure can be residents' own spending: see the note below.)\n"
               ]
             }
           },
@@ -1767,8 +1755,8 @@
                       "expression": "`earnings_per_visitor`"
                     },
                     {
-                      "name": "what_stands_out",
-                      "expression": "`what_stands_out`"
+                      "name": "what_the_data_shows",
+                      "expression": "`what_the_data_shows`"
                     },
                     {
                       "name": "small_base_2023",
@@ -1790,12 +1778,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Overnight travelers vs earnings per visitor, 2023</span>",
+                  "value": "<span style=\"font-size: 24px;\">Each province placed in one of four groups, 2023</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Each dot is one province. Right = more travelers; up = more tourism-related output per traveler. Lines = 2023 medians. Grey = the 10 leading destinations.*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Each dot is one province. Right = more overnight travelers; up = more tourism-related output per traveler. Lines = 2023 medians. Grey = the 10 leading destinations.*</span>",
                   "fields": []
                 }
               },
@@ -1846,7 +1834,7 @@
                 },
                 "y": {
                   "fieldName": "earnings_per_visitor",
-                  "displayName": "Earnings per visitor (PHP)",
+                  "displayName": "Output per visitor (PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -1870,19 +1858,19 @@
                         "color": "#8C96A3"
                       },
                       {
-                        "value": "Tourism Leaders",
+                        "value": "Established",
                         "color": "#2E9E6B"
                       },
                       {
-                        "value": "Visitor Magnets",
+                        "value": "Busy but low-earning",
                         "color": "#F2B705"
                       },
                       {
-                        "value": "High-Value Niches",
+                        "value": "Small but high-earning",
                         "color": "#0038A8"
                       },
                       {
-                        "value": "Emerging Tourism Areas",
+                        "value": "Limited activity",
                         "color": "#CE1126"
                       }
                     ]
@@ -1894,8 +1882,8 @@
                     "displayName": "Province"
                   },
                   {
-                    "fieldName": "what_stands_out",
-                    "displayName": "What stands out"
+                    "fieldName": "what_the_data_shows",
+                    "displayName": "What the data shows"
                   },
                   {
                     "fieldName": "small_base_2023",
@@ -1924,9 +1912,9 @@
                 "\n",
                 "| Group | What the data shows | What to look at |\n",
                 "| :--- | :--- | :--- |\n",
-                "| **Tourism Leaders** | Many visitors, high earnings per visitor | Do the benefits reach nearby provinces? |\n| **Visitor Magnets** | Many visitors, low earnings per visitor | Where does visitor spending go? |\n| **High-Value Niches** | Few visitors, high earnings per visitor | What keeps visitor numbers low? (Check first that the output isn't mostly residents' spending.) |\n| **Emerging Tourism Areas** | Few visitors, low earnings per visitor | Tourism-dependent: what holds visitors back? Otherwise: how does tourism compare with other sectors? |\n",
+                "| **Established** | Many visitors, high output per visitor | Do the benefits reach nearby provinces? |\n| **Busy but low-earning** | Many visitors, low output per visitor | Where does visitor spending go? |\n| **Small but high-earning** | Few visitors, high output per visitor | What keeps visitor numbers low? (Check first that the output isn't mostly residents' spending.) |\n| **Limited activity** | Few visitors, low output per visitor | How does tourism compare with other sectors here? |\n",
                 "\n",
-                "<span style=\"color: #8C96A3;\">*The 10 leading destinations are shown in grey: 6 are Tourism Leaders and 4 are Visitor Magnets.*</span>\n"
+                "<span style=\"color: #8C96A3;\">*The 10 leading destinations are shown in grey: 6 are Established and 4 are Busy but low-earning.*</span>\n"
               ]
             }
           },
@@ -1977,7 +1965,7 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Earnings per visitor, provinces beyond the leading destinations</span>",
+                  "value": "<span style=\"font-size: 24px;\">Output per visitor, provinces beyond the top 10 destinations</span>",
                   "fields": []
                 },
                 "showDescription": true,
@@ -1989,7 +1977,7 @@
               "encodings": {
                 "x": {
                   "fieldName": "sum(earnings_per_visitor)",
-                  "displayName": "Earnings per visitor (PHP)",
+                  "displayName": "Output per visitor (PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -2019,19 +2007,19 @@
                     "type": "categorical",
                     "mappings": [
                       {
-                        "value": "Tourism Leaders",
+                        "value": "Established",
                         "color": "#2E9E6B"
                       },
                       {
-                        "value": "Visitor Magnets",
+                        "value": "Busy but low-earning",
                         "color": "#F2B705"
                       },
                       {
-                        "value": "High-Value Niches",
+                        "value": "Small but high-earning",
                         "color": "#0038A8"
                       },
                       {
-                        "value": "Emerging Tourism Areas",
+                        "value": "Limited activity",
                         "color": "#CE1126"
                       }
                     ]
@@ -2055,7 +2043,7 @@
             "name": "w116",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***What this does not tell you:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;how much visitors actually spend. Earnings per visitor divides by travelers, so a province with few travelers can look high only because of a small denominator; provinces under 10,000 travelers are marked \"Check before naming\". Hotel and restaurant output also includes residents' spending.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***What this does not tell you:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;how much visitors actually spend. Output per visitor divides by travelers, so a province with few travelers can look high only because of a small denominator; provinces under 10,000 travelers are marked \"Check before naming\". Hotel and restaurant output also includes residents' spending.*</span>"
               ]
             }
           },
@@ -2071,7 +2059,7 @@
             "name": "w100",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use hotel and restaurant output (accommodation and food services) as a stand-in for tourism, because PSA doesn’t publish tourism’s value by province. They show patterns, not exact tourist spending.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
               ]
             }
           },
@@ -2088,18 +2076,18 @@
     },
     {
       "name": "aq3",
-      "displayName": "3. Tourism and wealth",
+      "displayName": "3. Output and income",
       "layout": [
         {
           "widget": {
             "name": "w117",
             "multilineTextboxSpec": {
               "lines": [
-                "# <span style=\"font-size:35px;line-height:1.5\">Tourism is not only for wealthy provinces</span>\n",
+                "# <span style=\"font-size:35px;line-height:1.5\">High output per visitor is not only in higher-income provinces</span>\n",
                 "\n",
-                "<span style=\"font-size:20px\">Which provinces rely most on tourism, and are lower-income provinces among them? (2023)</span>\n",
+                "<span style=\"font-size:20px\">Is high tourism-related output per visitor found only in higher-income provinces? (2023)</span>\n",
                 "\n",
-                "<span style=\"font-size: 16px;\">***Tourism share of the economy***</span><span style=\"font-size: 16px;\">*&#32;= hotel and restaurant output ÷ GDP.&#32; *</span><span style=\"font-size: 16px;\">***Lagging***</span><span style=\"font-size: 16px;\">*&#32;= GDP per capita below the median.&#32; *</span><span style=\"font-size: 16px;\">***Tourism-dependent***</span><span style=\"font-size: 16px;\">*&#32;= tourism share above the median (1.9%).&#32; *</span>"
+                "<span style=\"font-size: 16px;\">***High output per visitor***</span><span style=\"font-size: 16px;\">*&#32;= at or above the 2023 median (₱8,652).&#32; *</span><span style=\"font-size: 16px;\">***Lagging (lower-income)***</span><span style=\"font-size: 16px;\">*&#32;= 2023 GDP per capita below the median of all provinces with data. An income indicator, not a poverty measure.&#32; *</span>"
               ]
             }
           },
@@ -2200,7 +2188,7 @@
                       "expression": "`is_lagging`"
                     },
                     {
-                      "expression": "`is_tourism_dependent`"
+                      "expression": "`is_high_output`"
                     }
                   ]
                 }
@@ -2212,12 +2200,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Lagging provinces that rely on tourism</span>",
+                  "value": "<span style=\"font-size: 18px;\">Lagging provinces with high output per visitor</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Lagging and tourism-dependent: tourism already matters in these lower-income provinces*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*The answer: high output per visitor is found in lower-income provinces too*</span>",
                   "fields": []
                 }
               },
@@ -2264,6 +2252,9 @@
                   "filters": [
                     {
                       "expression": "`is_lagging`"
+                    },
+                    {
+                      "expression": "`earnings_per_visitor` IS NOT NULL"
                     }
                   ]
                 }
@@ -2275,12 +2266,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Lagging provinces</span>",
+                  "value": "<span style=\"font-size: 18px;\">Lagging provinces with output data</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*GDP per capita below the 2023 median*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*GDP per capita below the 2023 median, with travelers and A&F output*</span>",
                   "fields": []
                 }
               },
@@ -2319,11 +2310,19 @@
                   "datasetName": "ds_profile",
                   "fields": [
                     {
-                      "name": "median(afs_share_of_gdp_pct)",
-                      "expression": "MEDIAN(`afs_share_of_gdp_pct`)"
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
                     }
                   ],
-                  "disaggregated": false
+                  "disaggregated": false,
+                  "filters": [
+                    {
+                      "expression": "NOT `is_lagging`"
+                    },
+                    {
+                      "expression": "`is_high_output`"
+                    }
+                  ]
                 }
               }
             ],
@@ -2333,27 +2332,26 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Median tourism share of the economy</span>",
+                  "value": "<span style=\"font-size: 18px;\">Higher-income provinces with high output per visitor</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*2023. Above this = tourism-dependent*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*For comparison: more common, but not exclusive*</span>",
                   "fields": []
                 }
               },
               "encodings": {
                 "value": {
-                  "fieldName": "median(afs_share_of_gdp_pct)",
+                  "fieldName": "count(*)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
                     "decimalPlaces": {
                       "type": "exact",
-                      "places": 1
+                      "places": 0
                     }
-                  },
-                  "formatTemplate": "{{ @formatted }}%"
+                  }
                 }
               },
               "data": {
@@ -2392,12 +2390,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Correlation: income vs tourism share</span>",
+                  "value": "<span style=\"font-size: 18px;\">Correlation: income vs output per visitor</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*0 = no linear relationship, 1 = rise together. Moderate: tourism is bigger in richer places, not limited to them*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*0 = no linear relationship, 1 = rise together. Weak: income explains little of it*</span>",
                   "fields": []
                 }
               },
@@ -2448,18 +2446,22 @@
                       "expression": "`gdp_per_capita_thousand`"
                     },
                     {
-                      "name": "afs_share_of_gdp_pct",
-                      "expression": "`afs_share_of_gdp_pct`"
+                      "name": "earnings_per_visitor",
+                      "expression": "`earnings_per_visitor`"
                     },
                     {
                       "name": "map_group",
                       "expression": "`map_group`"
+                    },
+                    {
+                      "name": "small_base_2023",
+                      "expression": "`small_base_2023`"
                     }
                   ],
                   "disaggregated": true,
                   "filters": [
                     {
-                      "expression": "`afs_share_of_gdp_pct` IS NOT NULL"
+                      "expression": "`earnings_per_visitor` IS NOT NULL"
                     },
                     {
                       "expression": "`gdp_per_capita_thousand` IS NOT NULL"
@@ -2474,12 +2476,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Income vs how much the economy relies on tourism, 2023</span>",
+                  "value": "<span style=\"font-size: 24px;\">Income vs output per visitor, 2023</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Each dot is one province. Yellow dots above the line = lower-income provinces that already rely on tourism.*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Each dot is one province. Yellow dots above the horizontal line = lower-income provinces with high output per visitor.*</span>",
                   "fields": []
                 }
               },
@@ -2488,11 +2490,23 @@
                   "type": "horizontal-line",
                   "encodings": {
                     "y": {
-                      "dataValue": "1.9",
+                      "dataValue": "8652",
                       "dataType": "DOUBLE"
                     },
                     "label": {
-                      "value": "Median (1.9%)"
+                      "value": "Median - ₱8,652"
+                    }
+                  }
+                },
+                {
+                  "type": "vertical-line",
+                  "encodings": {
+                    "x": {
+                      "dataValue": "140.2",
+                      "dataType": "DOUBLE"
+                    },
+                    "label": {
+                      "value": "Median GDP per capita - ₱140k"
                     }
                   }
                 }
@@ -2517,8 +2531,8 @@
                   }
                 },
                 "y": {
-                  "fieldName": "afs_share_of_gdp_pct",
-                  "displayName": "Tourism share of the economy (%)",
+                  "fieldName": "earnings_per_visitor",
+                  "displayName": "Output per visitor (PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
@@ -2527,7 +2541,6 @@
                       "places": 0
                     }
                   },
-                  "formatTemplate": "{{ @formatted }}%",
                   "scale": {
                     "type": "quantitative"
                   }
@@ -2557,6 +2570,10 @@
                   {
                     "fieldName": "map_group",
                     "displayName": "Group"
+                  },
+                  {
+                    "fieldName": "small_base_2023",
+                    "displayName": "Small base"
                   }
                 ]
               },
@@ -2586,14 +2603,14 @@
                       "expression": "`wealth_group`"
                     },
                     {
-                      "name": "avg(afs_share_of_gdp_pct)",
-                      "expression": "AVG(`afs_share_of_gdp_pct`)"
+                      "name": "median(earnings_per_visitor)",
+                      "expression": "MEDIAN(`earnings_per_visitor`)"
                     }
                   ],
                   "disaggregated": false,
                   "filters": [
                     {
-                      "expression": "`afs_share_of_gdp_pct` IS NOT NULL"
+                      "expression": "`earnings_per_visitor` IS NOT NULL"
                     }
                   ]
                 }
@@ -2605,12 +2622,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Average tourism share by income group</span>",
+                  "value": "<span style=\"font-size: 24px;\">Median output per visitor by income group</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*2023*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*2023, PHP*</span>",
                   "fields": []
                 }
               },
@@ -2623,17 +2640,16 @@
                   }
                 },
                 "y": {
-                  "fieldName": "avg(afs_share_of_gdp_pct)",
-                  "displayName": "Average tourism share (%)",
+                  "fieldName": "median(earnings_per_visitor)",
+                  "displayName": "Median output per visitor (PHP)",
                   "format": {
                     "type": "number-plain",
                     "abbreviation": "none",
                     "decimalPlaces": {
                       "type": "exact",
-                      "places": 1
+                      "places": 0
                     }
                   },
-                  "formatTemplate": "{{ @formatted }}%",
                   "scale": {
                     "type": "quantitative"
                   }
@@ -2686,16 +2702,24 @@
                       "expression": "`Group`"
                     },
                     {
+                      "name": "Output per visitor (PHP)",
+                      "expression": "`Output per visitor (PHP)`"
+                    },
+                    {
                       "name": "GDP per capita (PHP)",
                       "expression": "`GDP per capita (PHP)`"
                     },
                     {
-                      "name": "Tourism share of the economy (%)",
-                      "expression": "`Tourism share of the economy (%)`"
+                      "name": "Overnight travelers",
+                      "expression": "`Overnight travelers`"
                     },
                     {
-                      "name": "Tourism-dependent",
-                      "expression": "`Tourism-dependent`"
+                      "name": "High output per visitor",
+                      "expression": "`High output per visitor`"
+                    },
+                    {
+                      "name": "Small base",
+                      "expression": "`Small base`"
                     }
                   ],
                   "disaggregated": true
@@ -2708,12 +2732,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Lagging provinces, by tourism share of the economy</span>",
+                  "value": "<span style=\"font-size: 24px;\">Lagging provinces, by output per visitor</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Highest share first. \"Yes\" rows are lower-income provinces where tourism already matters.*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Highest first. \"Yes\" rows are lower-income provinces with high output per visitor; read small-base rows with the traveler count.*</span>",
                   "fields": []
                 }
               },
@@ -2728,6 +2752,17 @@
                     "fieldName": "Group"
                   },
                   {
+                    "fieldName": "Output per visitor (PHP)",
+                    "format": {
+                      "type": "number-plain",
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "type": "exact",
+                        "places": 0
+                      }
+                    }
+                  },
+                  {
                     "fieldName": "GDP per capita (PHP)",
                     "format": {
                       "type": "number-plain",
@@ -2739,10 +2774,21 @@
                     }
                   },
                   {
-                    "fieldName": "Tourism share of the economy (%)"
+                    "fieldName": "Overnight travelers",
+                    "format": {
+                      "type": "number-plain",
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "type": "exact",
+                        "places": 0
+                      }
+                    }
                   },
                   {
-                    "fieldName": "Tourism-dependent"
+                    "fieldName": "High output per visitor"
+                  },
+                  {
+                    "fieldName": "Small base"
                   }
                 ]
               },
@@ -2763,7 +2809,7 @@
             "name": "w126",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***What this does not tell you:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;that tourism causes income growth, or the other way around. These are patterns across provinces in one year. Hotel and restaurant output is also part of GDP.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***What this does not tell you:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;that income causes output per visitor, or the other way around. These are patterns across provinces in one year. Output per visitor uses hotel and restaurant output, which also includes residents' spending.*</span>"
               ]
             }
           },
@@ -2779,7 +2825,7 @@
             "name": "w100",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use hotel and restaurant output (accommodation and food services) as a stand-in for tourism, because PSA doesn’t publish tourism’s value by province. They show patterns, not exact tourist spending.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
               ]
             }
           },
@@ -2803,11 +2849,11 @@
             "name": "w127",
             "multilineTextboxSpec": {
               "lines": [
-                "# <span style=\"font-size:35px;line-height:1.5\">10 lower-income provinces outside the usual destinations already rely on tourism</span>\n",
+                "# <span style=\"font-size:35px;line-height:1.5\">13 lower-income provinces outside the top 10 already generate high output per visitor</span>\n",
                 "\n",
-                "<span style=\"font-size:20px\">Which provinces outside the usual destinations warrant closer attention, and why? (2023)</span>\n",
+                "<span style=\"font-size:20px\">Which provinces beyond the top 10 destinations warrant closer attention, and what does the data show for each? (2023)</span>\n",
                 "\n",
-                "<span style=\"font-size: 16px;\">***Shown***</span><span style=\"font-size: 16px;\">*&#32;= the 83 provinces beyond the leading destinations with enough data, lagging first, then by tourism share.&#32; *</span><span style=\"font-size: 16px;\">***Use the filters***</span><span style=\"font-size: 16px;\">*&#32;= to narrow the map and the list.&#32; *</span>"
+                "<span style=\"font-size: 16px;\">***Priority provinces***</span><span style=\"font-size: 16px;\">*&#32;= the 83 provinces beyond the leading destinations with enough data to be placed in a group, lagging first, then by tourism share of the economy.&#32; *</span><span style=\"font-size: 16px;\">***Use the filters***</span><span style=\"font-size: 16px;\">*&#32;= to narrow the map and the list.&#32; *</span>"
               ]
             }
           },
@@ -2927,11 +2973,11 @@
                   "disaggregated": false,
                   "fields": [
                     {
-                      "name": "Tourism-dependent",
-                      "expression": "`Tourism-dependent`"
+                      "name": "High output per visitor",
+                      "expression": "`High output per visitor`"
                     },
                     {
-                      "name": "Tourism-dependent_associativity",
+                      "name": "High output per visitor_associativity",
                       "expression": "COUNT_IF(`associative_filter_predicate_group`)"
                     }
                   ]
@@ -2944,7 +2990,7 @@
               "encodings": {
                 "fields": [
                   {
-                    "fieldName": "Tourism-dependent",
+                    "fieldName": "High output per visitor",
                     "queryName": "f130_ds_aq4_table"
                   }
                 ]
@@ -2952,7 +2998,7 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 20px;\">Tourism-dependent</span>",
+                  "value": "<span style=\"font-size: 20px;\">High output per visitor</span>",
                   "fields": []
                 }
               }
@@ -3043,7 +3089,7 @@
                       "expression": "`Lagging` = 'Yes'"
                     },
                     {
-                      "expression": "`Tourism-dependent` = 'Yes'"
+                      "expression": "`High output per visitor` = 'Yes'"
                     }
                   ]
                 }
@@ -3055,12 +3101,12 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 18px;\">Lagging and tourism-dependent</span>",
+                  "value": "<span style=\"font-size: 18px;\">Lagging, with high output per visitor</span>",
                   "fields": []
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Lower-income provinces where tourism already matters*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*3 of them have under 10,000 travelers: check before naming*</span>",
                   "fields": []
                 }
               },
@@ -3115,8 +3161,8 @@
                       "expression": "`Province`"
                     },
                     {
-                      "name": "What stands out",
-                      "expression": "`What stands out`"
+                      "name": "What the data shows",
+                      "expression": "`What the data shows`"
                     },
                     {
                       "name": "What to look at",
@@ -3127,8 +3173,8 @@
                       "expression": "`Lagging`"
                     },
                     {
-                      "name": "Tourism-dependent",
-                      "expression": "`Tourism-dependent`"
+                      "name": "High output per visitor",
+                      "expression": "`High output per visitor`"
                     },
                     {
                       "name": "Tourism share (%)",
@@ -3139,8 +3185,8 @@
                       "expression": "`Overnight travelers`"
                     },
                     {
-                      "name": "Earnings per visitor (PHP)",
-                      "expression": "`Earnings per visitor (PHP)`"
+                      "name": "Output per visitor (PHP)",
+                      "expression": "`Output per visitor (PHP)`"
                     },
                     {
                       "name": "Small base",
@@ -3162,7 +3208,7 @@
                 },
                 "showDescription": true,
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Each dot is a province beyond the leading destinations. Colour = group; size = overnight travelers.*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*Each dot is a province beyond the top 10 destinations. Colour = group; size = overnight travelers.*</span>",
                   "fields": []
                 }
               },
@@ -3183,19 +3229,19 @@
                     "type": "categorical",
                     "mappings": [
                       {
-                        "value": "Tourism Leaders",
+                        "value": "Established",
                         "color": "#2E9E6B"
                       },
                       {
-                        "value": "Visitor Magnets",
+                        "value": "Busy but low-earning",
                         "color": "#F2B705"
                       },
                       {
-                        "value": "High-Value Niches",
+                        "value": "Small but high-earning",
                         "color": "#0038A8"
                       },
                       {
-                        "value": "Emerging Tourism Areas",
+                        "value": "Limited activity",
                         "color": "#CE1126"
                       }
                     ]
@@ -3222,8 +3268,8 @@
                     "displayName": "Province"
                   },
                   {
-                    "fieldName": "What stands out",
-                    "displayName": "What stands out"
+                    "fieldName": "What the data shows",
+                    "displayName": "What the data shows"
                   },
                   {
                     "fieldName": "What to look at",
@@ -3234,8 +3280,8 @@
                     "displayName": "Lagging"
                   },
                   {
-                    "fieldName": "Tourism-dependent",
-                    "displayName": "Tourism-dependent"
+                    "fieldName": "High output per visitor",
+                    "displayName": "High output per visitor"
                   },
                   {
                     "fieldName": "Tourism share (%)",
@@ -3246,8 +3292,8 @@
                     "displayName": "Overnight travelers"
                   },
                   {
-                    "fieldName": "Earnings per visitor (PHP)",
-                    "displayName": "Earnings per visitor (PHP)"
+                    "fieldName": "Output per visitor (PHP)",
+                    "displayName": "Output per visitor (PHP)"
                   },
                   {
                     "fieldName": "Small base",
@@ -3277,11 +3323,11 @@
             "name": "w134",
             "multilineTextboxSpec": {
               "lines": [
-                "## What to look at, by group\n",
+                "## What the data shows, by group\n",
                 "\n",
                 "| Group | What the data shows | What to look at |\n",
                 "| :--- | :--- | :--- |\n",
-                "| **Tourism Leaders** | Many visitors, high earnings per visitor | Do the benefits reach nearby provinces? |\n| **Visitor Magnets** | Many visitors, low earnings per visitor | Where does visitor spending go? |\n| **High-Value Niches** | Few visitors, high earnings per visitor | What keeps visitor numbers low? (Check first that the output isn't mostly residents' spending.) |\n| **Emerging Tourism Areas** | Few visitors, low earnings per visitor | Tourism-dependent: what holds visitors back? Otherwise: how does tourism compare with other sectors? |\n",
+                "| **Established** | Many visitors, high output per visitor | Do the benefits reach nearby provinces? |\n| **Busy but low-earning** | Many visitors, low output per visitor | Where does visitor spending go? |\n| **Small but high-earning** | Few visitors, high output per visitor | What keeps visitor numbers low? (Check first that the output isn't mostly residents' spending.) |\n| **Limited activity** | Few visitors, low output per visitor | How does tourism compare with other sectors here? |\n",
                 "\n",
                 "These are questions the data raises, not recommendations. Answering them needs information the data does not have: access, infrastructure, safety, governance and local plans.\n"
               ]
@@ -3312,8 +3358,8 @@
                       "expression": "`Group`"
                     },
                     {
-                      "name": "What stands out",
-                      "expression": "`What stands out`"
+                      "name": "What the data shows",
+                      "expression": "`What the data shows`"
                     },
                     {
                       "name": "What to look at",
@@ -3324,8 +3370,8 @@
                       "expression": "`Lagging`"
                     },
                     {
-                      "name": "Tourism-dependent",
-                      "expression": "`Tourism-dependent`"
+                      "name": "High output per visitor",
+                      "expression": "`High output per visitor`"
                     },
                     {
                       "name": "Tourism share (%)",
@@ -3336,8 +3382,8 @@
                       "expression": "`Overnight travelers`"
                     },
                     {
-                      "name": "Earnings per visitor (PHP)",
-                      "expression": "`Earnings per visitor (PHP)`"
+                      "name": "Output per visitor (PHP)",
+                      "expression": "`Output per visitor (PHP)`"
                     },
                     {
                       "name": "Small base",
@@ -3354,7 +3400,7 @@
               "frame": {
                 "showTitle": true,
                 "title": {
-                  "value": "<span style=\"font-size: 24px;\">Provinces to watch</span>",
+                  "value": "<span style=\"font-size: 24px;\">Priority provinces</span>",
                   "fields": []
                 },
                 "showDescription": true,
@@ -3374,7 +3420,7 @@
                     "fieldName": "Group"
                   },
                   {
-                    "fieldName": "What stands out"
+                    "fieldName": "What the data shows"
                   },
                   {
                     "fieldName": "What to look at"
@@ -3383,7 +3429,7 @@
                     "fieldName": "Lagging"
                   },
                   {
-                    "fieldName": "Tourism-dependent"
+                    "fieldName": "High output per visitor"
                   },
                   {
                     "fieldName": "Tourism share (%)"
@@ -3400,7 +3446,7 @@
                     }
                   },
                   {
-                    "fieldName": "Earnings per visitor (PHP)",
+                    "fieldName": "Output per visitor (PHP)",
                     "format": {
                       "type": "number-plain",
                       "abbreviation": "none",
@@ -3432,7 +3478,7 @@
             "name": "w100",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use hotel and restaurant output (accommodation and food services) as a stand-in for tourism, because PSA doesn’t publish tourism’s value by province. They show patterns, not exact tourist spending.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
               ]
             }
           },
@@ -3474,19 +3520,21 @@
               "lines": [
                 "| Term | Definition | How it is computed |\n",
                 "| --- | --- | --- |\n",
-                "| **Province** | A reporting unit: 82 provinces, 16 highly urbanized cities DOT reports separately, the City of Isabela and NCR (100 in total) | PSGC codes, aligned across years |\n",
-                "| **Overnight travelers** | Reported overnight travelers in accommodation establishments (DOT). Not unique visitors, and not day-trippers. | total_travelers |\n",
-                "| **Tourism intensity** | Overnight travelers relative to population | Overnight travelers ÷ population × 1,000 |\n",
-                "| **Leading tourist destinations** | The 10 provinces with the highest average annual overnight travelers, 2019-2023 | Average over the eligible years, ranked; rank ≤ 10 |\n",
-                "| **Tourism-related output** | Accommodation and food services (A&F) gross value added, current prices | A&F GVA, 2023 |\n",
-                "| **Earnings per visitor** | Tourism-related output per overnight traveler, in PHP | A&F GVA (thousand PHP) × 1,000 ÷ overnight travelers, 2023 |\n",
-                "| **Groups** | Tourism Leaders (many visitors, high earnings per visitor), Visitor Magnets (many, low), High-Value Niches (few, high), Emerging Tourism Areas (few, low) | Compared with the 2023 medians of travelers (279,150) and earnings per visitor (₱8,652) |\n",
-                "| **Tourism share of the economy** | How much of a province's economy is tourism-related activity | Current-price A&F GVA ÷ current-price GDP × 100, 2023 |\n",
-                "| **GDP per capita** | Provincial GDP per person, current prices | 2023 |\n",
-                "| **Lagging (lower-income) provinces** | Provinces with below-median GDP per capita. An income indicator, not a poverty measure | 2023 GDP per capita below the median of all provinces with data |\n",
-                "| **Tourism-dependent provinces** | Provinces where tourism-related activity is a larger-than-typical part of the economy | 2023 tourism share above the median (1.9%) |\n",
-                "| **Small base** | Too few travelers for earnings per visitor to be reliable | Under 10,000 overnight travelers in 2023. Kept in the list, marked \"Check before naming\" |\n",
-                "| **What to look at** | A question the data raises for each group. Not a recommendation | From the group and, for Emerging Tourism Areas, whether tourism-dependent |\n"
+                "| **Province (reporting unit)** | One of the 100 areas we compare: 82 provinces, 16 highly urbanized cities that DOT reports separately, the City of Isabela, and NCR. Cities that DOT counts inside a province (for example, Lucena in Quezon) stay in that province | PSGC codes, aligned across years |\n",
+                "| **Tourism activity** | Number of overnight travelers in a province in a year | total_travelers |\n",
+                "| **Overnight travelers (visitors)** | Travelers reported by DOT as staying overnight in accommodation establishments. Not unique visitors, and not same-day visitors | DOT |\n",
+                "| **Tourism intensity** | Overnight travelers relative to population (page 1 map) | Overnight travelers ÷ population × 1,000 |\n",
+                "| **Leading tourist destinations** | The 10 provinces with the highest average annual overnight travelers from 2019 to 2023 | Average over the eligible years, ranked; rank ≤ 10 |\n",
+                "| **Tourism-related output** | Gross value added of accommodation and food services (A&F), current prices, from PSA. A proxy, because PSA publishes tourism value added only nationally | A&F GVA, 2023 |\n",
+                "| **Output per visitor** | How much hotel and restaurant output a province generates for each overnight traveler, in pesos | A&F GVA (thousand PHP) × 1,000 ÷ overnight travelers, 2023 |\n",
+                "| **Groups (quadrant)** | Established (many visitors, high output per visitor), Busy but low-earning (many, low), Small but high-earning (few, high), Limited activity (few, low) | Each province compared with the 2023 medians of travelers (279,150) and output per visitor (₱8,652) |\n",
+                "| **High output per visitor** | Output per visitor at or above the 2023 median | ≥ ₱8,652 (the Established and Small but high-earning groups) |\n",
+                "| **GDP per capita** | Provincial GDP per person at current prices, from PSA | 2023 |\n",
+                "| **Lagging (lower-income) provinces** | Provinces whose 2023 GDP per capita is below the median of all provinces with data. An income indicator, not a measure of poverty | Below ₱140,165 in 2023 |\n",
+                "| **Tourism share of the economy** | How much of a province's economy is hotel and restaurant activity (used to order the priority list) | Current-price A&F GVA ÷ current-price GDP × 100, 2023 |\n",
+                "| **Priority provinces** | Provinces beyond the leading destinations with enough data to be placed in a group, lagging first, then by tourism share of the economy | 83 provinces in 2023 |\n",
+                "| **Small base** | Fewer than 10,000 overnight travelers in 2023: output per visitor may look high only because travelers are few | Kept in the list, marked \"Check before naming\" |\n",
+                "| **What the data shows / What to look at** | What the province's group says, and a question it raises. Not a recommendation | From the group |\n"
               ]
             }
           },
@@ -3494,7 +3542,7 @@
             "x": 0,
             "y": 2,
             "width": 12,
-            "height": 10
+            "height": 13
           }
         },
         {
@@ -3512,7 +3560,7 @@
           },
           "position": {
             "x": 0,
-            "y": 12,
+            "y": 15,
             "width": 12,
             "height": 5
           }
@@ -3573,7 +3621,7 @@
           },
           "position": {
             "x": 0,
-            "y": 17,
+            "y": 20,
             "width": 12,
             "height": 3
           }
@@ -4102,7 +4150,7 @@
             "name": "w100",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use hotel and restaurant output (accommodation and food services) as a stand-in for tourism, because PSA doesn’t publish tourism’s value by province. They show patterns, not exact tourist spending.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
               ]
             }
           },
@@ -4414,7 +4462,7 @@
             "name": "w100",
             "multilineTextboxSpec": {
               "lines": [
-                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use hotel and restaurant output (accommodation and food services) as a stand-in for tourism, because PSA doesn’t publish tourism’s value by province. They show patterns, not exact tourist spending.*</span>"
+                "> <span style=\"color: #8C96A3;font-size: 14px;\">***Note:***</span><span style=\"color: #8C96A3;font-size: 14px;\">*&#32;money figures use PSA's provincial output for accommodation and food services (hotels and restaurants). PSA measures tourism's own value only for the whole country, so we use this as a stand-in. It also includes residents' spending, so read it as a pattern, not exact tourist spending.*</span>"
               ]
             }
           },
@@ -4859,19 +4907,19 @@
       "widgetCornerRadius": 20,
       "visualizationColorMappings": [
         {
-          "value": "Tourism Leaders",
+          "value": "Established",
           "color": "#2E9E6B"
         },
         {
-          "value": "Visitor Magnets",
+          "value": "Busy but low-earning",
           "color": "#F2B705"
         },
         {
-          "value": "High-Value Niches",
+          "value": "Small but high-earning",
           "color": "#0038A8"
         },
         {
-          "value": "Emerging Tourism Areas",
+          "value": "Limited activity",
           "color": "#CE1126"
         },
         {
