@@ -3,20 +3,17 @@
 Databricks resources deployed by the bundle defined in [`databricks.yml`](../databricks.yml).
 
 ```text
-   resources/
-   ├── jobs/
-   │   └── tourism_pipeline.yml   # End-to-end pipeline job
-   ├── dashboards/
-   │   └── provinsights.dashboard.yml   # AI/BI dashboard (file in ../dashboard/)
-   └── seeds/                     # Reviewed reference files used by notebooks (see seeds/README.md)
+resources/
+├── jobs/
+│   └── tourism_pipeline.yml   # End-to-end pipeline job
+└── seeds/                     # Reviewed reference files used by notebooks (see seeds/README.md)
 ```
 
-   Every `*.yml` file in `resources/jobs/` and `resources/dashboards/` is loaded by the bundle through:
+Every `*.yml` file in `resources/jobs/` is loaded by the bundle through:
 
 ```yaml
-   include:
-     - resources/jobs/*.yml
-     - resources/dashboards/*.yml
+include:
+  - resources/jobs/*.yml
 ```
 
 Every `*.yml` file in `resources/jobs/` is loaded by the bundle through:
@@ -86,7 +83,7 @@ layers can run out of order.
 | 05 Analytics | `analytics` | `notebooks/05_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
 | 05 Analytics | `analytics_validation` | `notebooks/05_analytics/02_analytics_validation.ipynb` | `analytics` |
 | 05 Analytics | `analytics_run_evidence` | `notebooks/05_analytics/03_analytics_run_evidence.ipynb` | `analytics_validation` |
-| Dashboard | `refresh_dashboard` | Dashboard `provinsights` (`dashboard/provinsights.lvdash.json`) | `analytics_run_evidence` |
+| Dashboard | `refresh_dashboard` | Shared dashboard (`dashboard_id` variable in `databricks.yml`) | `analytics_run_evidence` |
 
 There is no `02_bronze` folder: the ingestion notebooks in `01_ingestion` write the Bronze
 tables themselves, so the layer numbers go from `01` to `03`. The `02` prefix stays reserved
