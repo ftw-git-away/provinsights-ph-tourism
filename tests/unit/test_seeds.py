@@ -74,6 +74,15 @@ class SeedTests(unittest.TestCase):
                     with self.subTest(seed=name, line=number):
                         self.assertIn(code, self.units)
 
+    def test_huc_parent_units_are_known_reporting_units(self):
+        """In the population map, an HUC's from_unit_psgc_code is the province unit it is subtracted from."""
+        _, rows = read_csv(SEEDS / "map_psa_population_area_to_psgc.csv")
+        for number, row in enumerate(rows, start=2):
+            code = row["from_unit_psgc_code"].strip()
+            if code:
+                with self.subTest(line=number):
+                    self.assertIn(code, self.units)
+
     def test_coordinates_cover_every_unit_once(self):
         self.assertEqual(len(self.coordinates), REPORTING_UNITS)
         self.assertEqual(len(self.units), REPORTING_UNITS, "Duplicate province_psgc in coordinates")

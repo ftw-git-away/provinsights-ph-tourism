@@ -1,4 +1,4 @@
-"""Shared helpers for the unit tests. Standard library only, except sqlglot and PyYAML."""
+"""Shared helpers for the unit tests. Standard library only, except sqlglot and PyYAML (see tests/requirements.txt)."""
 import ast
 import csv
 import json
@@ -80,6 +80,26 @@ def spark_sql_strings(code):
                 else:
                     parts.append("placeholder")
             yield node.lineno, "".join(parts)
+
+
+def dq_calls(code):
+    """Yield (line, check_id, severity) for every dq(...) call whose check_id is a string literal.
+
+    Reads positional arguments (check_id, table_name, severity, ...) and the check_id= / severity= keywords.
+    Calls whose check_id is a variable are skipped.
+    """
+    for node in ast.walk(ast.parse(code)):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "dq"):
+            continue
+        args = {"check_id": node.args[0] if len(node.args) > 0 else None,
+                "severity": node.args[2] if len(node.args) > 2 else None}
+        for keyword in node.keywords:
+            if keyword.arg in args:
+                args[keyword.arg] = keyword.value
+        check_id, severity = args["check_id"], args["severity"]
+        if isinstance(check_id, ast.Constant) and isinstance(check_id.value, str):
+            value = severity.value if isinstance(severity, ast.Constant) else None
+            yield node.lineno, check_id.value, value
 
 
 def read_csv(path):

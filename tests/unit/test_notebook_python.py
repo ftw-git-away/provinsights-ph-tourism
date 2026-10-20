@@ -1,12 +1,14 @@
 """Python checks on every notebook: structure, syntax and shared conventions."""
 import ast
+import json
 import re
 import unittest
 
-from _helpers import NOTEBOOKS, cell_source, load_notebook, python_cells
+from _helpers import NOTEBOOKS, cell_source, dq_calls, load_notebook, python_cells
 
 ALLOWED_CATALOG = "tuklas_dev"
 ALLOWED_SEVERITIES = {"BLOCK", "REVIEW", "LOG"}   # docs/data-quality-rules.md
+VALID_CELL_TYPES = {"code", "markdown", "raw"}
 SECRET_PATTERNS = [
     re.compile(r"dapi[0-9a-f]{32}"),                       # Databricks personal access token
     re.compile(r"ghp_[A-Za-z0-9]{36}"),                    # GitHub token
@@ -17,6 +19,17 @@ SECRET_PATTERNS = [
 class NotebookPythonTests(unittest.TestCase):
     def test_notebooks_exist(self):
         self.assertTrue(NOTEBOOKS, "No notebooks found under notebooks/")
+
+    def test_notebooks_are_valid_json_with_valid_cells(self):
+        for path in NOTEBOOKS:
+            with self.subTest(notebook=path.name):
+                try:
+                    notebook = load_notebook(path)
+                except json.JSONDecodeError as exc:
+                    self.fail(f"{path.name} is not valid JSON: {exc}")
+                self.assertIsInstance(notebook.get("cells"), list, "'cells' must be a list")
+                for index, cell in enumerate(notebook["cells"], start=1):
+                    self.assertIn(cell.get("cell_type"), VALID_CELL_TYPES, f"cell {index} has an invalid cell_type")
 
     def test_every_notebook_has_a_markdown_cell(self):
         for path in NOTEBOOKS:
@@ -51,17 +64,15 @@ class NotebookPythonTests(unittest.TestCase):
                     with self.subTest(notebook=path.name, cell=index, pattern=pattern.pattern):
                         self.assertIsNone(pattern.search(source), "Possible secret in notebook")
 
-    def test_dq_helper_records_known_severities(self):
-        """Notebooks that define dq(...) must use a severity from docs/data-quality-rules.md."""
+    def test_dq_checks_use_documented_severities(self):
+        """Every dq(...) call (positional or severity= keyword) uses BLOCK, REVIEW or LOG."""
         for path in NOTEBOOKS:
-            notebook = load_notebook(path)
-            for index, code in python_cells(notebook):
-                for node in ast.walk(ast.parse(code)):
-                    if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-                            and node.func.id == "dq" and len(node.args) >= 3
-                            and isinstance(node.args[2], ast.Constant)):
-                        with self.subTest(notebook=path.name, cell=index, line=node.lineno):
-                            self.assertIn(node.args[2].value, ALLOWED_SEVERITIES)
+            for index, code in python_cells(load_notebook(path)):
+                for line, check_id, severity in dq_calls(code):
+                    if severity is None:
+                        continue   # severity passed as a variable
+                    with self.subTest(notebook=path.name, check=check_id, line=line):
+                        self.assertIn(severity, ALLOWED_SEVERITIES)
 
 
 if __name__ == "__main__":
