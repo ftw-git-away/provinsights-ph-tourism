@@ -73,6 +73,8 @@ layers can run out of order.
 | 04 Analytics | `analytics_validation` | `notebooks/04_analytics/02_analytics_validation.ipynb` | `analytics` |
 | 04 Analytics | `analytics_run_evidence` | `notebooks/04_analytics/03_analytics_run_evidence.ipynb` | `analytics_validation` |
 
+### Folders and schemas
+
 Notebook folders are numbered by pipeline step, and each writes to its own schema in
 `tuklas_dev`. The schema numbers did not change when the folders were renamed:
 
