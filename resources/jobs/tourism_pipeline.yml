@@ -25,7 +25,7 @@ resources:
       tasks:
         # 01 Ingestion -> Bronze
         - task_key: ingestion_setup
-          timeout_seconds: 1800
+          timeout_seconds: 1800   # allows serverless compute wait; timed out at 600 s in an earlier run
           notebook_task:
             notebook_path: ../../notebooks/01_ingestion/00_ingestion_setup.ipynb
 
@@ -71,7 +71,7 @@ resources:
 
         # 03 Silver (each notebook runs its own DQ checks)
         - task_key: silver_setup        # starts the Silver layer after all ingestion finishes
-          timeout_seconds: 1800   
+          timeout_seconds: 1800   # allows serverless compute wait (was 600)
           depends_on:
             - task_key: ingest_psa
             - task_key: ingest_psgc
@@ -110,7 +110,7 @@ resources:
 
         # 04 Gold (star schema: dim_province, dim_year, fact_province_year)
         - task_key: gold_setup          # starts the Gold layer after all Silver tables are built
-          timeout_seconds: 1800   
+          timeout_seconds: 1800   # allows serverless compute wait (was 600)
           depends_on:
             - task_key: silver_dot
             - task_key: silver_psa_economy
@@ -119,14 +119,14 @@ resources:
             notebook_path: ../../notebooks/04_gold/00_gold_setup.ipynb
 
         - task_key: gold_dim_province
-          timeout_seconds: 2700   
+          timeout_seconds: 2700   # temporary; set to ~3x real runtime after first successful run
           depends_on:
             - task_key: gold_setup
           notebook_task:
             notebook_path: ../../notebooks/04_gold/01_gold_dim_province.ipynb
 
         - task_key: gold_dim_year
-          timeout_seconds: 2700  
+          timeout_seconds: 2700   # temporary; set to ~3x real runtime after first successful run
           depends_on:
             - task_key: gold_setup
           notebook_task:
@@ -141,7 +141,7 @@ resources:
             notebook_path: ../../notebooks/04_gold/03_gold_fact_province_year.ipynb
 
         - task_key: gold_run_evidence
-          timeout_seconds: 1800   
+          timeout_seconds: 1800   # allows serverless compute wait; timed out at 611 s (10m 11s) with 600
           depends_on:
             - task_key: gold_fact_province_year
           notebook_task:
@@ -149,21 +149,21 @@ resources:
 
         # 05 Analytics
         - task_key: analytics
-          timeout_seconds: 2100   
+          timeout_seconds: 2100   # ~3x longest observed run (669 s)
           depends_on:
             - task_key: gold_run_evidence
           notebook_task:
             notebook_path: ../../notebooks/05_analytics/01_build_analytics.ipynb
 
         - task_key: analytics_validation
-          timeout_seconds: 900  
+          timeout_seconds: 900    # ~3x longest observed run (297 s)
           depends_on:
             - task_key: analytics
           notebook_task:
             notebook_path: ../../notebooks/05_analytics/02_analytics_validation.ipynb
 
         - task_key: analytics_run_evidence
-          timeout_seconds: 1800   
+          timeout_seconds: 1800   # allows serverless compute wait (was 600)
           depends_on:
             - task_key: analytics_validation
           notebook_task:
