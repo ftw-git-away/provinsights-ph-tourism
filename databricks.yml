@@ -3,7 +3,6 @@ bundle:
 
 include:
   - resources/jobs/*.yml
-  - resources/dashboards/*.yml
 
 variables:
   alert_email:
@@ -11,6 +10,9 @@ variables:
   warehouse_id:
     description: SQL warehouse that runs the dashboard queries
     default: 957e4742462068cf
+  dashboard_id:
+    description: Shared AI/BI dashboard refreshed at the end of the pipeline
+    default: 01f1cc8008c31c93964133b570b193a4
 
 targets:
   dev:
