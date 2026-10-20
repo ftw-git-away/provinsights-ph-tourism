@@ -3,10 +3,14 @@ bundle:
 
 include:
   - resources/jobs/*.yml
+  - resources/dashboards/*.yml
 
 variables:
   alert_email:
     description: Email address that receives pipeline failure notifications
+  warehouse_id:
+    description: SQL warehouse that runs the dashboard queries
+    default: 957e4742462068cf
 
 targets:
   dev:
