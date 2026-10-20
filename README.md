@@ -91,10 +91,10 @@ See [Source assessment](docs/consolidated-data-sources.md) and [Data sources](do
 
 ```text
 Government source files
-    → Ingestion and Bronze      (notebooks/01_ingestion)
-    → Silver                    (notebooks/03_silver)
-    → Gold                      (notebooks/04_gold)
-    → Analytics                 (notebooks/05_analytics)
+    → Ingestion and Bronze      (notebooks/01_ingestion_bronze)
+    → Silver                    (notebooks/02_silver)
+    → Gold                      (notebooks/03_gold)
+    → Analytics                 (notebooks/04_analytics)
     → Dashboard
 ```
 
@@ -137,10 +137,11 @@ docs/
   architecture.md                 # placeholder
   runbook.md                      # placeholder
 notebooks/
-  01_ingestion/                   # sources to Bronze
-  03_silver/
-  04_gold/
-  05_analytics/                   # build, validation, run evidence
+  01_ingestion_bronze/                   # sources to Bronze
+  02_silver/
+  03_gold/
+  04_analytics/                   # build, validation, run evidence
+  99_maintenance/                 # one-off maintenance, run by hand (not in the job)
 resources/
   jobs/tourism_pipeline.yml       # end-to-end Databricks job
   seeds/                          # reviewed crosswalk files

@@ -26,7 +26,7 @@ def implemented_silver_checks():
     """{check_id: {notebook names}} for every dq("ID", ...) call in the Silver notebooks."""
     found = {}
     for path in NOTEBOOKS:
-        if path.parent.name != "03_silver":
+        if path.parent.name != "02_silver":
             continue
         for _, code in python_cells(load_notebook(path)):
             for _, check_id, _ in dq_calls(code):

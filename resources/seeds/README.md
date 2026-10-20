@@ -20,7 +20,7 @@ DOT and PSA identify places by **name**, not by PSGC code, and each source names
 
 ## `map_dot_area_to_psgc.csv`
 
-Maps every DOT overnight-traveler row printed at indent level 0 (regions, `GRAND TOTAL`) or 1 (provinces, HUCs, cities, zones) to a PSGC 2Q 2026 reporting unit, per validity period. Loaded by `notebooks/03_silver/01_silver_geography` into `03_silver.map_dot_area_to_psgc`.
+Maps every DOT overnight-traveler row printed at indent level 0 (regions, `GRAND TOTAL`) or 1 (provinces, HUCs, cities, zones) to a PSGC 2Q 2026 reporting unit, per validity period. Loaded by `notebooks/02_silver/01_silver_geography` into `03_silver.map_dot_area_to_psgc`.
 
 | Column | Meaning |
 | --- | --- |
@@ -42,7 +42,7 @@ Key: (`dot_indent_level`, `dot_parent_label`, `dot_area_label`, `valid_from_year
 
 ## `map_psa_area_to_psgc.csv`
 
-Maps every row label of the PSA provincial accounts tables (DS_27 to DS_32: 134 labels in DS_27 to DS_31; DS_32 has 133, with no City of Tacloban row) to a reporting unit. Loaded by `notebooks/03_silver/03_silver_psa_economy` into `03_silver.map_psa_area_to_psgc`.
+Maps every row label of the PSA provincial accounts tables (DS_27 to DS_32: 134 labels in DS_27 to DS_31; DS_32 has 133, with no City of Tacloban row) to a reporting unit. Loaded by `notebooks/02_silver/03_silver_psa_economy` into `03_silver.map_psa_area_to_psgc`.
 
 | Column | Meaning |
 | --- | --- |
@@ -57,7 +57,7 @@ Key: `psa_label`, one row per label (check `DQ-PSA-10`; a repeated label would d
 
 ## `map_psa_population_area_to_psgc.csv`
 
-Maps every DS_18 population label used by Silver to a PSGC 2Q 2026 reporting unit: the Excel area rows (`psa_ds_18`) and, from the PDF (`psa_ds_18_pdf_rows`), the same areas (for the Excel–PDF check), the region rows and the 16 HUCs. Loaded by `notebooks/03_silver/04_silver_population` into `03_silver.map_psa_population_area_to_psgc`.
+Maps every DS_18 population label used by Silver to a PSGC 2Q 2026 reporting unit: the Excel area rows (`psa_ds_18`) and, from the PDF (`psa_ds_18_pdf_rows`), the same areas (for the Excel–PDF check), the region rows and the 16 HUCs. Loaded by `notebooks/02_silver/04_silver_population` into `03_silver.map_psa_population_area_to_psgc`.
 
 DS_18 has its own crosswalk because its labels cover different areas from the PSA economy tables: DS_18 `Cebu` includes Cebu City, Lapu-Lapu and Mandaue.
 
@@ -79,7 +79,7 @@ Key: (`source_table`, `block_label`, `area_label`).
 
 ## `map_unit_coordinates.csv`
 
-One map point (latitude, longitude, WGS84) per reporting unit, used only to place the unit on the dashboard map. It is not used in any calculation. Loaded by `notebooks/04_gold/01_gold_dim_province` into the `latitude` and `longitude` columns of `04_gold.dim_province`.
+One map point (latitude, longitude, WGS84) per reporting unit, used only to place the unit on the dashboard map. It is not used in any calculation. Loaded by `notebooks/03_gold/01_gold_dim_province` into the `latitude` and `longitude` columns of `04_gold.dim_province`.
 
 **Source:** OCHA HDX, [Philippines - Subnational Administrative Boundaries](https://data.humdata.org/dataset/cod-ab-phl) (COD-AB v03, valid on 2025-02-13; source NAMRIA and PSA; licence CC BY-IGO). File `phl_admin_boundaries.xlsx`, sheets `phl_admin1` to `phl_admin3`, columns `center_lat` and `center_lon`: a point inside each area, so island provinces get a point on land.
 
