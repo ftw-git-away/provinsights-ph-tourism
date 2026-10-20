@@ -3351,7 +3351,7 @@
                   "fields": []
                 },
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*tuklas_dev.05_analytics: tourism_activity, tourism_concentration and tourism_economy, built by notebooks/05_analytics/01_build_analytics.*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*tuklas_dev.05_analytics: tourism_activity, tourism_concentration and tourism_economy, built by notebooks/04_analytics/01_build_analytics.*</span>",
                   "fields": []
                 }
               },
