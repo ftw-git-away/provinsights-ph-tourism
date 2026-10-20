@@ -23,25 +23,25 @@ Job name in Databricks: **ProvInsights PH - End-to-End Pipeline**
 
 ### Run order
 
-```text
-ingestion_setup
- ├─ ingest_psa
- ├─ ingest_psgc
- ├─ ingest_dot
- └─ ingest_psa_ds18_pdf
-        │  (all ingestion done)
-        ▼
-silver_setup ─ silver_geography ─┬─ silver_dot
-                                 ├─ silver_psa_economy
-                                 └─ silver_population
-        │  (all Silver done)
-        ▼
-gold_setup ─┬─ gold_dim_province ─┐
-            └─ gold_dim_year ─────┴─ gold_fact_province_year ─ gold_run_evidence
-                                                                      │  (after gold_run_evidence)
-                                                                      ▼
-                                   analytics ─ analytics_validation ─ analytics_run_evidence
+```mermaid
+flowchart LR
+  subgraph ingestion["Ingestion"]
+    ingestion_setup --> ingest_psa & ingest_psgc & ingest_dot & ingest_psa_ds18_pdf
+  end
+  subgraph silver["Silver"]
+    silver_setup --> silver_geography --> silver_dot & silver_psa_economy & silver_population
+  end
+  subgraph gold["Gold"]
+    gold_setup --> gold_dim_province & gold_dim_year --> gold_fact_province_year --> gold_run_evidence
+  end
+  subgraph analytics_layer["Analytics"]
+    analytics --> analytics_validation --> analytics_run_evidence
+  end
+  ingest_psa & ingest_psgc & ingest_dot & ingest_psa_ds18_pdf --> silver_setup
+  silver_dot & silver_psa_economy & silver_population --> gold_setup
+  gold_run_evidence --> analytics
 ```
+Update this diagram whenever tasks or `depends_on` change in `resources/jobs/tourism_pipeline.yml`.
 
 The job runs in layers. Each layer starts with its setup task, which waits for the whole
 previous layer, so each task depends only on the step directly before it. Tasks in the same
