@@ -73,17 +73,20 @@ class JobDefinitionTests(unittest.TestCase):
                 self.assertTrue((JOB_FILE.parent / relative).resolve().is_file(),
                                 f"{key}: notebook not found: {relative}")
 
-    def test_dashboard_tasks_refresh_a_bundle_dashboard(self):
-        """Each dashboard_task points to a dashboard defined in resources/dashboards/ and uses ${var.warehouse_id}."""
+    def test_dashboard_tasks_refresh_a_known_dashboard(self):
+        """Each dashboard_task uses ${var.warehouse_id} and refreshes either the existing shared dashboard
+        (${var.dashboard_id}) or a dashboard defined in resources/dashboards/ (${resources.dashboards.<name>.id})."""
         dashboards = load_dashboards()
         for key, task in self.tasks.items():
             if "dashboard_task" not in task:
                 continue
             with self.subTest(task=key):
                 ref = task["dashboard_task"].get("dashboard_id", "")
-                match = re.fullmatch(r"\$\{resources\.dashboards\.([a-z0-9_]+)\.id\}", ref)
-                self.assertIsNotNone(match, f"{key}: dashboard_id must be ${{resources.dashboards.<name>.id}}, got {ref!r}")
-                self.assertIn(match.group(1), dashboards, f"{key}: no dashboard {match.group(1)!r} in resources/dashboards/")
+                if ref != "${var.dashboard_id}":
+                    match = re.fullmatch(r"\$\{resources\.dashboards\.([a-z0-9_]+)\.id\}", ref)
+                    self.assertIsNotNone(match, f"{key}: dashboard_id must be ${{var.dashboard_id}} or "
+                                                f"${{resources.dashboards.<name>.id}}, got {ref!r}")
+                    self.assertIn(match.group(1), dashboards, f"{key}: no dashboard {match.group(1)!r} in resources/dashboards/")
                 self.assertEqual(task["dashboard_task"].get("warehouse_id"), "${var.warehouse_id}",
                                  f"{key}: warehouse_id must be ${{var.warehouse_id}}")
 
