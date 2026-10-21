@@ -2,6 +2,8 @@
 
 A Databricks AI/BI dashboard on tourism across the 100 reporting units. It shows where visitors go, how provinces compare on visitors and tourism-related output per visitor, whether high output per visitor is limited to higher-income provinces, and which provinces beyond the top 10 destinations warrant closer attention. It does not make recommendations or claim causes (DL-008).
 
+**Shared dashboard (PROVINSIGHTS DASHBOARD):** https://dbc-5e346557-03d4.cloud.databricks.com/dashboardsv3/01f1cce3ab3a196c90b5fdc0a8a478a6/published
+
 **Business question:** How can tourism and economic data across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development? (See `docs/business-and-analytical-questions.md`.)
 
 **Rule:** every chart and KPI reads the Analytics tables in `tuklas_dev.05_analytics`. Dataset queries only rename, label, reshape and filter, with one exception: the leading destinations, their yearly share, and the 2023 province profile (output per visitor, medians, groups, lagging). That logic lives in `dashboard/datasets/` (`01`, `04` and `05`–`08`), follows the definitions in `docs/business-and-analytical-questions.md` and decision log DL-031 to DL-037, and is the same in every file that uses it (the build script checks this). Any other new number goes into `notebooks/04_analytics/01_build_analytics` first.
@@ -136,4 +138,15 @@ Whole-dashboard checks, 2023:
 
 ## Refresh
 
-`refresh_dashboard` runs after `analytics_run_evidence` in `tourism_pipeline` and refreshes the shared dashboard (`${var.dashboard_id}`) on `${var.warehouse_id}`. The job runs as the deployer, who needs at least **Can Run** on the dashboard. See `resources/README.md` for the task table.
+The pipeline job refreshes the dashboard with the task `refresh_dashboard`, which runs after `analytics_run_evidence`, so it always shows the latest validated data.
+
+| Setting | Where |
+| --- | --- |
+| Dashboard ID | `dashboard_id` variable in `databricks.yml` |
+| SQL warehouse | `warehouse_id` variable in `databricks.yml` |
+
+**Who runs the refresh.** The job runs as the identity that deploys it: the owner of the deploy token used by `deploy.yml`. That identity needs at least **Can Run** on the dashboard, or the `refresh_dashboard` task fails.
+
+**If the refresh fails.** A failed `refresh_dashboard` marks the whole job run as failed and sends the failure email, even though every table was already written. Check which task failed before assuming the data build failed.
+
+**Editing.** Edit the dashboard in place in Databricks and publish (see *Build and update*). Don't re-import it: every import creates a new dashboard with a new ID. The pipeline only refreshes the data; it does not change the layout. If the dashboard is ever replaced, update `dashboard_id` in `databricks.yml` in a PR.

@@ -21,7 +21,7 @@ Merge to main ──► CD (validate → deploy → summary) ──► Databrick
 
 ### When it runs
 
-- Pushes to `main`, `feature/**`, `chore/**`, `docs/**` and `fix/**`
+- Pushes to `main`, `feature/**`, `chore/**`, `docs/**`, `fix/**`, `test/**` and `ci/**`
 - Pull requests into `main`
 - Manually: **Actions → CI → Run workflow**
 
@@ -33,12 +33,11 @@ Runs without Databricks credentials and never connects to live DOT, PSA or Datab
 
 | Check | Fails when |
 | --- | --- |
-| Required files and directories | `README.md`, `docs/`, `notebooks/`, `resources/`, `src/` or `tests/` is missing, or `README.md` is empty |
-| Python syntax in `src/` | A `.py` file in `src/` does not compile |
+| Required files and directories | `README.md`, `docs/`, `notebooks/`, `resources/` or `tests/` is missing, or `README.md` is empty |
 | Notebooks directory contents | `notebooks/` contains anything other than `.ipynb` files and `README.md` files |
-| Notebook structure and cell syntax | A notebook is not valid JSON, has an invalid cell type, has no markdown cell, has a `%python` cell with a syntax error, or has a `%sql` cell that is empty or not valid Databricks SQL |
+| Run unit tests | Any test in `tests/unit/` fails: job definition, notebook Python and SQL syntax, seed data rules, or Silver DQ docs alignment (see [`tests/README.md`](../../tests/README.md)) |
 
-Cells without a `%python`, `%sql` or `%md` magic are reported as `INFO` and not syntax-checked.
+Test dependencies are pinned in `tests/requirements.txt`.
 
 ### Job 2: Validate Databricks bundle
 
@@ -51,7 +50,7 @@ Runs `databricks bundle validate -t dev` against the branch, using the separate 
 
 ### When it runs
 
-- Pushes to `main` that change any of: `databricks.yml`, `resources/**`, `notebooks/**`, `src/**`, `tests/**`, `dashboard/**`, `.github/workflows/deploy.yml`
+- Pushes to `main` that change any of: `databricks.yml`, `resources/**`, `notebooks/**`, `tests/**`, `dashboard/**`, `.github/workflows/deploy.yml`
 - Manually: **Actions → CD - Deploy ProvInsights PH to Databricks → Run workflow**
 
 Changes to `docs/` or README files alone do not trigger a deploy. Pull requests never deploy.
