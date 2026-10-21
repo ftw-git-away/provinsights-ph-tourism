@@ -1,8 +1,7 @@
 # ProvInsights
 
 [![CI](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml/badge.svg)](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/ci.yml)
-
-**Province-level tourism and economic analytics to identify destinations beyond the leading tourist destinations that warrant closer attention**
+[![CD](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/ftw-git-away/provinsights-ph-tourism/actions/workflows/deploy.yml)
 
 ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data in one Databricks pipeline, so planners can see where tourism is concentrated, how provinces compare in visitors and tourism-related output per visitor, and which provinces beyond the leading destinations warrant closer attention.
 
@@ -90,24 +89,46 @@ See [Source assessment](docs/consolidated-data-sources.md) and [Data sources](do
 
 ## How the pipeline works
 
-```text
-Government source files
-    → Ingestion and Bronze      (notebooks/01_ingestion)
-    → Silver                    (notebooks/02_silver)
-    → Gold                      (notebooks/03_gold)
-    → Analytics                 (notebooks/04_analytics)
-    → Dashboard
+```mermaid
+flowchart LR
+    subgraph SRC["Government sources (Google Drive)"]
+        DOT["DOT<br/>overnight travelers<br/>yearly PDFs"]
+        PSA["PSA<br/>GDP, A and F GVA, population<br/>Excel and PDF"]
+        PSGC["PSGC<br/>official place codes<br/>Excel"]
+    end
+
+    subgraph DBX["Databricks: catalog tuklas_dev"]
+        BR["Ingestion and Bronze<br/>01_ingestion_bronze<br/>kept exactly as printed"]
+        SV["Silver<br/>02_silver<br/>cleaned, one row per province and year"]
+        GD["Gold<br/>03_gold<br/>star schema: dim_province, dim_year, fact_province_year"]
+        AN["Analytics<br/>04_analytics<br/>metrics computed once, then validated"]
+        DQ[("06_data_quality.dq_results<br/>BLOCK and REVIEW checks")]
+    end
+
+    SEED[("resources/seeds<br/>reviewed crosswalks")]
+    DASH["AI/BI dashboard<br/>AQ1 to AQ4"]
+
+    DOT --> BR
+    PSA --> BR
+    PSGC --> BR
+    BR --> SV --> GD --> AN --> DASH
+    SEED --> SV
+    SV -. checks .-> DQ
+    GD -. checks .-> DQ
+    AN -. checks .-> DQ
 ```
 
-- **Silver** cleans each source and maps places to PSGC units. Each Silver notebook runs its own data-quality checks and fails on a BLOCK error.
+The Databricks job [`tourism_pipeline`](resources/jobs/tourism_pipeline.yml) runs every layer in order and ends by refreshing the dashboard. A BLOCK failure stops the run before bad data is written, and a failure email goes to `alert_email`.
+
+- **Bronze** keeps every source value exactly as printed, with its file, page and row, so any number can be traced back to the original document.
+- **Silver** cleans each source and maps every place to a PSGC reporting unit using the reviewed crosswalks in `resources/seeds/`. Each Silver notebook runs its own data-quality checks and fails on a BLOCK error.
 - **Gold** is a star schema: `dim_province`, `dim_year` and `fact_province_year` (see [schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md)).
 - **Analytics** calculates the business metrics once, in `tuklas_dev.05_analytics`. Every row carries the Analytics run ID and the exact Gold Delta versions it was built from. `tourism_recovery` and `traveler_segment_recovery` are also built as supporting tables, but they are not used to answer the business question.
-- **Data quality:** check results are saved in `06_data_quality.dq_results`, and each layer records its runs in a run log (`silver_run_log`, `gold_run_log`, `05_analytics.analytics_run_log`). A BLOCK check protects correctness. A REVIEW check flags something unusual that needs a person to look.
+- **Data quality:** check results are saved in `06_data_quality.dq_results`, and each layer records its runs in a run log (`silver_run_log`, `gold_run_log`, `05_analytics.analytics_run_log`). A BLOCK check protects correctness. A REVIEW check flags something unusual that needs a person to look. Rules are in [data-quality rules](docs/data-quality-rules.md).
 
-Run evidence: [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md).
+Run evidence: [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md). Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
 
-The job in [`resources/jobs/tourism_pipeline.yml`](resources/jobs/tourism_pipeline.yml) runs the layers in dependency order. Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
-
+  
 ## Dashboard
 
 The Databricks AI/BI dashboard answers one analytical question per page.
