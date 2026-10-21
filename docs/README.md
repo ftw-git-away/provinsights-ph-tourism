@@ -4,7 +4,7 @@ Every ProvInsights document, split by reader. **Business readers** (planners, re
 
 ## Part A. For business readers
 
-What question ProvInsights answers, what the data can and cannot say, and what the dashboard shows. No code or table names needed.
+What question ProvInsights answers, what the data can and cannot say, and what the dashboard shows. No coding knowledge needed.
 
 | Document | What it covers |
 | --- | --- |
@@ -12,6 +12,7 @@ What question ProvInsights answers, what the data can and cannot say, and what t
 | [Data sources](consolidated-data-sources.md) | Which government sources are used, what each one feeds, known source problems and how they were handled |
 | [Dashboard evidence](dashboard-evidence.md) | Each dashboard page, with screenshots and the numbers it shows |
 | [Decision log](project-decision-log.md) | Every approved decision (DL-001 onwards), with the pull request that approved it, and the open issues |
+| [Data dictionary](data-dictionary.md) | What every field means, for readers who want column-level definitions |
 
 ## Part B. For technical readers
 
@@ -21,6 +22,7 @@ What question ProvInsights answers, what the data can and cannot say, and what t
 | --- | --- |
 | [Architecture](architecture.md) | Components, data flow, data quality, orchestration, CI/CD, design decisions and limitations |
 | [Architecture diagram](architecture.png) | The pipeline on one page |
+| [Data sources](consolidated-data-sources.md) | Source identifiers, coverage and known source issues |
 | [Bronze ingestion guide](bronze-ingestion-guide.md) | Google Drive folders and file IDs, the ingestion notebooks, control tables and run checks |
 | [Schema and source-to-target mapping](schema-and-source-to-target-mapping.md) | The Gold star schema, how each source maps to it, and how Analytics and the dashboard profile are calculated |
 | [Data dictionary](data-dictionary.md) | Every table and column, from ingestion to the dashboard |
@@ -33,7 +35,8 @@ Each task has its own document, so a reader only reads the part they need.
 | --- | --- | --- |
 | Set ProvInsights up once (new workspace or handoff), grant access, configure | [Setup and handoff](setup-and-handoff.md) | New owner, administrator |
 | Run the pipeline, check a run, fix a failure, roll back | [Runbook](runbook.md) | Operator, day to day |
-| Change a seed, a check, a job task, the dashboard, or load a new year | [Making changes](making-changes.md) | Developer |
+| Add a feature: a seed, a check, a job task, a dashboard change | [Making changes, Part 1](making-changes.md#part-1-new-features) | Developer |
+| Keep the system current: a new year of data, token renewal, version updates | [Making changes, Part 2](making-changes.md#part-2-system-updates) | Owner, administrator |
 | Look up job tasks, order and settings | [`resources/README.md`](../resources/README.md) | Developer |
 | Look up the seed files | [`resources/seeds/README.md`](../resources/seeds/README.md) | Developer |
 | Find a notebook | [`notebooks/README.md`](../notebooks/README.md) | Developer |
@@ -49,6 +52,7 @@ Each task has its own document, so a reader only reads the part they need.
 | [Pipeline and CI/CD evidence](pipeline-evidence.md) | Full run of all 19 job tasks, task dependencies, the CI and CD workflows, and screenshots in [`images/`](images/) |
 | [Gold run evidence](gold-run-evidence.md) | Results of the latest Gold run |
 | [Analytics run evidence](analytics-run-evidence.md) | Results of the latest Analytics build and validation |
+| [Dashboard evidence](dashboard-evidence.md) | Each dashboard page checked against the Analytics tables |
 
 ## Conventions
 

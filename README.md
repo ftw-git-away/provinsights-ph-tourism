@@ -15,7 +15,7 @@ ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Departme
 | See how the system is built and why | [Architecture](docs/architecture.md) |
 | Hand off the project or set it up in a new workspace (one time) | [Setup and handoff](docs/setup-and-handoff.md) |
 | Run, check and fix the pipeline (day to day) | [Runbook](docs/runbook.md) |
-| Change the pipeline (seeds, checks, tasks, dashboard, a new year) | [Making changes](docs/making-changes.md) |
+| Add a feature or keep the system current (new year of data, token renewal) | [Making changes](docs/making-changes.md) |
 | Look up tables and columns | [Data dictionary](docs/data-dictionary.md), [Schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md) |
 | See the checks and the latest results | [Pipeline and CI/CD evidence](docs/pipeline-evidence.md), [Data-quality rules](docs/data-quality-rules.md), [Analytics run evidence](docs/analytics-run-evidence.md), [Dashboard evidence](docs/dashboard-evidence.md) |
 | Understand past choices | [Decision log](docs/project-decision-log.md) |
@@ -80,7 +80,7 @@ The trend period is **2019-2023**, with 2020 and 2021 identified as COVID-19 yea
 
 ## Province groups
 
-Each province is placed against the 2023 medians of visitors (279,150) and output per visitor (PHP 8,652), taken across all provinces with both values. At or above the median counts as high (DL-034).
+Each province is placed against the 2023 medians of visitors (279,150) and output per visitor (₱8,652), taken across all provinces with both values. At or above the median counts as high (DL-034).
 
 | Group | Visitors | Output per visitor | Gap the data shows | What to look at |
 | --- | --- | --- | --- | --- |
@@ -163,7 +163,7 @@ docs/
   architecture.png                # architecture diagram
   setup-and-handoff.md            # one-time setup, access, configuration (administrators)
   runbook.md                      # run, check, fix and roll back (operators)
-  making-changes.md               # seeds, checks, tasks, dashboard, new year (developers)
+  making-changes.md               # new features; system updates: new year, tokens, versions
   consolidated-data-sources.md    # sources, identifiers and limitations
   bronze-ingestion-guide.md       # Google Drive folders, file IDs, ingestion control tables
   data-dictionary.md              # every Gold, Analytics and dashboard column
