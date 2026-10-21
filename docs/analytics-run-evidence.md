@@ -6,18 +6,18 @@ This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analy
 
 | | |
 | --- | --- |
-| **Run date** | 15 October 2026 (UTC) |
+| **Run date** | 21 October 2026 (UTC) |
 | **Run by** | `Haze` |
 | **Notebooks** | `01_build_analytics`, `02_analytics_validation`, `03_analytics_run_evidence` |
-| **Build run** | `analytics_20261015_033823_3937f856` (SUCCESS) |
-| **Validation run** | `analytics_validation_20261015_035301_8f6673e5` (SUCCESS) |
-| **Gold versions** | fact_province_year `v72`, dim_province `v83`, dim_year `v55` |
+| **Build run** | `analytics_20261021_005954_d19b1b91` (SUCCESS) |
+| **Validation run** | `analytics_validation_20261021_011314_56fc46bd` (SUCCESS) |
+| **Gold versions** | fact_province_year `v152`, dim_province `v167`, dim_year `v109` |
 
 ## Summary
 
 - **Build:** SUCCESS. 36 BLOCK checks and 6 REVIEW checks, all passed: 0 failures, 0 REVIEW findings. 5 tables, 958 rows written.
 - **Validation:** SUCCESS. 148 BLOCK checks, all passed: 0 failures, 0 REVIEW findings.
-- **Lineage:** all five tables carry the latest build run ID and the same Gold versions (v72 / v83 / v55); validation ran after the build.
+- **Lineage:** all five tables carry the latest build run ID and the same Gold versions (v152 / v167 / v109); validation ran after the build.
 - **Edge cases match the source files:** 80 of 80 values and 8 of 8 tourism–economy patterns.
 - **Headline counts:** in 2023, 39 units are above 2019, 52 below and 9 not compared; 43 of 91 eligible units show tourism and A&F GVA moving in opposite directions.
 - **Segment coverage (2023 below-2019 cohort of 52 units):** domestic 52/52, foreign 47/52, overseas Filipino 26/52.
@@ -28,8 +28,8 @@ This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analy
 
 | notebook_name | run_id | status | tables_written | rows_written |
 | --- | --- | --- | --: | --: |
-| 01_build_analytics | analytics_20261015_033823_3937f856 | SUCCESS | 5 | 958 |
-| 02_analytics_validation | analytics_validation_20261015_035301_8f6673e5 | SUCCESS | 0 | 0 |
+| 01_build_analytics | analytics_20261021_005954_d19b1b91 | SUCCESS | 5 | 958 |
+| 02_analytics_validation | analytics_validation_20261021_011314_56fc46bd | SUCCESS | 0 | 0 |
 
 | notebook_name | severity | status | count |
 | --- | --- | --- | --: |
@@ -37,7 +37,9 @@ This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analy
 | 01_build_analytics | REVIEW | PASS | 6 |
 | 02_analytics_validation | BLOCK | PASS | 148 |
 
-All 190 checks passed. The five tables carry `_analytics_run_id = analytics_20261015_033823_3937f856` and Gold versions v72 / v83 / v55, and validation ran after the build.
+All 190 checks passed. The five tables carry `_analytics_run_id = analytics_20261021_005954_d19b1b91` and Gold versions v152 / v167 / v109, and validation ran after the build.
+
+> **Screenshots and detailed results in sections 2 and 3 below are from the 15 October 2026 run.** This run (21 October) has the same row counts (958), the same check counts (36 BLOCK + 6 REVIEW build, 148 BLOCK validation), and unchanged SQL; the edge-case values, headline counts and segment coverage are expected to be identical.
 
 <img width="1182" height="158" alt="image" src="https://github.com/user-attachments/assets/68aea8ca-4e5e-4201-aeb8-c7ea1ec4f315" />
 
