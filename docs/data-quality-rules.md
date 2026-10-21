@@ -319,7 +319,7 @@ The first version of this document (Issue #5) proposed some IDs that are not che
 ## 10. Adding or changing a check
 
 1. Pick the next free number in the right prefix (never reuse an ID).
-2. Add the `dq(...)` call **before** the write step, with a clear `expected` and `observed`, and up to 20 sample keys. In the Analytics notebooks, checks are recorded with `assert_block(...)` or `record_check(...)` instead; add the check's name to `DQ_ID_BUILD` (build) or make sure it matches a prefix in `DQ_ID_RULES` (validation); a check without an ID stops the notebook before results are written.
+2. Add the `dq(...)` call **before** the write step, with a clear `expected` and `observed`, and up to 20 sample keys. In the Analytics notebooks, checks are recorded with `assert_block(...)` or `record_check(...)` instead; add the check's name to `DQ_ID_BUILD` (build) or make sure it matches a prefix in `DQ_ID_RULES` (validation); a check without an ID stops the notebook when the check is recorded. Tables from earlier phases may already be replaced, and no check results are saved for that run.
 3. Add the check to the notebook's check table **and** to section 6 here.
 4. If it encodes an expected exception, put the expected list or tolerance in the Configuration cell, and add a row to section 5 (and section 7 if it is a documented exception).
 5. Run the notebook and paste its results into the PR.
