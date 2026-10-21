@@ -13,7 +13,7 @@
 
 > **How can tourism and economic data across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development?**
 
-ProvInsights shows *where to look closer*. It does not prescribe interventions, investments or lead agencies.
+ProvInsights shows *where to look closer*. It does not prescribe interventions, investments or lead agencies (DL-031, DL-037).
 
 ## Scope and definitions
 
@@ -24,10 +24,11 @@ ProvInsights shows *where to look closer*. It does not prescribe interventions, 
 | --- | --- |
 | **Tourism activity** | Number of overnight travelers in a province in a year. |
 | **Visitors (overnight travelers)** | Travelers reported by DOT as staying overnight in accommodation establishments (`total_travelers`). They count stays, not unique people, and exclude day-trippers. |
-| **Leading destinations (top 10 destinations)** | The 10 provinces with the highest average annual overnight travelers, 2019-2023 |
-| **Tourism-related output** | Accommodation and food services (A&F) gross value added, current prices (`afs_gva_current_2023`). Our tourism-related economic proxy. |
-| **Output per visitor** | A&F GVA ÷ overnight travelers, 2023, in PhP |
-| **Higher/lower income** | 2023 GDP per capita at or above/below the median of all reporting units with 2023 GDP per capita. |
+| **Leading destinations (top 10 destinations)** | The 10 provinces with the highest average annual overnight travelers, 2019-2023, averaged over the years each province has data (DL-032). |
+| **Tourism-related output** | Accommodation and food services (A&F) gross value added, current prices (`afs_gva_current_2023`). Our tourism-related economic proxy (DL-007). |
+| **Output per visitor** | A&F GVA ÷ overnight travelers, 2023, in PhP (DL-033). |
+| **Higher/lower income** | 2023 GDP per capita at or above/below the median of all reporting units with 2023 GDP per capita (DL-035). |
+| **Small base** | Fewer than 10,000 overnight travelers in 2023. Output per visitor may be inflated by the small count, so these provinces are marked "Check before naming" (DL-036). |
 
 ## Analytical questions
 
@@ -44,32 +45,32 @@ The four questions build the answer in order: find the gap, compare output per v
 
 **AQ3 is a check on AQ2.** Higher-income provinces have more hotel and restaurant activity from their own residents, so they could show high output per visitor without more tourism. If lower-income provinces also appear among the high-output groups, the pattern goes beyond income, and those provinces deserve a closer look.
 
-**AQ4 lists the provinces beyond the leading destinations by the gap the data shows** (Busy but low-output, then Small but high-output, then Limited activity), then lower-income provinces first, then by visitors, highest first.
+**AQ4 lists every province beyond the leading destinations that has a group**, ordered by the gap the data shows (Busy but low-output, then Small but high-output, then Limited activity, then Established, which shows no gap on these two measures), then lower-income provinces first, then by visitors, highest first (DL-037). Small-base provinces stay in the list, marked "Check before naming".
 
 ## Province groups
 
-Each province is placed against the 2023 medians of visitors and output per visitor, taken across all provinces with data.
+Each province is placed against the 2023 medians of visitors and output per visitor, taken across all provinces with both values. At or above the median counts as high (DL-034).
 
-| Group | Visitors | Output per visitor | What it looks like | Gap the data shows |
-| --- | --- | --- | --- | --- |
-| **Established** | High | High | Visitors come, and each is linked to high local activity | None on these two measures |
-| **Busy but low-output** | High | Low | Visitors come, but each is linked to less local activity | Output per visitor |
-| **Small but high-output** | Low | High | Few visitors, but high output from each | Visitor numbers |
-| **Limited activity** | Low | Low | Little tourism activity so far | Both |
+| Group | Visitors | Output per visitor | What it looks like | Gap the data shows | What to look at |
+| --- | --- | --- | --- | --- | --- |
+| **Established** | High | High | Visitors come, and each is linked to high local activity | None on these two measures | Do the benefits reach nearby provinces? |
+| **Busy but low-output** | High | Low | Visitors come, but each is linked to less local activity | Output per visitor | Where does visitor spending go? |
+| **Small but high-output** | Low | High | Few visitors, but high output from each | Visitor numbers | What keeps visitor numbers low? |
+| **Limited activity** | Low | Low | Little tourism activity so far | Both | How does tourism compare with other sectors here? |
 
-Groups and medians are derived in the dashboard dataset `ds_province_profile` (SQL in `dashboard/datasets/`).
+Groups and medians are derived in the dashboard dataset `ds_profile` (`dashboard/datasets/05_profile_2023.sql`).
 
 ## Out of scope
 
 - Causal claims, predicted returns or guaranteed outcomes (DL-008).
-- Recommended interventions, investments, infrastructure or lead agencies. ProvInsights does not measure access, carrying capacity, community acceptance or investment viability.
+- Recommended interventions, investments, infrastructure or lead agencies. ProvInsights does not measure access, carrying capacity, community acceptance or investment viability (DL-037).
 - Treating A&F GVA as tourism revenue or tourist spending (DL-007).
 - Pre- versus post-pandemic comparison.
 
 ## Caveats
 
-- **Output per visitor is a proxy.** A&F includes spending by residents and business travelers. A small or undercounted visitor count can also inflate it, so provinces under 10,000 travelers in 2023 are flagged as a small base (DL-028).
-- **Missing is not zero.** Missing values stay NULL (DL-009). Provinces DOT doesn't report (BARMM provinces and Sulu) get no group.
+- **Output per visitor is a proxy.** A&F includes spending by residents and business travelers. A small or undercounted visitor count can also inflate it, so provinces under 10,000 travelers in 2023 are flagged as a small base (DL-036).
+- **Missing is not zero.** Missing values stay NULL (DL-009). Provinces DOT doesn't report (BARMM provinces and Sulu, plus Abra in 2023) get no group.
 - **Shares are of reported visitors** in the included provinces, not every visitor to the country.
 - **Groups are relative.** Medians and groups describe positions among provinces with 2023 data, not national benchmarks.
-- **Recovery is supporting context.** `usual_strong_destination_2019` (DL-026), `tourism_recovery` and `traveler_segment_recovery` stay in Analytics, but they are not used to answer the business question.
+- **Recovery is supporting context.** `usual_strong_destination_2019` (DL-026, superseded), `tourism_recovery` and `traveler_segment_recovery` (DL-028, DL-029) stay in Analytics, but they are not used to answer the business question.
