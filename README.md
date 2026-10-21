@@ -181,12 +181,12 @@ tests/
   unit/                           # unit tests run in CI: job, notebooks, SQL, seeds, docs
   requirements.txt                # pinned test dependencies
 dashboard/
-  README.md                       # shared dashboard link, refresh and editing
+  README.md                       # opening, refreshing and editing the shared dashboard
 ```
 
 ## Dashboard
 
-The shared Databricks AI/BI dashboard (PROVINSIGHTS DASHBOARD) answers one analytical question per page. The pipeline refreshes it at the end of every run. Link, refresh and editing rules are in [`dashboard/README.md`](dashboard/README.md), and each page is checked against the Analytics tables in [dashboard evidence](docs/dashboard-evidence.md).
+The shared Databricks AI/BI dashboard (PROVINSIGHTS DASHBOARD) answers one analytical question per page. The pipeline refreshes it at the end of every run. Opening, refreshing and editing it are covered in [`dashboard/README.md`](dashboard/README.md), and each page is checked against the Analytics tables in [dashboard evidence](docs/dashboard-evidence.md).
 
 | Page | Answers |
 | --- | --- |
@@ -195,7 +195,7 @@ The shared Databricks AI/BI dashboard (PROVINSIGHTS DASHBOARD) answers one analy
 | 2. Visitors and output per visitor | AQ2: the four province groups |
 | 3. Output and income | AQ3: whether high output per visitor is found only in higher-income provinces |
 | 4. Provinces to watch | AQ4: provinces beyond the leading destinations that warrant closer attention |
-| Definitions and Limitations | Key terms, the proxy note and caveats |
+| Definitions | Key terms, data notes, out of scope and lineage |
 
 Appendix pages A and B show tourism and traveler recovery as reference only. They do not answer an AQ.
 
