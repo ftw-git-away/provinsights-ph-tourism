@@ -153,6 +153,7 @@ Every table and column is described in the [data dictionary](docs/data-dictionar
   PULL_REQUEST_TEMPLATE.md
   workflows/                      # ci.yml (validate + unit tests), deploy.yml (deploy bundle)
 docs/
+  README.md                       # index of every document
   business-and-analytical-questions.md   # business question, AQ1-AQ4, definitions, province groups
   project-decision-log.md         # approved decisions (DL-001 onwards)
   architecture.md                 # architecture, design decisions, limitations
