@@ -119,14 +119,14 @@ resources:
             notebook_path: ../../notebooks/03_gold/00_gold_setup.ipynb
 
         - task_key: gold_dim_province
-          timeout_seconds: 2700   # temporary; set to ~3x real runtime after first successful run
+          timeout_seconds: 2700   # kept high: Gold dims wait for serverless compute after Silver; review if runs stay well under this
           depends_on:
             - task_key: gold_setup
           notebook_task:
             notebook_path: ../../notebooks/03_gold/01_gold_dim_province.ipynb
 
         - task_key: gold_dim_year
-          timeout_seconds: 2700   # temporary; set to ~3x real runtime after first successful run
+          timeout_seconds: 2700   # kept high: Gold dims wait for serverless compute after Silver; review if runs stay well under this
           depends_on:
             - task_key: gold_setup
           notebook_task:
@@ -168,3 +168,12 @@ resources:
             - task_key: analytics_validation
           notebook_task:
             notebook_path: ../../notebooks/04_analytics/03_analytics_run_evidence.ipynb
+            
+        # Dashboard (refreshes after analytics evidence)
+        - task_key: refresh_dashboard
+          timeout_seconds: 1800   # allows serverless warehouse start-up
+          depends_on:
+            - task_key: analytics_run_evidence
+          dashboard_task:
+            dashboard_id: ${var.dashboard_id}
+            warehouse_id: ${var.warehouse_id}

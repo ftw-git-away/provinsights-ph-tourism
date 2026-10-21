@@ -37,9 +37,13 @@ flowchart LR
   subgraph analytics_layer["Analytics"]
     analytics --> analytics_validation --> analytics_run_evidence
   end
+    subgraph dashboard_layer["Dashboard"]
+    refresh_dashboard
+  end
   ingest_psa & ingest_psgc & ingest_dot & ingest_psa_ds18_pdf --> silver_setup
   silver_dot & silver_psa_economy & silver_population --> gold_setup
   gold_run_evidence --> analytics
+  analytics_run_evidence --> refresh_dashboard
 ```
 Update this diagram whenever tasks or `depends_on` change in `resources/jobs/tourism_pipeline.yml`.
 
@@ -72,6 +76,7 @@ layers can run out of order.
 | 04 Analytics | `analytics` | `notebooks/04_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
 | 04 Analytics | `analytics_validation` | `notebooks/04_analytics/02_analytics_validation.ipynb` | `analytics` |
 | 04 Analytics | `analytics_run_evidence` | `notebooks/04_analytics/03_analytics_run_evidence.ipynb` | `analytics_validation` |
+| Dashboard | `refresh_dashboard` | Shared dashboard (`dashboard_id` variable in `databricks.yml`) | `analytics_run_evidence` |
 
 ### Folders and schemas
 
@@ -84,6 +89,7 @@ Notebook folders are numbered by pipeline step, and each writes to its own schem
 | `02_silver` | `03_silver` |
 | `03_gold` | `04_gold` |
 | `04_analytics` | `05_analytics` |
+| `99_maintenance` | none: one-off notebooks run by hand, not part of the job (e.g. dropping stale `02_bronze` tables) |
 
 Data-quality results from every layer go to `06_data_quality`.
 
@@ -97,7 +103,7 @@ data-quality checks before writing; results go to `06_data_quality.dq_results`, 
 | --- | --- | --- |
 | `max_concurrent_runs` | `1` | Two runs never write the same tables at the same time |
 | `timeout_seconds` (job) | `10800` (3 h) | Stops a stuck run; review after the first full run |
-| `timeout_seconds` (task) | 900–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run. Setup and run-evidence tasks get 1800 s to allow for serverless compute waits |
+| `timeout_seconds` (task) | 900–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run. Setup, run-evidence and dashboard refresh tasks get 1800 s to allow for serverless compute waits |
 | Retries | 2 retries, 30 s apart | Ingestion tasks only, since they call external sources |
 | Failure emails | `${var.alert_email}` | See below |
 | Skipped / cancelled runs | No alert | Avoids noise from manual cancels |
