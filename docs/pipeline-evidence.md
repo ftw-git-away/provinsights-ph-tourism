@@ -207,33 +207,39 @@ Both Databricks tokens expire, so a renewal is scheduled before the first expiry
 
 ## 7. Run evidence
 
-### Full pipeline run
+### Full run of the final pipeline
 
 | Item | Result |
 | --- | --- |
-| Job run | [300208709071832](https://dbc-5e346557-03d4.cloud.databricks.com/jobs/680308985921105/runs/300208709071832): every task succeeded |
-| Data quality | Every `BLOCK` check passed in Silver, Gold and Analytics. One `REVIEW` flag (`DQ-DOT-11`, 3 unit-years with a year-over-year change above 5×), documented and non-blocking |
-| Run logs | Latest run of every Silver, Gold and Analytics notebook is `SUCCESS`; `02_silver_dot` is `SUCCESS_WITH_REVIEW`, matching `DQ-DOT-11` |
-| Tables written by the run | `04_gold.fact_province_year` version 137 (`CREATE OR REPLACE TABLE AS SELECT`) shows `jobRunId` 300208709071832 in its Delta history |
+| Job run | [1038597319533082](https://dbc-5e346557-03d4.cloud.databricks.com/jobs/680308985921105/runs/1038597319533082): all 19 tasks succeeded, from ingestion to `refresh_dashboard` |
+| Duration | About 55 minutes (21 Oct 2026, 2:27 to 3:22 PM). Longest tasks: `ingest_psa` 12m 38s, `gold_setup` 11m 20s (includes the serverless start-up wait), `silver_psa_economy` 10m 1s, `refresh_dashboard` 9m 32s |
+| Code | `main` as deployed by the CD workflow when the run started (after #99), including the renamed notebook folders, the `refresh_dashboard` task and the latest Analytics changes |
+| Data quality | Every `BLOCK` check passed in Silver, Gold and Analytics. REVIEW flags: `DQ-DOT-11` only (3 unit-years with a year-over-year change above 5×), documented and non-blocking |
+| Dashboard | Refreshed by `refresh_dashboard` as the last task of the run |
 
-<!-- Add the screenshot as docs/images/job-run-graph.png, or delete this line. -->
-![Successful job run](images/job-run-graph.png)
+![Successful job run: timeline](images/job-run-graph.png)
 
-### Changes verified after that run
+![Successful job run: every task Succeeded, with its type and dependencies](images/job-run-tasks.png)
 
-To save compute, later changes were verified individually instead of with a second full run:
+The "Insights" labels on four tasks are Databricks performance suggestions, not warnings or failures. Every task's status is **Succeeded**.
 
-| Change | Verified by |
-| --- | --- |
-| Notebook folder rename | `bundle validate` and the CI test "every notebook path exists" |
-| `refresh_dashboard` task | `--only refresh_dashboard` runs on the shared dashboard succeeded (`TERMINATED SUCCESS`) |
-| Analytics updates | Reruns of all three Analytics notebooks on 21 Oct, recorded in [analytics-run-evidence.md](analytics-run-evidence.md) |
+To check the data-quality results of a run:
+
+```sql
+SELECT notebook_name, severity, status, count(*) AS checks
+FROM tuklas_dev.`06_data_quality`.dq_results
+WHERE checked_at >= (SELECT max(checked_at) FROM tuklas_dev.`06_data_quality`.dq_results) - INTERVAL 24 HOURS
+GROUP BY ALL ORDER BY ALL;
+```
+
+### Earlier full run
+
+[300208709071832](https://dbc-5e346557-03d4.cloud.databricks.com/jobs/680308985921105/runs/300208709071832) (before the folder rename and the dashboard task) also succeeded. Its Delta history shows `04_gold.fact_province_year` version 137 written with `jobRunId` 300208709071832, which shows the tables come from the job, not from hand runs.
 
 ### CI/CD runs
 
 Every merged pull request passed both required CI checks, and every merge that changed pipeline files was deployed by CD. See the repository's **Actions** tab.
 
-<!-- Add the screenshot as docs/images/github-actions-runs.png, or delete this line. -->
 ![GitHub Actions runs](images/github-actions-runs.png)
 
 Layer-level evidence: [Gold](gold-run-evidence.md) and [Analytics](analytics-run-evidence.md).
