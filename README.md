@@ -7,12 +7,15 @@ ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Departme
 
 ## Start here
 
+**Business readers** (planners, reviewers): read the problem below, then [Business and analytical questions](docs/business-and-analytical-questions.md) and the [dashboard evidence](docs/dashboard-evidence.md). **Technical readers**: use the [documentation index](docs/README.md#part-b-for-technical-readers).
+
 | To... | Read |
 | --- | --- |
 | Understand the question and definitions | [Business and analytical questions](docs/business-and-analytical-questions.md) |
 | See how the system is built and why | [Architecture](docs/architecture.md) |
-| Set up, run, check and fix the pipeline | [Runbook](docs/runbook.md) |
-| Hand off the project or set it up in a new workspace | [Runbook, section 0](docs/runbook.md#0-hand-off-set-up-in-a-new-workspace) |
+| Hand off the project or set it up in a new workspace (one time) | [Setup and handoff](docs/setup-and-handoff.md) |
+| Run, check and fix the pipeline (day to day) | [Runbook](docs/runbook.md) |
+| Change the pipeline (seeds, checks, tasks, dashboard, a new year) | [Making changes](docs/making-changes.md) |
 | Look up tables and columns | [Data dictionary](docs/data-dictionary.md), [Schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md) |
 | See the checks and the latest results | [Pipeline and CI/CD evidence](docs/pipeline-evidence.md), [Data-quality rules](docs/data-quality-rules.md), [Analytics run evidence](docs/analytics-run-evidence.md), [Dashboard evidence](docs/dashboard-evidence.md) |
 | Understand past choices | [Decision log](docs/project-decision-log.md) |
@@ -144,7 +147,7 @@ The Databricks job [`tourism_pipeline`](resources/jobs/tourism_pipeline.yml) run
 - **Analytics** calculates the base metrics once, in `tuklas_dev.05_analytics`. The 2023 province profile used by AQ2 to AQ4 (leading destinations, output per visitor, medians, groups, lower-income and small-base flags) is computed from those tables in the dashboard dataset `ds_profile` (`dashboard/datasets/05_profile_2023.sql`). Every row carries the Analytics run ID and the exact Gold Delta versions it was built from. `tourism_recovery` and `traveler_segment_recovery` are also built as supporting tables, but they are not used to answer the business question.
 - **Data quality:** check results are saved in `06_data_quality.dq_results`, and each layer records its runs in a run log (`silver_run_log`, `gold_run_log`, `05_analytics.analytics_run_log`). A BLOCK check protects correctness. A REVIEW check flags something unusual that needs a person to look. Rules are in [data-quality rules](docs/data-quality-rules.md).
 
-Every table and column is described in the [data dictionary](docs/data-dictionary.md). Architecture, design decisions and limitations: [docs/architecture.md](docs/architecture.md). How to run, check and fix the pipeline: [docs/runbook.md](docs/runbook.md). Run evidence: [full pipeline and CI/CD](docs/pipeline-evidence.md), [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md). Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
+Every table and column is described in the [data dictionary](docs/data-dictionary.md). Architecture, design decisions and limitations: [docs/architecture.md](docs/architecture.md). Setup: [docs/setup-and-handoff.md](docs/setup-and-handoff.md). Running, checking and fixing: [docs/runbook.md](docs/runbook.md). Changing the pipeline: [docs/making-changes.md](docs/making-changes.md). Run evidence: [full pipeline and CI/CD](docs/pipeline-evidence.md), [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md). Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
 
 ## Repository guide
 
@@ -158,7 +161,9 @@ docs/
   project-decision-log.md         # approved decisions (DL-001 onwards)
   architecture.md                 # architecture, design decisions, limitations
   architecture.png                # architecture diagram
-  runbook.md                      # how to run, check and fix the pipeline
+  setup-and-handoff.md            # one-time setup, access, configuration (administrators)
+  runbook.md                      # run, check, fix and roll back (operators)
+  making-changes.md               # seeds, checks, tasks, dashboard, new year (developers)
   consolidated-data-sources.md    # sources, identifiers and limitations
   bronze-ingestion-guide.md       # Google Drive folders, file IDs, ingestion control tables
   data-dictionary.md              # every Gold, Analytics and dashboard column
