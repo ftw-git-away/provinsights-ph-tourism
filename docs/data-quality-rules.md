@@ -1,8 +1,8 @@
 # Data Quality Rules and Failure Policy
 
-Every Silver table is checked before it is written, and every check has an ID, a severity and a pre-agreed action when it fails. A failure is never handled ad hoc. This document lists the checks the Silver notebooks run today, so the IDs in `06_data_quality.dq_results` can be looked up here (Issue #5).
+Every Silver, Gold and Analytics table is checked before it is written, and every check has an ID, a severity and a pre-agreed action when it fails. A failure is never handled ad hoc. This document lists the checks the Silver, Gold and Analytics notebooks run today, so the IDs in `06_data_quality.dq_results` can be looked up here (Issue #5).
 
-**Covers:** `00_silver_setup`, `01_silver_geography`, `02_silver_dot`, `03_silver_psa_economy`, `04_silver_population`. Gold checks are listed as planned at the end.
+**Covers:** `00_silver_setup`, `01_silver_geography`, `02_silver_dot`, `03_silver_psa_economy`, `04_silver_population`, `01_gold_dim_province`, `02_gold_dim_year`, `03_gold_fact_province_year`, `01_build_analytics` and `02_analytics_validation`. Bronze validation is not in place yet.
 
 ---
 
@@ -26,6 +26,14 @@ All Silver notebooks follow the same pattern:
 3. Every check runs and is recorded with `dq(...)`.
 4. All results are appended to `06_data_quality.dq_results`, pass or fail.
 5. If any BLOCK check failed, the run is logged as `FAILED` and the notebook raises an error. Otherwise each Silver table is **overwritten** (so a rerun gives the same result), and the run is logged as `SUCCESS` or `SUCCESS_WITH_REVIEW`.
+
+The Gold notebooks follow the same pattern and log each run to `gold_run_log`.
+
+The Analytics notebooks follow the same severities:
+
+- **`01_build_analytics`** reads a pinned snapshot of the Gold tables, builds each Analytics table as a temporary candidate, runs its checks, and only then replaces the persisted table. A failed BLOCK check stops the run before that table is replaced.
+- **`02_analytics_validation`** reads only the persisted Analytics tables. It checks lineage, recomputes every derived metric from stored inputs, and reconciles base values to Gold at the recorded Delta versions. A failed BLOCK check fails the notebook.
+- Both write every result to `dq_results`. Several rows can share one `DQ-ANL` ID (for example, one row per recomputed column); `notes` names the specific check (`check: recomp_afs_share_of_gdp`).
 
 ## 3. Where results are stored
 
@@ -80,7 +88,8 @@ ORDER BY d.severity, d.notebook_name, d.check_id;
 | `DQ-DOT` | DOT overnight travelers | `01_silver_geography`, `02_silver_dot` |
 | `DQ-PSA` | PSA provincial accounts | `03_silver_psa_economy` |
 | `DQ-POP` | DS_18 population | `04_silver_population` |
-| `DQ-JOIN`, `DQ-GOLD` | Gold star and views | planned (section 8) |
+| `DQ-GLD` | Gold star schema (`dim_province`, `dim_year`, `fact_province_year`) | `01_gold_dim_province`, `02_gold_dim_year`, `03_gold_fact_province_year` |
+| `DQ-ANL` | Analytics tables (01 to 19: build; 20 and up: validation) | `01_build_analytics`, `02_analytics_validation` |
 
 IDs are never reused for a different check. Gaps in the numbering are draft IDs from the first version of this document that were merged into other checks or became decisions (section 9).
 
@@ -102,7 +111,7 @@ These values are set in each notebook's **Configuration** cell. Changing one is 
 | `REGION_TOLERANCE` | 5 persons | DQ-POP-04, DQ-POP-06 | `04_silver_population` |
 | `IMPLIED_TOLERANCE_PCT` | 0.5% | DQ-POP-11 | `04_silver_population` |
 | `EXPECTED_NULL_UNITS` | Maguindanao del Norte, Maguindanao del Sur (population) | DQ-POP-07 | `04_silver_population` |
-| `KNOWN_BOUNDARY_DIFF` | Cotabato (Special Geographic Area, proposed DL-025) | DQ-POP-11 | `04_silver_population` |
+| `KNOWN_BOUNDARY_DIFF` | Cotabato (Special Geographic Area, DL-025) | DQ-POP-11 | `04_silver_population` |
 
 ## 6. Checks by notebook
 
@@ -203,6 +212,62 @@ The notebook also stops before any check if a table's year columns are not exact
 
 The notebook also stops before any check if `psa_ds_18` has no `source_row_number`, or if the year columns are not exactly 2015–2025 (Excel) and 2020–2025 (PDF).
 
+### 6.6 Gold (`DQ-GLD`)
+
+Gold results are summarised in the [Gold run evidence](gold-run-evidence.md).
+
+| ID | Notebook | Check | Severity |
+| --- | --- | --- | --- |
+| DQ-GLD-01 | `01_gold_dim_province` | 100 unique 10-digit PSGC codes | BLOCK |
+| DQ-GLD-01b | `01_gold_dim_province` | Name, unit type and region filled for every unit | BLOCK |
+| DQ-GLD-01c | `01_gold_dim_province` | No Unicode replacement characters (`�`) in names | BLOCK |
+| DQ-GLD-01d | `01_gold_dim_province` | One non-null PSGC snapshot (2Q 2026) | BLOCK |
+| DQ-GLD-01e | `01_gold_dim_province` | The join keeps the unit row count (100 units, 100 rows) | BLOCK |
+| DQ-GLD-01f | `01_gold_dim_province` | `city_class` filled for every city | BLOCK |
+| DQ-GLD-01g | `01_gold_dim_province` | One coordinates seed row per unit; every unit has a point inside the Philippines | BLOCK |
+| DQ-GLD-02 | `02_gold_dim_year` | 6 years, one baseline year, comparison window 2019-2023, recovery years 2022 and 2023 | BLOCK |
+| DQ-GLD-02b | `02_gold_dim_year` | Year is unique | BLOCK |
+| DQ-GLD-02c | `02_gold_dim_year` | `has_all_sources` is true exactly for the years in all three Silver tables | BLOCK |
+| DQ-GLD-02d | `02_gold_dim_year` | Every year in 2019-2023 has all three sources (year level; each province's own fields are checked downstream) | BLOCK |
+| DQ-GLD-02e | `02_gold_dim_year` | Year is an integer column in every Silver table | BLOCK |
+| DQ-GLD-03 | `03_gold_fact_province_year` | 100 × 6 = 600 rows, no duplicate keys | BLOCK |
+| DQ-GLD-04 | `03_gold_fact_province_year` | Every key exists in the dimensions | BLOCK |
+| DQ-GLD-05 | `03_gold_fact_province_year` | Every Silver DOT row matches the fact on (province, year), column by column | BLOCK |
+| DQ-GLD-06 | `03_gold_fact_province_year` | Every Silver PSA economy row matches the fact on (province, year), column by column | BLOCK |
+| DQ-GLD-07 | `03_gold_fact_province_year` | Every Silver population row matches the fact on (province, year), column by column | BLOCK |
+| DQ-GLD-08 | `03_gold_fact_province_year` | Traveler statuses follow DL-019; no NULL status in DOT years; `not_reported` rows have all four traveler columns NULL | BLOCK |
+| DQ-GLD-09 | `03_gold_fact_province_year` | Total travelers ≥ foreign, overseas Filipino and domestic travelers | REVIEW |
+| DQ-GLD-10 | `03_gold_fact_province_year` | A&F GVA ≤ GDP | BLOCK |
+| DQ-GLD-11 | `03_gold_fact_province_year` | Units without DOT rows are `not_reported` (never NULL) with all four traveler columns NULL | BLOCK |
+| DQ-GLD-12 | `03_gold_fact_province_year` | Each source's columns are NULL outside that source's years | BLOCK |
+| DQ-GLD-13 | `03_gold_fact_province_year` | `comparable_to_2019 = true` in 2019 for every unit DOT reports | BLOCK |
+| DQ-GLD-14 | `03_gold_fact_province_year` | Every `ref_indicator` measure is a fact column | BLOCK |
+
+### 6.7 Analytics (`DQ-ANL`)
+
+| ID | Notebook | Check | Severity |
+| --- | --- | --- | --- |
+| DQ-ANL-01 | build | Gold inputs valid (`dim_province`, `dim_year`, `fact_province_year`) | BLOCK |
+| DQ-ANL-02 | build | Required Gold columns present | BLOCK / REVIEW |
+| DQ-ANL-03 | build | Candidate table passes structure checks (keys, row count, eligibility) | BLOCK |
+| DQ-ANL-04 | build | Activity shares sum to 100% per year | BLOCK |
+| DQ-ANL-05 | build | A&F share of GDP not above 100% | REVIEW |
+| DQ-ANL-06 | build | Usual strong destination flag (DL-026) | BLOCK / REVIEW |
+| DQ-ANL-07 | build | Small-base flags (DL-028) | BLOCK |
+| DQ-ANL-08 | build | Baseline under review (DL-029) | BLOCK |
+| DQ-ANL-09 | build | Destination label (DL-006, DL-028, DL-029) | BLOCK |
+| DQ-ANL-10 | build | Cross-table consistency | BLOCK |
+| DQ-ANL-11 | build | Gold versions unchanged during the run | REVIEW |
+| DQ-ANL-20 | validation | Lineage columns non-NULL | BLOCK |
+| DQ-ANL-21 | validation | One value per lineage column per table | BLOCK |
+| DQ-ANL-22 | validation | Lineage identical across tables | BLOCK |
+| DQ-ANL-23 | validation | Natural keys unique | BLOCK |
+| DQ-ANL-24 | validation | Base-value columns present | BLOCK |
+| DQ-ANL-25 | validation | Expected row counts | BLOCK |
+| DQ-ANL-26 | validation | Recorded Gold versions exist and are readable | BLOCK |
+| DQ-ANL-27 | validation | Derived metrics recompute from stored inputs | BLOCK |
+| DQ-ANL-28 | validation | Stored base values reconcile to Gold | BLOCK |
+
 ## 7. Known exceptions register
 
 Expected, documented conditions. Each one is built into a check (expected list or tolerance), so it doesn't raise a new failure on every run.
@@ -220,11 +285,13 @@ Expected, documented conditions. Each one is built into a check (expected list o
 | City of Tacloban missing from DS_32 | Tacloban `afs_gva_constant`, 2019–2023 | Region VIII total − other rows; listed in `derived_values` | DQ-PSA-08 | DL-024 |
 | DS_18 prints Maguindanao before the 2022 split | Maguindanao del Norte, del Sur (population) | NULL | DQ-POP-07 | #43 §7.4 |
 | 2019 HUC population not published | 16 HUCs and their 14 provinces, 2019 | `estimated_from_2020_trend`; within 0.46% of PSA's own figure | DQ-POP-10, DQ-POP-11 | DL-021 |
-| Cotabato covers a larger area in DS_18 than in the PSA economy tables | Cotabato (17.5–19.0% larger population, 2019–2023) | Excluded from the DQ-POP-11 count and shown in its notes; use PSA's published per-capita GDP for Cotabato | DQ-POP-11 | DL-025 (proposed) |
+| Cotabato covers a larger area in DS_18 than in the PSA economy tables | Cotabato (17.5–19.0% larger population, 2019–2023) | Excluded from the DQ-POP-11 count and shown in its notes; use PSA's published per-capita GDP for Cotabato | DQ-POP-11 | DL-025 |
 
-## 8. Planned for Gold (not yet implemented)
+## 8. Planned Gold IDs not used
 
-| ID | Check | Severity |
+These IDs were planned before Gold was built. They are not used; their intent is covered by the `DQ-GLD` checks in section 6.6 (row count and keys: DQ-GLD-03, 04; Silver values copied: DQ-GLD-05 to 07).
+
+| Planned ID | Check | Severity |
 | --- | --- | --- |
 | DQ-JOIN-01 | `fact_province_year` has one row per unit and year (100 × 6) and no orphan keys to `dim_province` or `dim_year` (#43 rule 3) | BLOCK |
 | DQ-JOIN-02 | Every Silver unit-year is in the fact: DOT, PSA economy and population values copied without change | BLOCK |
@@ -252,7 +319,8 @@ The first version of this document (Issue #5) proposed some IDs that are not che
 ## 10. Adding or changing a check
 
 1. Pick the next free number in the right prefix (never reuse an ID).
-2. Add the `dq(...)` call **before** the write step, with a clear `expected` and `observed`, and up to 20 sample keys.
+2. Add the `dq(...)` call **before** the write step, with a clear `expected` and `observed`, and up to 20 sample keys. In the Analytics notebooks, checks are recorded with `assert_block(...)` or `record_check(...)` instead; add the check's name to `DQ_ID_BUILD` (build) or make sure it matches a prefix in `DQ_ID_RULES` (validation); a check without an ID stops the notebook before results are written.
 3. Add the check to the notebook's check table **and** to section 6 here.
 4. If it encodes an expected exception, put the expected list or tolerance in the Configuration cell, and add a row to section 5 (and section 7 if it is a documented exception).
 5. Run the notebook and paste its results into the PR.
+6. Run `python -m unittest` in `tests/unit`. `test_docs_alignment.py` fails if an ID is in a notebook but not in section 6, or the reverse, or if the Notebook column is wrong.
