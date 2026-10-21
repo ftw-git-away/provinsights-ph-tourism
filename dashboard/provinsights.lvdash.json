@@ -209,94 +209,6 @@
       "schema": "05_analytics"
     },
     {
-      "name": "ds_aq3_corr",
-      "displayName": "AQ3: correlation of GDP per capita and output per visitor, 2023",
-      "queryLines": [
-        "SELECT CORR(gdp_per_capita_current_2023, earnings_per_visitor) AS correlation, COUNT(*) AS provinces\n",
-        "FROM (\n",
-        "WITH leading AS (\n",
-        "  SELECT province_psgc,\n",
-        "         RANK() OVER (ORDER BY AVG(total_travelers) DESC) <= 10 AS is_leading_destination\n",
-        "  FROM tourism_activity\n",
-        "  WHERE year BETWEEN 2019 AND 2023 AND activity_eligible\n",
-        "  GROUP BY province_psgc\n",
-        "),\n",
-        "base AS (\n",
-        "  SELECT e.province_psgc, e.province_name, e.region_name,\n",
-        "         e.travelers_2023, e.status_2023,\n",
-        "         e.afs_gva_current_2023, e.afs_share_of_gdp_pct, e.gdp_per_capita_current_2023,\n",
-        "         COALESCE(l.is_leading_destination, false) AS is_leading_destination,\n",
-        "         CASE WHEN e.status_2023 <> 'not_reported'\n",
-        "                   AND e.travelers_2023 > 0\n",
-        "                   AND e.afs_gva_current_2023 IS NOT NULL\n",
-        "              THEN e.afs_gva_current_2023 * 1000.0 / e.travelers_2023\n",
-        "         END AS earnings_per_visitor\n",
-        "  FROM tourism_economy e\n",
-        "  LEFT JOIN leading l ON e.province_psgc = l.province_psgc\n",
-        "),\n",
-        "medians AS (\n",
-        "  SELECT median(CASE WHEN earnings_per_visitor IS NOT NULL THEN travelers_2023 END) AS median_travelers,\n",
-        "         median(earnings_per_visitor)                                               AS median_earnings_per_visitor,\n",
-        "         median(gdp_per_capita_current_2023)                                        AS median_gdp_per_capita\n",
-        "  FROM base\n",
-        "),\n",
-        "classified AS (\n",
-        "  SELECT b.*,\n",
-        "         b.gdp_per_capita_current_2023 < m.median_gdp_per_capita AS is_lagging,\n",
-        "         b.travelers_2023 < 10000                                 AS small_base_2023,\n",
-        "         CASE\n",
-        "           WHEN b.earnings_per_visitor IS NULL THEN 'Insufficient data'\n",
-        "           WHEN b.travelers_2023 >= m.median_travelers\n",
-        "                AND b.earnings_per_visitor >= m.median_earnings_per_visitor THEN 'Many visitors, high earnings per visitor'\n",
-        "           WHEN b.travelers_2023 >= m.median_travelers                     THEN 'Many visitors, low earnings per visitor'\n",
-        "           WHEN b.earnings_per_visitor >= m.median_earnings_per_visitor    THEN 'Few visitors, high earnings per visitor'\n",
-        "           ELSE 'Few visitors, low earnings per visitor'\n",
-        "         END AS quadrant\n",
-        "  FROM base b\n",
-        "  CROSS JOIN medians m\n",
-        "),\n",
-        "labelled AS (\n",
-        "  SELECT *,\n",
-        "         CASE quadrant\n",
-        "           WHEN 'Many visitors, high earnings per visitor' THEN 'Established'\n",
-        "           WHEN 'Many visitors, low earnings per visitor'  THEN 'Busy but low-output'\n",
-        "           WHEN 'Few visitors, high earnings per visitor'  THEN 'Small but high-output'\n",
-        "           WHEN 'Few visitors, low earnings per visitor'   THEN 'Limited activity'\n",
-        "           ELSE 'Insufficient data'\n",
-        "         END AS group_label,\n",
-        "         CASE\n",
-        "           WHEN quadrant = 'Insufficient data' THEN 'Not enough data to place in a group'\n",
-        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Many visitors, and high output per visitor'\n",
-        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Many visitors, but low output per visitor'\n",
-        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'Few visitors, but high output per visitor'\n",
-        "           ELSE 'Few visitors, and low output per visitor'\n",
-        "         END AS what_the_data_shows,\n",
-        "         CASE\n",
-        "           WHEN quadrant = 'Insufficient data' THEN NULL\n",
-        "           WHEN is_leading_destination THEN 'Do its visitors also reach nearby provinces?'\n",
-        "           WHEN quadrant = 'Many visitors, high earnings per visitor' THEN 'Do the benefits reach nearby provinces?'\n",
-        "           WHEN quadrant = 'Many visitors, low earnings per visitor'  THEN 'Where does visitor spending go?'\n",
-        "           WHEN quadrant = 'Few visitors, high earnings per visitor'  THEN 'What keeps visitor numbers low?'\n",
-        "           ELSE 'How does tourism compare with other sectors here?'\n",
-        "         END AS what_to_look_at,\n",
-        "         quadrant IN ('Many visitors, high earnings per visitor', 'Few visitors, high earnings per visitor') AS is_high_output\n",
-        "  FROM classified\n",
-        ")\n",
-        "SELECT l.*, e.unit_type, e.latitude, e.longitude,\n",
-        "       l.province_name AS place,\n",
-        "       CASE WHEN l.is_leading_destination THEN 'Leading destinations' ELSE 'Beyond the leading destinations' END AS destination_group,\n",
-        "       CASE WHEN l.is_leading_destination THEN 'Leading destination' ELSE l.group_label END AS map_group,\n",
-        "       CASE WHEN l.is_lagging THEN 'Lagging (below-median GDP per capita)' ELSE 'Not lagging' END AS wealth_group,\n",
-        "       ROUND(l.gdp_per_capita_current_2023 / 1000, 1) AS gdp_per_capita_thousand\n",
-        "FROM labelled l\n",
-        "JOIN tourism_economy e USING (province_psgc)\n",
-        ") p\n",
-        "WHERE earnings_per_visitor IS NOT NULL AND gdp_per_capita_current_2023 IS NOT NULL\n"
-      ],
-      "catalog": "tuklas_dev",
-      "schema": "05_analytics"
-    },
-    {
       "name": "ds_aq3_table",
       "displayName": "AQ3: lagging provinces by output per visitor (table)",
       "queryLines": [
@@ -469,17 +381,9 @@
         "JOIN tourism_economy e USING (province_psgc)\n",
         ") p\n",
         "WHERE NOT is_leading_destination AND group_label <> 'Insufficient data'\n",
-        "ORDER BY is_lagging DESC, afs_share_of_gdp_pct DESC NULLS LAST\n"
-      ],
-      "catalog": "tuklas_dev",
-      "schema": "05_analytics"
-    },
-    {
-      "name": "ds_lineage",
-      "displayName": "Data lineage",
-      "queryLines": [
-        "SELECT MAX(_analytics_run_id) AS `Analytics build`, MAX(_processed_at) AS `Built at`\n",
-        "FROM tourism_activity\n"
+        "ORDER BY CASE group_label WHEN 'Busy but low-output' THEN 1 WHEN 'Small but high-output' THEN 2\n",
+        "                          WHEN 'Limited activity' THEN 3 ELSE 4 END,\n",
+        "         is_lagging DESC, travelers_2023 DESC\n"
       ],
       "catalog": "tuklas_dev",
       "schema": "05_analytics"
@@ -2178,52 +2082,14 @@
         {
           "widget": {
             "name": "w122",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_aq3_corr",
-                  "fields": [
-                    {
-                      "name": "avg(correlation)",
-                      "expression": "AVG(`correlation`)"
-                    }
-                  ],
-                  "disaggregated": false
-                }
-              }
-            ],
-            "spec": {
-              "frame": {
-                "showTitle": true,
-                "showDescription": true,
-                "title": {
-                  "value": "<span style=\"font-size: 18px;\">Correlation: income vs output per visitor</span>",
-                  "fields": []
-                },
-                "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*0 = no linear relationship, 1 = rise together. Weak: income explains little of it*</span>",
-                  "fields": []
-                }
-              },
-              "version": 2,
-              "widgetType": "counter",
-              "encodings": {
-                "value": {
-                  "fieldName": "avg(correlation)",
-                  "format": {
-                    "type": "number-plain",
-                    "abbreviation": "none",
-                    "decimalPlaces": {
-                      "type": "exact",
-                      "places": 2
-                    }
-                  }
-                }
-              },
-              "data": {
-                "queryName": "main_query"
-              }
+            "multilineTextboxSpec": {
+              "lines": [
+                "<p style=\"text-align:center\"><span style=\"font-size:18px\"><b>Correlation: income vs output per visitor</b></span></p>\n",
+                "\n",
+                "<p style=\"text-align:center\"><span style=\"font-size:40px\">0.19</span></p>\n",
+                "\n",
+                "<p style=\"text-align:center\"><span style=\"color:#8C96A3;\">*Weak: income explains little of it. All provinces with data, 2023 (0.35 by rank). Not affected by the filters.*</span></p>"
+              ]
             }
           },
           "position": {
@@ -2646,7 +2512,7 @@
                 "\n",
                 "<span style=\"font-size:20px\">Which provinces beyond the top 10 destinations warrant closer attention, and what does the data show for each? (2023)</span>\n",
                 "\n",
-                "<span style=\"font-size: 16px;\">***Priority provinces***</span><span style=\"font-size: 16px;\">*&#32;= the 83 provinces beyond the leading destinations with enough data to be placed in a group, lagging first, then by tourism share of the economy.&#32; *</span><span style=\"font-size: 16px;\">***Use the filters***</span><span style=\"font-size: 16px;\">*&#32;= to narrow the map and the list.&#32; *</span>"
+                "<span style=\"font-size: 16px;\">***Priority provinces***</span><span style=\"font-size: 16px;\">*&#32;= the 83 provinces beyond the leading destinations with enough data to be placed in a group, by the gap the data shows (Busy but low-output, Small but high-output, Limited activity, then Established), lagging first within each group.&#32; *</span><span style=\"font-size: 16px;\">***Use the filters***</span><span style=\"font-size: 16px;\">*&#32;= to narrow the map and the list.&#32; *</span>"
               ]
             }
           },
@@ -3174,7 +3040,7 @@
                   "fields": []
                 },
                 "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*Lagging provinces first, then by tourism share of the economy. Priorities for a closer look, not predictions.*</span>",
+                  "value": "<span style=\"color: #8C96A3;\">*By group (Busy but low-output, Small but high-output, Limited activity, then Established), lagging first, then most visitors. Priorities for a closer look, not predictions.*</span>",
                   "fields": []
                 }
               },
@@ -3286,8 +3152,8 @@
                 "| **High output per visitor** | Output per visitor at or above the 2023 median | ≥ ₱8,652 (the Established and Small but high-output groups) |\n",
                 "| **GDP per capita** | Provincial GDP per person at current prices, from PSA | 2023 |\n",
                 "| **Lagging (lower-income) provinces** | Provinces whose 2023 GDP per capita is below the median of all provinces with data. An income indicator, not a measure of poverty | Below ₱140,165 in 2023 |\n",
-                "| **Tourism share of the economy** | How much of a province's economy is hotel and restaurant activity (used to order the priority list) | Current-price A&F GVA ÷ current-price GDP × 100, 2023 |\n",
-                "| **Priority provinces** | Provinces beyond the leading destinations with enough data to be placed in a group, lagging first, then by tourism share of the economy | 83 provinces in 2023 |\n",
+                "| **Tourism share of the economy** | How much of a province's economy is hotel and restaurant activity (shown in the priority list for context) | Current-price A&F GVA ÷ current-price GDP × 100, 2023 |\n",
+                "| **Priority provinces** | Provinces beyond the leading destinations with enough data to be placed in a group, ordered by group (Busy but low-output, Small but high-output, Limited activity, then Established), then lagging first, then most visitors | 83 provinces in 2023 |\n",
                 "| **Small base** | Fewer than 10,000 overnight travelers in 2023: output per visitor may look high only because travelers are few | Kept in the list, marked \"Check before naming\" |\n",
                 "| **What the data shows / What to look at** | What the province's group says, and a question it raises. Not a recommendation | From the group |\n"
               ]
@@ -3323,55 +3189,12 @@
         {
           "widget": {
             "name": "w139",
-            "queries": [
-              {
-                "name": "main_query",
-                "query": {
-                  "datasetName": "ds_lineage",
-                  "fields": [
-                    {
-                      "name": "Analytics build",
-                      "expression": "`Analytics build`"
-                    },
-                    {
-                      "name": "Built at",
-                      "expression": "`Built at`"
-                    }
-                  ],
-                  "disaggregated": true
-                }
-              }
-            ],
-            "spec": {
-              "frame": {
-                "showTitle": true,
-                "showDescription": true,
-                "title": {
-                  "value": "<span style=\"font-size: 24px;\">Where the numbers come from</span>",
-                  "fields": []
-                },
-                "description": {
-                  "value": "<span style=\"color: #8C96A3;\">*tuklas_dev.05_analytics: tourism_activity, tourism_concentration and tourism_economy, built by notebooks/04_analytics/01_build_analytics.*</span>",
-                  "fields": []
-                }
-              },
-              "version": 2,
-              "widgetType": "table",
-              "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "Analytics build",
-                    "useForSearch": true,
-                    "headerAlignment": "left"
-                  },
-                  {
-                    "fieldName": "Built at"
-                  }
-                ]
-              },
-              "data": {
-                "queryName": "main_query"
-              }
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Where the numbers come from\n",
+                "\n",
+                "Every chart reads `tuklas_dev.05_analytics` (`tourism_activity`, `tourism_concentration`, `tourism_economy`, `tourism_recovery`, `traveler_segment_recovery`), built by `notebooks/04_analytics/01_build_analytics` in the `tourism_pipeline` job. The `refresh_dashboard` task refreshes this dashboard after each run.\n"
+              ]
             }
           },
           "position": {

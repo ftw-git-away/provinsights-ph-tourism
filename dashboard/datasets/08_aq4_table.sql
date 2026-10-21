@@ -82,4 +82,6 @@ FROM labelled l
 JOIN tourism_economy e USING (province_psgc)
 ) p
 WHERE NOT is_leading_destination AND group_label <> 'Insufficient data'
-ORDER BY is_lagging DESC, afs_share_of_gdp_pct DESC NULLS LAST
+ORDER BY CASE group_label WHEN 'Busy but low-output' THEN 1 WHEN 'Small but high-output' THEN 2
+                          WHEN 'Limited activity' THEN 3 ELSE 4 END,
+         is_lagging DESC, travelers_2023 DESC

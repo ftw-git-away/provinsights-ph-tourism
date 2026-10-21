@@ -37,7 +37,7 @@ The shared dashboard lives in Databricks and keeps one link. It is **not** deplo
 
 ## Datasets
 
-One file per dataset. Each file starts with a header (`-- dataset:`, `-- display:`, `-- source:`, `-- used by:`) that the build script reads. Every dataset reads `tuklas_dev.05_analytics`; catalog and schema are set on the dataset, so the SQL uses table names only.
+One file per dataset. **Keep it to 10 datasets or fewer:** on the Free Edition each published dataset uses one of 10 METRIC_VIEW pipelines, and an 11th makes publishing fail (`PIPELINE_TYPE_QUOTA_EXCEEDED`). `build_lvdash.py` stops above 10. The page 3 correlation (0.19) and the Definitions lineage note are therefore text, not datasets. Each file starts with a header (`-- dataset:`, `-- display:`, `-- source:`, `-- used by:`) that the build script reads. Every dataset reads `tuklas_dev.05_analytics`; catalog and schema are set on the dataset, so the SQL uses table names only.
 
 | File | Dataset | Grain (rows) | Source | Used by |
 | --- | --- | --- | --- | --- |
@@ -46,14 +46,12 @@ One file per dataset. Each file starts with a header (`-- dataset:`, `-- display
 | `03_aq1_map.sql` | `ds_aq1_map` | unit × year (442) | `tourism_activity` | Page 1 map |
 | `04_aq1_leading.sql` | `ds_aq1_leading` | unit (10) | `tourism_activity`, `tourism_economy` (leading destinations, DL-032) | Page 1 table |
 | `05_profile_2023.sql` | `ds_profile` | unit (100) | `tourism_activity`, `tourism_economy`: 2023 profile and groups (DL-033 to DL-036) | Pages 2-4 |
-| `06_aq3_corr.sql` | `ds_aq3_corr` | one row | 2023 profile | Page 3 correlation (GDP per capita vs output per visitor) |
 | `07_aq3_table.sql` | `ds_aq3_table` | lagging unit with output data (43) | 2023 profile | Page 3 table |
 | `08_aq4_table.sql` | `ds_aq4_table` | unit beyond the leading 10, with a group (83) | 2023 profile | Page 4 filters, map, table |
-| `09_lineage.sql` | `ds_lineage` | one row | `tourism_activity` | Definitions |
 | `10_appx_recovery.sql` | `ds_appx_recovery` | unit × comparison year (200) | `tourism_recovery` | Appendix A |
 | `11_appx_segments.sql` | `ds_appx_segments` | unit × traveler type (156) | `traveler_segment_recovery` | Appendix B |
 
-Files 05-08 carry the same 2023-profile block. `build_lvdash.py` stops if they differ, so change them together. Row counts are from a local run on the current `05_analytics`.
+Files 05, 07 and 08 carry the same 2023-profile block. `build_lvdash.py` stops if they differ, so change them together. Row counts are from a local run on the current `05_analytics`.
 
 ## Filters
 
@@ -75,7 +73,7 @@ Files 05-08 carry the same 2023-profile block. `build_lvdash.py` stops if they d
 
 **3. Output and income.** Counters: lagging provinces with high output per visitor (the answer), lagging provinces with output data, higher-income provinces with high output per visitor, correlation (supporting). Scatter: GDP per capita vs output per visitor with both medians. Bar: median output per visitor by income group. Table: lagging provinces by output per visitor, small bases marked.
 
-**4. Provinces to watch.** Filters (Group, Lagging, High output per visitor) and counters (provinces shown; lagging with high output per visitor). Map by group (full width). Table: group, what the data shows, what to look at, lagging, high output per visitor, tourism share, travelers, output per visitor, small base. Ordered lagging first, then by tourism share of the economy, as the document defines priority provinces.
+**4. Provinces to watch.** Filters (Group, Lagging, High output per visitor) and counters (provinces shown; lagging with high output per visitor). Map by group (full width). Table: group, what the data shows, what to look at, lagging, high output per visitor, tourism share, travelers, output per visitor, small base. Ordered by group (Busy but low-output, Small but high-output, Limited activity, then Established last), then lagging first, then most visitors (DL-037). Established provinces stay in the list so the 13 lagging provinces with high output per visitor match page 3.
 
 **Appendix A and B.** Recovery against 2019 (counters, sorted bar drawn up to 400 with exact values in the table, places not assessed with the reason), and traveler types among the 52 places below 2019 (coverage, median by type, table).
 
@@ -99,7 +97,7 @@ Wording on every page: "moves with", "stands out", "warrants a closer look". Nev
 - **Leading tourist destinations:** the 10 provinces with the highest average annual overnight travelers, 2019-2023.
 - **Tourism-related output:** A&F GVA at current prices (PSA), a proxy because PSA publishes tourism value added only nationally.
 - **Output per visitor:** A&F GVA (thousand PHP) × 1,000 ÷ overnight travelers, 2023. **High output per visitor:** at or above the 2023 median (₱8,652).
-- **Tourism share of the economy:** current-price A&F GVA ÷ current-price GDP × 100, 2023. Used to order the priority list.
+- **Tourism share of the economy:** current-price A&F GVA ÷ current-price GDP × 100, 2023. Shown in the priority list for context; not used to order it.
 - **Lagging (lower-income):** 2023 GDP per capita below the median (₱140,165). An income indicator, not a poverty measure.
 - **Small base:** under 10,000 travelers in 2023; kept, marked "Check before naming".
 
