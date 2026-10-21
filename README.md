@@ -184,7 +184,7 @@ The Databricks AI/BI dashboard answers one analytical question per page.
 
 ## Databricks deployment
 
-The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It needs one variable, `alert_email`, which receives failure emails. No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)).
+The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It uses three variables: `alert_email` (receives failure emails, supplied by GitHub), and `warehouse_id` and `dashboard_id` (SQL warehouse and shared dashboard for the refresh task, with defaults in `databricks.yml`). No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)). 
 
 **How changes reach Databricks**
 
@@ -218,7 +218,7 @@ databricks bundle run -t dev -p <profile> tourism_pipeline --var="alert_email=<y
 
 Use the [Decision log](docs/project-decision-log.md) for approved choices. Preserve original source artifacts and keep credentials out of Git.
 
-CI checks repository structure, Python files under `src/`, notebook structure, syntax in marked Python and SQL cells, and the Databricks bundle. It does not run the notebooks or validate source data.
+CI runs on every push and pull request. **Validate repository** checks the required folders and runs the unit tests in [`tests/unit/`](tests/unit/) (job definition and task order, notebook structure, Python and SQL syntax, seeds, and alignment of Silver checks with the rules doc). **Validate Databricks bundle** runs `databricks bundle validate`. Both checks are required, so a pull request cannot be merged until they pass and the branch is up to date with `main`. CI does not run the notebooks or read source data; data quality is checked inside the pipeline (see [`tests/README.md`](tests/README.md)).
 
 ## Team GitAway
 
