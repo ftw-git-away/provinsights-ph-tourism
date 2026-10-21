@@ -33,6 +33,17 @@ CREATE SCHEMA IF NOT EXISTS tuklas_dev.`01_ingestion`;
 CREATE SCHEMA IF NOT EXISTS tuklas_dev.`02_bronze`;
 ```
 
+`05_analytics.analytics_run_log` is also not created by any notebook: `01_build_analytics` and `02_analytics_validation` only append to it. Create it once before the first pipeline run, with the same columns as `silver_run_log`:
+
+```sql
+CREATE SCHEMA IF NOT EXISTS tuklas_dev.`05_analytics`;
+CREATE TABLE IF NOT EXISTS tuklas_dev.`05_analytics`.analytics_run_log (
+  run_id STRING, notebook_name STRING, started_at TIMESTAMP, completed_at TIMESTAMP,
+  tables_written BIGINT, rows_written BIGINT, dq_checks_run BIGINT,
+  dq_block_failures BIGINT, dq_review_flags BIGINT, status STRING, notes STRING
+) USING DELTA;
+```
+
 Then give the team `USE CATALOG`, `CREATE SCHEMA` and write access on `tuklas_dev` (section 2, "Access you need").
 
 To use a different catalog name, change `CATALOG = "tuklas_dev"` at the top of every notebook and the catalog set on every dashboard dataset, in one pull request.

@@ -40,7 +40,7 @@ Tables are named by schema in this dictionary, for example `05_analytics.tourism
 | --- | --- |
 | **Province** | A **reporting unit**: one of 82 provinces, 16 HUCs that DOT reports separately, the City of Isabela, or NCR. 100 in total (DL-010). |
 | **Key** | `province_psgc` (Gold and Analytics) or `unit_psgc_code` (Silver): the 10-digit PSGC 2Q 2026 code, stored as text so leading zeros are kept. |
-| **Table keys** | Each table states its grain, then `Key: (…)` or `Key: none (not enforced)`. Keys are *logical*: Delta does not enforce them, but no two rows share the key. Where there is no key, the text says which columns find a row. Check a key with `SELECT <key columns>, COUNT(*) FROM <table> GROUP BY ALL HAVING COUNT(*) > 1` (no rows = unique). |
+| **Table keys** | Each table states its grain, then `Key: (…)` or `Key: none`. Keys are *logical*: Delta does not enforce them, but no two rows share the key. Where there is no key, the text says which columns find a row. Check a key with `SELECT <key columns>, COUNT(*) FROM <table> GROUP BY ALL HAVING COUNT(*) > 1` (no rows = unique); [`docs/sql/key_checks.sql`](sql/key_checks.sql) runs this for every table key below. A key column that is NULL by design is noted; join or MERGE on it with NULL-safe matching (`<=>`). |
 | **Years** | Silver, Gold and Analytics cover 2019-2024. The business question uses 2019-2023 for trends and 2023 for AQ2 to AQ4 (DL-031). |
 | **Missing** | NULL, never 0 (DL-009). A reported 0 is a real 0. |
 | **Money** | `gdp_total_*` and `afs_gva_*` are in **thousand PhP**, as published. `gdp_per_capita_*` is in **PhP**. `*_current` = current prices, `*_constant` = constant 2018 prices. Shares use current prices; growth uses constant prices. |
@@ -98,7 +98,7 @@ Created by `00_ingestion_setup`.
 | `discovered_at`, `ingested_at` | Timestamps. |
 | `notes` | Includes a warning when a file's SHA-256 fingerprint changed since the last run. |
 
-**`ingestion_errors`**: one row per failure. Key: none (not enforced): a run can log several errors for one file; find a row by (`run_id`, `source_file`, `error_timestamp`). Same source columns as `file_manifest`, plus `error_type`, `error_message`, `error_timestamp` and `notes`.
+**`ingestion_errors`**: one row per failure. Key: none: a run can log several errors for one file; find a row by (`run_id`, `source_file`, `error_timestamp`). Same source columns as `file_manifest`, plus `error_type`, `error_message`, `error_timestamp` and `notes`.
 
 ### 2.2 `02_bronze`: source data as printed
 
@@ -113,7 +113,7 @@ Written by `01_ingest_psa`, `02_ingest_psgc`, `03_ingest_dot` and `04_ingest_psa
 | `*_report_text` | One non-table line (title, "as of" date, footnote) | `dot_ds_05_report_text` |
 | `*_pdf`, `*_source_files` | One original file stored as binary | `dot_ds_05_pdf`, `psgc_source_files`, `psa_ds_18_pdf` |
 
-**Keys.** Key: none (not enforced). Bronze keeps every printed row, duplicates included. Find a row by its file and position: (`_source_file`, `_source_sheet`, `source_row_number`) for Excel and CSV tables, or (`_source_file`, `page_number`, `pdf_line_number`) for PDF tables. Binary-file tables (`*_pdf`, `*_source_files`) have one row per file: Key: (`_source_file`).
+**Keys.** Bronze tables have `Key: none`: they keep every printed row, duplicates included. Find a row by its file and position: (`_source_file`, `_source_sheet`, `source_row_number`) for Excel and CSV tables, or (`_source_file`, `page_number`, `pdf_line_number`) for PDF tables. Binary-file tables (`*_pdf`, `*_source_files`) have one row per file: Key: (`_source_file`).
 
 **Columns on every Bronze row**
 
@@ -173,9 +173,9 @@ Silver turns each source into clean, typed values for the 100 reporting units. E
 | `contributing_rows`, `dash_total_rows`, `dash_cells_in_printed_rows` | integer | How many DOT rows fed the unit, how many had a `-` total, and how many `-` cells were inside printed rows. |
 | `dot_labels` | STRING | The DOT labels summed into the unit. |
 
-**`dot_travelers_row`**: one cleaned DOT region or province-level row per year, with its crosswalk role. For tracing and reconciliation. Key: (`year`, `page_number`, `pdf_line_number`), the row's position in that year's PDF.
+**`dot_travelers_row`**: one cleaned DOT region or province-level row per year, with its crosswalk role. For tracing and reconciliation. Key: (`_source_file`, `year`, `page_number`, `pdf_line_number`), the row's position in that year's PDF. Today there is one DOT PDF per year, so (`year`, `page_number`, `pdf_line_number`) is also unique.
 
-**`dot_excluded_rows`**: one row per DOT row not loaded into any unit (SBMA, Cotabato City, Boracay double counts), with `exclude_reason`, `belongs_to_unit`, the traveler values and the source position (DL-013, DL-015, DL-016). Key: (`year`, `page_number`, `pdf_line_number`). (`year`, `area_label`, `parent_label`) is also unique today, and `parent_label` is never NULL, but the position is the safer key because a label could repeat.
+**`dot_excluded_rows`**: one row per DOT row not loaded into any unit (SBMA, Cotabato City, Boracay double counts), with `exclude_reason`, `belongs_to_unit`, the traveler values and the source position (DL-013, DL-015, DL-016). Key: (`_source_file`, `year`, `page_number`, `pdf_line_number`). (`year`, `area_label`, `parent_label`) is also unique today, and `parent_label` is never NULL, but the position is the safer key because a label could repeat.
 
 ### 3.3 Economy (`03_silver_psa_economy`)
 
@@ -195,7 +195,7 @@ Silver turns each source into clean, typed values for the 100 reporting units. E
 
 **`ref_indicator`**: one row per economy measure, with `measure`, `dataset_id`, `bronze_table`, `psa_table`, `title`, `unit`, `price_basis` and `additivity`. Gold uses it to write the unit into each column's comment. Key: (`measure`).
 
-**`psa_economy_row`**: one PSA value per dataset, printed row and year, with its role. For tracing and reconciliation. Key: (`dataset_id`, `psa_label`, `year`). `source_row_number` is not part of the key, because derived values (DL-024) have no printed row of their own. **`map_psa_area_to_psgc`**: the reviewed PSA crosswalk seed. Key: (`psa_label`), checked by DQ-PSA-10.
+**`psa_economy_row`**: one PSA value per dataset, PSA label and year, with its role. For tracing and reconciliation. Key: (`dataset_id`, `psa_label`, `year`). `source_row_number` is not part of the key, because derived values (DL-024) have no printed row of their own. **`map_psa_area_to_psgc`**: the reviewed PSA crosswalk seed. Key: (`psa_label`), checked by DQ-PSA-10.
 
 ### 3.4 Population (`04_silver_population`)
 
@@ -210,7 +210,7 @@ Silver turns each source into clean, typed values for the 100 reporting units. E
 | `population_note` | STRING | For provinces with HUCs, which HUCs were subtracted and their total. |
 | `source_reference` | STRING | Every DS_18 row used for the value. |
 
-**`population_row`**: one DS_18 value used, per source table, printed row and year. Key: (`source_table`, `source_row_number`, `page_number`, `pdf_line_number`, `year`): `source_row_number` is filled for Excel rows and `page_number` and `pdf_line_number` for PDF rows. **`map_psa_population_area_to_psgc`**: the reviewed population crosswalk seed. Key: (`source_table`, `block_label`, `area_label`).
+**`population_row`**: one DS_18 value used, per source table, printed row and year. Key: (`source_table`, `source_row_number`, `page_number`, `pdf_line_number`, `year`). Two position forms: Excel rows fill `source_row_number` and leave `page_number` and `pdf_line_number` NULL; PDF rows do the opposite. Match NULL-safely (`<=>`) when joining on it. **`map_psa_population_area_to_psgc`**: the reviewed population crosswalk seed. Key: (`source_table`, `block_label`, `area_label`).
 
 ### 3.5 `silver_run_log`
 
@@ -447,13 +447,13 @@ For each segment (`domestic`, `foreign`, `overseas_filipino`):
 
 ### 5.7 `analytics_run_log`
 
-One row per Analytics notebook run. Key: the first column, the `run_id` that `01_build_analytics` or `02_analytics_validation` generates for that run. No notebook in this repository creates the table; both notebooks only append to it with a positional `INSERT INTO … VALUES` in the same order as `silver_run_log` (run ID, notebook, start, end, tables written, rows written, checks run, BLOCK failures, REVIEW flags, status, notes). Check the column names with `DESCRIBE TABLE`, and in a new workspace create it first, with the same columns as `silver_run_log`.
+One row per Analytics notebook run. Key: (`run_id`), the first column, generated by `01_build_analytics` or `02_analytics_validation` for each run. No notebook in this repository creates the table; both notebooks only append to it with a positional `INSERT INTO … VALUES` in the same order as `silver_run_log` (run ID, notebook, start, end, tables written, rows written, checks run, BLOCK failures, REVIEW flags, status, notes). Check the column names with `DESCRIBE TABLE`, and in a new workspace create it first (DDL in [setup and handoff, 1.2](setup-and-handoff.md#12-create-the-catalog-and-the-two-ingestion-schemas)).
 
 ---
 
 ## 6. Dashboard: `ds_profile`
 
-The dashboard dataset `ds_profile` (`dashboard/datasets/05_profile_2023.sql`) derives the 2023 province profile from `tourism_activity` and `tourism_economy`. It is not stored as a table; it runs when the dashboard refreshes (`refresh_dashboard`, the job's last task). Pages 2 to 4 use it, and `ds_aq3_table` and `ds_aq4_table` use the same logic. One row per unit (100 rows). Key: (`place`), the unit's PSGC name, which is unique across the 100 units (the dataset does not include `province_psgc`).
+The dashboard dataset `ds_profile` (`dashboard/datasets/05_profile_2023.sql`) derives the 2023 province profile from `tourism_activity` and `tourism_economy`. It is not stored as a table; it runs when the dashboard refreshes (`refresh_dashboard`, the job's last task). Pages 2 to 4 use it, and `ds_aq3_table` and `ds_aq4_table` use the same logic. One row per unit (100 rows). Key: (`place`), the unit's PSGC name, unique across the 100 units (checked by running the dataset query: 100 rows, 100 distinct values). `place` is a display name: the dataset does not include `province_psgc`, so don't use it for joins.
 
 | Field | Description |
 | --- | --- |
@@ -482,7 +482,7 @@ The travelers and output-per-visitor medians are taken over units with both valu
 
 ### `dq_results`
 
-One row per check result. Key: none (not enforced): several rows can share a `run_id` and `check_id` (for example one row per recomputed column in Analytics). To find the rows for one check, filter on `run_id` and `check_id`; `notes` names the specific Analytics check. Rows come from every Silver, Gold and Analytics notebook.
+One row per check result. Key: none: several rows can share a `run_id` and `check_id` (for example one row per recomputed column in Analytics). To find the rows for one check, filter on `run_id` and `check_id`; `notes` names the specific Analytics check. Rows come from every Silver, Gold and Analytics notebook.
 
 | Column | Type | Description |
 | --- | --- | --- |
