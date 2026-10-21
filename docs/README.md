@@ -37,6 +37,7 @@ Every ProvInsights document, grouped by what you need it for. New to the project
 | --- | --- |
 | [Data-quality rules](data-quality-rules.md) | BLOCK and REVIEW severities, every check ID by layer, and the known-exceptions register |
 | [`tests/README.md`](../tests/README.md) | What the unit tests in CI check, and what is checked inside the pipeline instead |
+| [Pipeline and CI/CD evidence](pipeline-evidence.md) | Full run of all 19 job tasks, task dependencies, the CI and CD workflows, and screenshots in [`images/`](images/) |
 | [Gold run evidence](gold-run-evidence.md) | Results of the latest Gold run |
 | [Analytics run evidence](analytics-run-evidence.md) | Results of the latest Analytics build and validation |
 | [Dashboard evidence](dashboard-evidence.md) | Each dashboard page checked against the Analytics tables, with screenshots in [`images/dashboard/`](images/dashboard/) |

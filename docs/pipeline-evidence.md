@@ -103,7 +103,7 @@ flowchart LR
 
 ### Design choices
 
-- **Layers start with a setup task.** Each setup task waits for the whole previous layer, so every other task depends only on the step directly before it. Tasks in the same step run in parallel.
+- **Layers wait for the whole previous layer.** Ingestion, Silver and Gold start with a setup task that waits for the whole previous layer; Analytics starts after `gold_run_evidence`. Every other task depends only on the step directly before it, and tasks in the same step run in parallel.
 - **A failure stops everything downstream.** Every task uses the default `run_if: ALL_SUCCESS`. A failed `BLOCK` data-quality check fails its task, and every later task is marked *Upstream failed*, so bad data never reaches the next layer or the dashboard.
 - **Retries only where they help.** Only ingestion tasks call external sources (Google Drive), so only they retry. A retry would not fix a failed data-quality check.
 - **Timeouts are explained.** Analytics limits are about 3× the longest observed run. Setup, run-evidence and dashboard tasks allow 1800 s for serverless start-up waits. Gold dimensions keep 2700 s because they start right after Silver and may wait for compute.
@@ -128,7 +128,7 @@ These rules are enforced by the unit tests in [`tests/unit/test_job_definition.p
 | Install test dependencies | `tests/requirements.txt` (pinned versions) |
 | Check required files and directories | `README.md`, `docs`, `notebooks`, `resources`, `tests` exist, and `README.md` is not empty |
 | Check notebooks directory contents | `notebooks/` holds only `.ipynb` files and `README.md` |
-| Run unit tests | 27+ `unittest` tests in `tests/unit/` (below) |
+| Run unit tests | 29 `unittest` tests in `tests/unit/` (below) |
 
 | Test file | What it checks |
 | --- | --- |
@@ -136,7 +136,7 @@ These rules are enforced by the unit tests in [`tests/unit/test_job_definition.p
 | `test_notebook_python.py` | Notebooks are valid JSON with a markdown cell; every Python cell compiles; `CATALOG` is `tuklas_dev`; no tokens or passwords; every `dq(...)` severity is `BLOCK`, `REVIEW` or `LOG` |
 | `test_notebook_sql.py` | Every `%sql` cell and `spark.sql("...")` literal parses as Databricks SQL (`sqlglot`) |
 | `test_seeds.py` | The 4 seed CSVs: row counts, unique keys, row roles, 10-digit PSGC codes, known reporting units, coordinates inside the Philippines, ordered validity years |
-| `test_docs_alignment.py` | Every Silver `dq("ID")` check is documented in `docs/data-quality-rules.md`, and every documented Silver check is implemented |
+| `test_docs_alignment.py` | Every `dq("ID")` check in the Silver, Gold and Analytics notebooks is documented in section 6 of `docs/data-quality-rules.md` with the notebook that runs it, and every documented check is implemented |
 
 These are static tests: they need only the repository files, not Databricks. Data correctness is checked at run time by the data-quality checks inside the notebooks.
 
@@ -189,7 +189,7 @@ No workspace URL, token or email address is stored in the repository.
 | `dashboard_id` | Bundle variable with default | `databricks.yml` | `refresh_dashboard` |
 | `capstone_gdrive` | Unity Catalog connection | Databricks | Ingestion notebooks read Google Drive without keys |
 
-Both Databricks tokens expire, so a renewal is scheduled before the first expiry.
+Both Databricks tokens expire (deploy token on 2027-01-02, CI token on 2027-01-23). Cole renews both before 2027-01-02.
 
 ## 6. Dependencies
 
@@ -211,10 +211,11 @@ Both Databricks tokens expire, so a renewal is scheduled before the first expiry
 
 | Item | Result |
 | --- | --- |
-| Job run | [1038597319533082](https://dbc-5e346557-03d4.cloud.databricks.com/jobs/680308985921105/runs/1038597319533082): all 19 tasks succeeded, from ingestion to `refresh_dashboard` |
+| Job run | Run `1038597319533082` (job `680308985921105`): all 19 tasks succeeded, from ingestion to `refresh_dashboard` |
 | Duration | About 55 minutes (21 Oct 2026, 2:27 to 3:22 PM). Longest tasks: `ingest_psa` 12m 38s, `gold_setup` 11m 20s (includes the serverless start-up wait), `silver_psa_economy` 10m 1s, `refresh_dashboard` 9m 32s |
-| Code | `main` as deployed by the CD workflow when the run started (after #99), including the renamed notebook folders, the `refresh_dashboard` task and the latest Analytics changes |
-| Data quality | Every `BLOCK` check passed in Silver, Gold and Analytics. REVIEW flags: `DQ-DOT-11` only (3 unit-years with a year-over-year change above 5×), documented and non-blocking |
+| Code | `3c992d11f55b82f4f3eee2bd35eeabce4fb191bd` (#99), deployed by CD before the run started. #100 and #102 were also deployed while the run was in progress (2:45 and 2:51 PM); both changed Markdown files only, so the notebooks and job definition used by the run did not change |
+| Analytics | Build `analytics_20261021_071113_8fe3b68b`: 5 tables, 958 rows, 36 checks, 0 BLOCK failures, 0 REVIEW flags. Validation `analytics_validation_20261021_071512_94e6d474`: 148 checks, 0 BLOCK failures. Same 5 tables, 958 rows and 148 validation checks as the earlier build `analytics_20261021_005954_d19b1b91` that the layer evidence docs describe |
+| Data quality | Every `BLOCK` check passed in Silver, Gold and Analytics. REVIEW flags: <!-- confirm --> `DQ-DOT-11` only (3 unit-years with a year-over-year change above 5×), documented and non-blocking |
 | Dashboard | Refreshed by `refresh_dashboard` as the last task of the run |
 
 ![Successful job run: timeline](images/job-run-graph.png)
@@ -234,7 +235,7 @@ GROUP BY ALL ORDER BY ALL;
 
 ### Earlier full run
 
-[300208709071832](https://dbc-5e346557-03d4.cloud.databricks.com/jobs/680308985921105/runs/300208709071832) (before the folder rename and the dashboard task) also succeeded. Its Delta history shows `04_gold.fact_province_year` version 137 written with `jobRunId` 300208709071832, which shows the tables come from the job, not from hand runs.
+Run `300208709071832` (job `680308985921105`, before the folder rename and the dashboard task) also succeeded. Its Delta history shows `04_gold.fact_province_year` version 137 written with `jobRunId` 300208709071832, which shows the tables come from the job, not from hand runs.
 
 ### CI/CD runs
 

@@ -14,7 +14,7 @@ ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Departme
 | Set up, run, check and fix the pipeline | [Runbook](docs/runbook.md) |
 | Hand off the project or set it up in a new workspace | [Runbook, section 0](docs/runbook.md#0-hand-off-set-up-in-a-new-workspace) |
 | Look up tables and columns | [Data dictionary](docs/data-dictionary.md), [Schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md) |
-| See the checks and the latest results | [Data-quality rules](docs/data-quality-rules.md), [Analytics run evidence](docs/analytics-run-evidence.md), [Dashboard evidence](docs/dashboard-evidence.md) |
+| See the checks and the latest results | [Pipeline and CI/CD evidence](docs/pipeline-evidence.md), [Data-quality rules](docs/data-quality-rules.md), [Analytics run evidence](docs/analytics-run-evidence.md), [Dashboard evidence](docs/dashboard-evidence.md) |
 | Understand past choices | [Decision log](docs/project-decision-log.md) |
 | Contribute | [Team workflow](#team-workflow) |
 
@@ -144,7 +144,7 @@ The Databricks job [`tourism_pipeline`](resources/jobs/tourism_pipeline.yml) run
 - **Analytics** calculates the base metrics once, in `tuklas_dev.05_analytics`. The 2023 province profile used by AQ2 to AQ4 (leading destinations, output per visitor, medians, groups, lower-income and small-base flags) is computed from those tables in the dashboard dataset `ds_profile` (`dashboard/datasets/05_profile_2023.sql`). Every row carries the Analytics run ID and the exact Gold Delta versions it was built from. `tourism_recovery` and `traveler_segment_recovery` are also built as supporting tables, but they are not used to answer the business question.
 - **Data quality:** check results are saved in `06_data_quality.dq_results`, and each layer records its runs in a run log (`silver_run_log`, `gold_run_log`, `05_analytics.analytics_run_log`). A BLOCK check protects correctness. A REVIEW check flags something unusual that needs a person to look. Rules are in [data-quality rules](docs/data-quality-rules.md).
 
-Every table and column is described in the [data dictionary](docs/data-dictionary.md). Architecture, design decisions and limitations: [docs/architecture.md](docs/architecture.md). How to run, check and fix the pipeline: [docs/runbook.md](docs/runbook.md). Run evidence: [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md). Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
+Every table and column is described in the [data dictionary](docs/data-dictionary.md). Architecture, design decisions and limitations: [docs/architecture.md](docs/architecture.md). How to run, check and fix the pipeline: [docs/runbook.md](docs/runbook.md). Run evidence: [full pipeline and CI/CD](docs/pipeline-evidence.md), [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md). Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
 
 ## Repository guide
 
@@ -167,7 +167,8 @@ docs/
   gold-run-evidence.md            # latest Gold run results
   analytics-run-evidence.md       # latest Analytics run results
   dashboard-evidence.md           # dashboard pages checked against the Analytics tables
-  images/dashboard/               # dashboard screenshots
+  pipeline-evidence.md            # full pipeline run, job dependencies, CI/CD workflows
+  images/                         # pipeline run, Actions and dashboard screenshots
 notebooks/
   01_ingestion_bronze/            # sources to Bronze, via the capstone_gdrive connection
   02_silver/                      # cleaning and PSGC mapping, with DQ checks
@@ -206,7 +207,7 @@ Appendix pages A and B show tourism and traveler recovery as reference only. The
 
 ## Databricks deployment
 
-The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It uses three variables: `alert_email` (receives failure emails, supplied by GitHub), and `warehouse_id` and `dashboard_id` (SQL warehouse and shared dashboard for the refresh task, with defaults in `databricks.yml`). No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)). 
+The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It uses three variables: `alert_email` (receives failure emails, supplied by GitHub), and `warehouse_id` and `dashboard_id` (SQL warehouse and shared dashboard for the refresh task, with defaults in `databricks.yml`). No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)).
 
 **How changes reach Databricks**
 
