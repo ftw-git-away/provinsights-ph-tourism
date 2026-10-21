@@ -323,3 +323,4 @@ The first version of this document (Issue #5) proposed some IDs that are not che
 3. Add the check to the notebook's check table **and** to section 6 here.
 4. If it encodes an expected exception, put the expected list or tolerance in the Configuration cell, and add a row to section 5 (and section 7 if it is a documented exception).
 5. Run the notebook and paste its results into the PR.
+6. Run `python -m unittest` in `tests/unit`. `test_docs_alignment.py` fails if an ID is in a notebook but not in section 6, or the reverse, or if the Notebook column is wrong.
