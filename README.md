@@ -5,6 +5,18 @@
 
 ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Department of Tourism (DOT), Philippine Statistics Authority (PSA), and Philippine Standard Geographic Code (PSGC) data in one Databricks pipeline, so planners can see where tourism is concentrated, how provinces compare in visitors and tourism-related output per visitor, and which provinces beyond the leading destinations warrant closer attention.
 
+   ## Start here
+
+   | To... | Read |
+   | --- | --- |
+   | Understand the question and definitions | [Business and analytical questions](docs/business-and-analytical-questions.md) |
+   | See how the system is built and why | [Architecture](docs/architecture.md) |
+   | Set up, run, check and fix the pipeline | [Runbook](docs/runbook.md) |
+   | Look up tables and columns | [Schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md) |
+   | See the checks and the latest results | [Data-quality rules](docs/data-quality-rules.md), [Analytics run evidence](docs/analytics-run-evidence.md), [Dashboard evidence](docs/dashboard-evidence.md) |
+   | Understand past choices | [Decision log](docs/project-decision-log.md) |
+   | Contribute | [Team workflow](#team-workflow) |
+   
 ## Problem
 
 **Tourism is one of the country's biggest industries, but its benefits are concentrated in a few places.** In 2023, tourism employed 6.21 million Filipinos and made up 8.6% of GDP (PSA, Philippine Tourism Satellite Account). Yet in 2017, Boracay, an island of only about 10 km², hosted one in three visitors to the country, and in 2018 it had to close for six months to recover from overcrowding and pollution. The pattern continues: in 2023, the 10 leading destinations received **43.7%** of all overnight travelers, while many provinces with beaches, mountains and culture received far fewer.
