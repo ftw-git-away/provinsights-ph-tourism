@@ -38,7 +38,7 @@ A problem should be caught as close as possible to where it is introduced, so ea
 
 | Layer | What is checked | Where |
 | --- | --- | --- |
-| Ingestion | Source file found, extraction reconciles with printed totals, required metadata | Ingestion notebooks (`notebooks/01_ingestion_bronze/`) |
+| Ingestion | Source file found and read, each output recorded with its status and source fingerprint, failures logged. No `DQ-` checks: printed totals are reconciled in Silver (DQ-DOT-15, DQ-PSA-03, DQ-POP-04) | Ingestion notebooks (`notebooks/01_ingestion_bronze/`), `01_ingestion` control tables |
 | Bronze | Every file's status (`INGESTED`, `SKIPPED`, `FAILED`), technical failures and required source-lineage metadata | Ingestion-control tables written by the ingestion notebooks ([guide](../docs/bronze-ingestion-guide.md)) |
 | Silver | Data types, required fields, crosswalk matches, one row per unit and year | `DQ-COM-*`, `DQ-DOT-*`, `DQ-PSA-*`, `DQ-POP-*` checks in each Silver notebook ([rules](../docs/data-quality-rules.md)) |
 | Gold | Table grain, keys, joins, measures | `DQ-GLD-*` checks in each Gold notebook, summarised by `gold_run_evidence` ([evidence](../docs/gold-run-evidence.md)) |

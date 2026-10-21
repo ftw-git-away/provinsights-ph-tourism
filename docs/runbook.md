@@ -20,7 +20,7 @@ How to set up, run, check and fix the ProvInsights pipeline. For how the pieces 
 
 Do this once, when ProvInsights is handed to a new owner or moved to a workspace where it has never run. Steps 0.1 to 0.7 set it up; 0.8 lists what to transfer from the current team. In the current workspace everything below already exists, so skip to [section 1](#1-before-you-start).
 
-The version being handed over is the `v1.0-handoff` tag on `main`. Start from that tag, not from a later commit.
+The version being handed over is the `v1.0-handoff` tag on `main`. Start from that tag, not from a later commit, and confirm the commit with `git rev-parse v1.0-handoff`.
 
 ### 0.1 What the new workspace needs
 

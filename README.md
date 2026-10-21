@@ -184,6 +184,9 @@ tests/
   requirements.txt                # pinned test dependencies
 dashboard/
   README.md                       # opening, refreshing and editing the shared dashboard
+  provinsights.lvdash.json        # exported dashboard definition (versioned copy)
+  datasets/                       # SQL for each dashboard dataset
+  tools/build_lvdash.py           # syncs datasets/ into the JSON; --check fails on drift
 ```
 
 ## Dashboard
