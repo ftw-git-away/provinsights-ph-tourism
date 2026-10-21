@@ -1,6 +1,8 @@
 # Province-Level Data Model: Tourism and Local Economy
 
-This document defines the data model that supports the tourism recovery and local-economy business questions (BQ1 and BQ2) at **province level**. It sets out the grain, keys, relationships and important fields of each table; the geographic and temporal compatibility of the sources; the source-to-target mappings; and the decisions taken.
+This document defines the province-level data model behind the business question: *How can tourism and economic data across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development?* (DL-031). It sets out the grain, keys, relationships and important fields of the Gold star schema; how the Analytics tables and the dashboard profile are calculated from it; the geographic and temporal compatibility of the sources; the source-to-target mappings; and the modelling decisions.
+
+Every column of every table is listed in the [data dictionary](data-dictionary.md). The business question and its definitions are in [business-and-analytical-questions.md](business-and-analytical-questions.md).
 
 ---
 ## 1. Model overview
@@ -21,6 +23,8 @@ erDiagram
         string psgc_snapshot
         bigint census_population_ref
         int census_population_ref_year
+        double latitude
+        double longitude
     }
 
     fact_province_year {
@@ -73,6 +77,8 @@ erDiagram
 | | psgc_snapshot | string |
 | | census_population_ref | bigint |
 | | census_population_ref_year | int |
+| | latitude | double |
+| | longitude | double |
 
 ### fact_province_year
 
@@ -133,12 +139,12 @@ The PSGC gives every place one stable 10-digit code. DOT and PSA identify places
 | DOT DS_05, overnight travelers 2019 to 2024 | `dot_ds_05_<year>` | Tourism columns |
 | PSA DS_27 Total GDP, current prices | `psa_ds_27` | `gdp_total_current` |
 | PSA DS_28 Total GDP, constant prices | `psa_ds_28` | `gdp_total_constant` |
-| PSA DS_26 A&F GVA by region, 2022–2024 | `psa_ds_26` | Reconciliation only (validation rule 6) |
+| PSA DS_26 A&F GVA by region, 2022-2024 | `psa_ds_26` | Reconciliation only (validation rule 6) |
 | PSA DS_29 Per capita GDP, current prices | `psa_ds_29` | `gdp_per_capita_current` |
 | PSA DS_31 A&F GVA, current prices | `psa_ds_31` | `afs_gva_current` |
 | PSA DS_32 A&F GVA, constant prices | `psa_ds_32` | `afs_gva_constant` |
-| PSA DS_18 Projected mid-year population, province totals 2015–2025 (Excel; each province total includes its HUCs) | `psa_ds_18` | `population_total` for every unit without an HUC split, 2019–2024; province totals for the split below |
-| PSA DS_18 Projected mid-year population by city/municipality, 2020–2025 (PDF; province totals match the Excel) | `psa_ds_18_pdf_rows` | HUC populations 2020–2024, used to separate the 16 HUCs from their provinces |
+| PSA DS_18 Projected mid-year population, province totals 2015-2025 (Excel; each province total includes its HUCs) | `psa_ds_18` | `population_total` for every unit without an HUC split, 2019-2024; province totals for the split below |
+| PSA DS_18 Projected mid-year population by city/municipality, 2020-2025 (PDF; province totals match the Excel) | `psa_ds_18_pdf_rows` | HUC populations 2020-2024, used to separate the 16 HUCs from their provinces |
 
 Not used: the PSGC `Prov Sum` sheet (dated "as of 30 June 2020") and PSA DS_30, DS_01, DS_02 and DS_08 to DS_17, which no business question requires.
 
@@ -177,6 +183,7 @@ Not used: the PSGC `Prov Sum` sheet (dated "as of 30 June 2020") and PSA DS_30, 
 | `comparability_note` | Why the unit's DOT coverage changes across years (e.g. Aklan: Boracay counted at the Caticlan jetty port from 2021). The year-level flag is `fact_province_year.comparable_to_2019` |
 | `psgc_snapshot` | `2Q 2026` |
 | `census_population_ref`, `census_population_ref_year` | PSGC 2024 census population and its year. This is a fixed census count that describes the unit, not a yearly measurement, so it stays in the dimension. Reference only; never used as a denominator (use `fact_province_year.population_total`) |
+| `latitude`, `longitude` | One map point per unit, from the seed `resources/seeds/map_unit_coordinates.csv`, used by the dashboard maps (checked by DQ-GLD-01g) |
 
 ### 4.2 `dim_year`
 
@@ -196,9 +203,9 @@ Not used: the PSGC `Prov Sum` sheet (dated "as of 30 June 2020") and PSA DS_30, 
 | | `derived_values` | PSA economy (DL-024) | Caveat text, not additive |
 | | `per_capita_recomputed` | PSA economy (DL-011) | Caveat flag, not additive |
 | Population | `population_total`, `population_source` | PSA DS_18 (Excel and PDF) | Additive across provinces, not across years |
-| Comparability | `comparable_to_2019` | Derived from `map_dot_area_to_psgc` | Flag, not additive. It is `true` for units DOT does not report, so views also require `traveler_value_status <> 'not_reported'` |
+| Comparability | `comparable_to_2019` | Derived from `map_dot_area_to_psgc` | Flag, not additive. It is `true` for units DOT does not report, so Analytics also requires `traveler_value_status <> 'not_reported'` |
 
-**Caveat fields (added in #56).** These three columns carry interpretation caveats from Silver so that the views do not have to guess:
+**Caveat fields (added in #56).** These three columns carry interpretation caveats from Silver so that Analytics and the dashboard do not have to guess:
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -208,34 +215,59 @@ Not used: the PSGC `Prov Sum` sheet (dated "as of 30 June 2020") and PSA DS_30, 
 
 **Units:** `gdp_total_*` and `afs_gva_*` are in thousand PhP as published (constant prices at 2018 prices); `gdp_per_capita_current` is in PhP; traveler counts are persons-trips as reported by DOT. Units and price basis are stored in `ref_indicator` and as column comments.
 
-The fact table stores base measures only. Ratios are non-additive and are defined once in Gold views over the star:
+The fact table stores base measures only. Ratios are non-additive, so they are never stored in Gold. They are computed once, in two places:
 
-| Metric | Definition |
-| --- | --- |
-| Tourism activity | `total_travelers` |
-| Tourism intensity | `total_travelers / population_total x 1,000`, from 2019. For the 16 HUCs and their 14 provinces the 2019 population is estimated (see 7.4 and `population_source`) |
-| Concentration | Share of the provincial total per year, rank, top-N share and Herfindahl-Hirschman index |
-| Recovery Index | `total_travelers (year) / total_travelers (2019) x 100`, for 2022 and 2023, each judged with that year's `comparable_to_2019`. Using the unrounded value: below 2019 if < 100, unchanged if = 100, above 2019 if > 100 |
-| Segment recovery | Recovery Index for `domestic_travelers`, `foreign_travelers` and `overseas_filipinos` |
-| Tourism change | `(total_travelers (2023) - total_travelers (2019)) / total_travelers (2019) x 100` (= Recovery Index - 100), so tourism and A&F are compared on the same % growth scale (AQ2.1) |
-| A&F GVA growth | `(afs_gva_constant (2023) - afs_gva_constant (2019)) / afs_gva_constant (2019) x 100`; 0 = no growth, 25 = 25% growth (AQ2.1) |
-| GDP growth | `(gdp_total_constant (2023) - gdp_total_constant (2019)) / gdp_total_constant (2019) x 100`, to compare A&F growth with the whole local economy |
-| Quadrant | Tourism change and A&F GVA growth, each classed on the unrounded value as increased (> 0), decreased (< 0) or unchanged (= 0). The four quadrants use increased/decreased; a unit with either value unchanged is shown separately (AQ2.2) |
-| Economic significance | `afs_gva_current / gdp_total_current x 100` for the same year |
-
-Views: `vw_tourism_concentration`, `vw_tourism_intensity`, `vw_province_recovery`, `vw_tourism_economy_link`.
+| Metric | Definition | Computed in |
+| --- | --- | --- |
+| Tourism activity | `total_travelers` | `tourism_activity` |
+| Tourism intensity | `total_travelers ÷ population_total × 1,000`, from 2019. For the 16 HUCs and their 14 provinces the 2019 population is estimated (see 7.4 and `population_source`) | `tourism_activity`, `tourism_economy` (2023) |
+| Share and concentration | A unit's share of the year's eligible travelers; the top-5 and top-10 share for each year | `tourism_activity`, `tourism_concentration` |
+| Leading destinations | The 10 units with the highest average annual travelers over their eligible years, 2019-2023 (DL-032) | `ds_profile` |
+| Output per visitor | `afs_gva_current_2023 × 1,000 ÷ travelers_2023`, in PhP (DL-033) | `ds_profile` |
+| Province group | Travelers and output per visitor against their 2023 medians (DL-034) | `ds_profile` |
+| Lower-income | 2023 GDP per capita below the median of all 100 units (DL-035) | `ds_profile` |
+| Small base | Fewer than 10,000 travelers in 2023 (DL-036) | `ds_profile` |
+| Tourism share of the economy | `afs_gva_current ÷ gdp_total_current × 100`, 2023, for context | `tourism_economy` |
+| Recovery Index (supporting) | `total_travelers (year) ÷ total_travelers (2019) × 100`, for 2022 and 2023 | `tourism_recovery`, `traveler_segment_recovery` |
+| Tourism change and A&F growth (supporting) | % change 2019 to 2023; A&F growth uses constant prices | `tourism_economy` |
 
 ### 4.4 Calculations in `05_analytics`
 
-`05_analytics` (`01_build_analytics`, #65) reads only the three Gold tables and writes five Delta tables. Each build creates a candidate view, runs blocking checks, and replaces the table only if they pass. Missing values are never replaced with 0, values are not rounded before classification, and every denominator is guarded against NULL and non-positive values.
+`01_build_analytics` reads only the three Gold tables and writes five Delta tables. Each table is built as a candidate in a temporary view, its BLOCK checks run, and the table is replaced only if they pass. `02_analytics_validation` then recomputes every derived value from the persisted tables and reconciles base values to Gold at the versions recorded on each row (`_gold_fact_version`, `_gold_dim_province_version`, `_gold_dim_year_version`).
+
+General rules for every table:
+
+- Missing values are never replaced with 0 (DL-009). Each metric has its own eligibility flag and exclusion reason, so a missing value removes only the metrics that need it.
+- Every denominator is guarded against NULL and non-positive values.
+- Values are not rounded before they are ranked or classified.
+- `reported_partial` unit-years are eligible, with the status kept as a caveat (DL-019).
+- A `false` `comparable_to_2019` removes a unit-year from 2019 comparisons only, never from single-year metrics.
 
 | Table | Grain | Calculation |
 | --- | --- | --- |
-| `tourism_activity` | Unit x year | A unit-year is eligible when `total_travelers` is non-NULL, not negative and `traveler_value_status` is a known status other than `not_reported` (a reported 0 is eligible). `tourism_intensity_per_1000 = total_travelers / population_total x 1,000`, only when also eligible and `population_total > 0`. `tourism_rank` and `intensity_rank` are descending ranks within each year (ties share a rank). `tourism_share_pct` is the unit's travelers divided by the eligible total for that year x 100. `reported_partial` units count as eligible with the status kept (DL-019); a `false` `comparable_to_2019` does not remove a valid single-year value |
-| `tourism_concentration` | Year | Units are ordered by `total_travelers` descending, then `province_psgc` ascending. `top_5_share_pct` and `top_10_share_pct` are the top 5 and top 10 travelers divided by the eligible total x 100, with the number of units used and the eligible and excluded counts. A year with no eligible unit keeps its row with NULL shares |
-| `tourism_recovery` | Unit x comparison year (2022, 2023) | `recovery_index = travelers (year) / travelers (2019) x 100`. Eligible when 2019 travelers > 0, the comparison value is non-NULL and not negative, and that year's `comparable_to_2019` is `true`. `traveler_change_absolute` is the difference. `recovery_class` is `below_2019` (< 100), `unchanged` (= 100) or `above_2019` (> 100) on the unrounded index. Ineligible rows are kept with NULL metrics and an exclusion reason |
-| `traveler_segment_recovery` | Unit x comparison year (2022, 2023) | The same recovery rules, applied separately to total, domestic, foreign and overseas Filipino travelers. `below_2019_total_flag` marks units with an eligible total below 2019, and `segment_analysis_cohort_flag` marks that cohort. Foreign and overseas Filipino recovery is currently blocked in the notebook (NULL metrics, `false` eligibility and an exclusion reason), because it was written before `foreign_includes_overseas_filipinos` existed in Gold. Domestic recovery is not affected |
-| `tourism_economy` | Unit (2019 to 2023) | `tourism_change_pct = (travelers_2023 - travelers_2019) / travelers_2019 x 100`; `afs_gva_growth_pct` uses `afs_gva_constant`; `afs_share_of_gdp_pct = afs_gva_current_2023 / gdp_total_current_2023 x 100`; `tourism_intensity_per_1000_2023` as above. Each metric has its own eligibility, so a missing tourism comparison does not remove a valid A&F share. Tourism change needs `comparable_to_2019 = true` (Aklan is NULL). `tourism_direction` and `economy_direction` are `increased`, `unchanged` or `decreased` on the unrounded value; `tourism_economy_pattern` is one of `tourism_up_economy_up`, `tourism_up_economy_down`, `tourism_down_economy_up`, `tourism_down_economy_down`, or `unchanged` if either direction is unchanged. It is NULL unless both tourism change and A&F growth are eligible (`alignment_eligible`). `gdp_per_capita_current_2019` is carried as context only. Patterns describe association, not causation (DL-008) |
+| `tourism_activity` | Unit × year (600) | **Eligible** when `total_travelers` is not NULL and the unit is not `not_reported` (a reported 0 is eligible). `tourism_intensity_per_1000` needs eligible travelers and `population_total > 0`. `tourism_rank` and `intensity_rank` rank eligible units within each year, highest first; ties share a rank. `tourism_share_pct` is the unit's travelers ÷ the year's eligible total × 100. This table is also the input for the leading destinations (DL-032). |
+| `tourism_concentration` | Year (6) | Eligible units ordered by travelers, then `province_psgc`. `top_5_share_pct` and `top_10_share_pct` are the 5 and 10 busiest units **in that year** ÷ the eligible total × 100, with the eligible and excluded unit counts. A year with no eligible unit keeps its row with NULL shares. |
+| `tourism_economy` | Unit (100) | The 2023 values used by AQ2 to AQ4: `travelers_2023`, `status_2023`, `afs_gva_current_2023`, `gdp_per_capita_current_2023`, `tourism_intensity_per_1000_2023` and `afs_share_of_gdp_pct` (`afs_gva_current_2023 ÷ gdp_total_current_2023 × 100`), each with its own eligibility. Supporting columns: `tourism_change_pct` (needs `comparable_to_2019` in 2023, so Aklan is NULL), `afs_gva_growth_pct` (constant prices), `tourism_direction` and `economy_direction` (`up`, `down` or `unchanged` on the unrounded value, DL-022), and `tourism_economy_pattern`, which is NULL unless both changes are eligible. Patterns describe association, not causation (DL-008). |
+| `tourism_recovery` | Unit × comparison year, 2022 and 2023 (200) | **Supporting context** (DL-031). `recovery_index = travelers (year) ÷ travelers (2019) × 100`, eligible when both years are reported and comparable, 2019 is greater than 0 and the comparison year is not negative. `recovery_class` is `below_2019` (< 100), `unchanged` (= 100) or `above_2019` (> 100). `baseline_under_review_2019` marks units whose 2020 count is higher than 2019 (DL-029); `small_base_2019` and `destination_label` follow DL-028. Ineligible rows are kept with NULL metrics and an exclusion reason. |
+| `traveler_segment_recovery` | Unit below its 2019 level in 2023 (52) | **Supporting context.** The same recovery rule applied to domestic, foreign and overseas Filipino travelers. Foreign and overseas Filipino recovery is not calculated when `foreign_includes_overseas_filipinos` is `true` (Region II, DL-030). `<segment>_small_base` marks 2019 segment counts below 1,000 (DL-028). |
+
+The five tables are written as separate Delta operations, not one transaction. If a build stops partway, its summary reports which tables were replaced, and validation fails its lineage check until a full build finishes.
+
+### 4.5 Dashboard profile (`ds_profile`)
+
+The 2023 province profile used by AQ2 to AQ4 is derived in the dashboard dataset `ds_profile` (`dashboard/datasets/05_profile_2023.sql`), which reads only `tourism_activity` and `tourism_economy`. `ds_aq3_table` and `ds_aq4_table` carry the same block, and `dashboard/tools/build_lvdash.py` stops if the copies differ.
+
+| Step | Rule | Ref |
+| --- | --- | --- |
+| Leading destinations | Average annual travelers over each unit's eligible years, 2019-2023; the top 10 by that average | DL-032 |
+| Output per visitor | `afs_gva_current_2023 × 1,000 ÷ travelers_2023` (A&F GVA is published in thousand PhP). NULL when 2023 travelers are not reported or 0, or A&F GVA is missing | DL-033 |
+| Medians | 2023 travelers and output per visitor, over units with both values (279,150 and PHP 8,652 in 2023); GDP per capita over all 100 units (PHP 140,165) | DL-034, DL-035 |
+| Province group | Established (both high), Busy but low-output, Small but high-output, Limited activity (both low). At or above the median counts as high | DL-034 |
+| Lower-income | 2023 GDP per capita below its median | DL-035 |
+| Small base | Fewer than 10,000 travelers in 2023, shown as "Check before naming" | DL-036 |
+| AQ4 order | Busy but low-output, Small but high-output, Limited activity, then Established; lower-income first; then most visitors | DL-037 |
+
+The profile is not stored as a table. It runs when the dashboard refreshes, at the end of every pipeline run (`refresh_dashboard`).
 
 ---
 
@@ -246,12 +278,12 @@ Views: `vw_tourism_concentration`, `vw_tourism_intensity`, `vw_province_recovery
 | Unit definition | A unit is a province, an HUC that DOT reports separately, the City of Isabela, or NCR. Both DOT and PSA rows are mapped to the same units, so each unit covers the same area in every source. |
 | Cities DOT prints inside a province | DOT prints Lucena (HUC) and Dagupan, Santiago, Naga and Ormoc (ICC) as sub-rows inside their provinces (for example, Quezon's total is the sum of its sub-rows), not as separate level-1 rows. Their travelers are inside Quezon, Pangasinan, Isabela, Camarines Sur and Leyte. Lucena is therefore **not** a separate unit: its PSA rows are added to Quezon. |
 | Component cities DOT prints separately | Masbate City and Sorsogon City are component cities in PSGC. Their DOT rows are added to Masbate and Sorsogon. |
-| SBMA / Subic Bay Freeport Zone | Labeled SBMA in 2019–2022 and "Subic Bay Freeport Zone" in 2023–2024. It spans more than one province and has no PSGC code. It is excluded from the fact and listed in an exceptions table. |
-| Clark Freeport Zone and Pampanga | In 2019–2022 "Clark" is a sub-row inside Pampanga and Pampanga's total includes it (2019: Pampanga 910,666, Clark 721,567). From 2023 DOT prints "Clark Freeport Zone" as its own level-1 row (1,269,019 in 2023) and Pampanga drops to 386,868. Clark is **added back to Pampanga** for 2023–2024 so Pampanga covers the same area every year and stays comparable (DL-014, #47, #49). |
-| Cotabato City | DOT prints it under Region XII in 2019–2022 only; PSGC places it in BARMM, which DOT does not report. It is excluded and the gap is documented. |
+| SBMA / Subic Bay Freeport Zone | Labeled SBMA in 2019-2022 and "Subic Bay Freeport Zone" in 2023-2024. It spans more than one province and has no PSGC code. It is excluded from the fact and listed in an exceptions table. |
+| Clark Freeport Zone and Pampanga | In 2019-2022 "Clark" is a sub-row inside Pampanga and Pampanga's total includes it (2019: Pampanga 910,666, Clark 721,567). From 2023 DOT prints "Clark Freeport Zone" as its own level-1 row (1,269,019 in 2023) and Pampanga drops to 386,868. Clark is **added back to Pampanga** for 2023-2024 so Pampanga covers the same area every year and stays comparable (DL-014, #47, #49). |
+| Cotabato City | DOT prints it under Region XII in 2019-2022 only; PSGC places it in BARMM, which DOT does not report. It is excluded and the gap is documented. |
 | NCR | NCR is a single unit keyed by the NCR region code. Where a source prints NCR by city, the city rows are summed; where it prints an NCR total, that row is used. |
-| Boracay | Boracay is printed at DOT level 1 but is a sub-area of Aklan (Malay). Whether Aklan includes it changes by year (OI-4): **2019–2020** Aklan excludes Boracay, so Boracay is **added to Aklan**; **2021–2022** Aklan equals Boracay, so Boracay is **not loaded**; **2023–2024** Aklan includes Boracay (Malay), so Boracay is **not loaded**. Aklan has `comparable_to_2019 = false` for 2021–2024 (and `true` for 2020) because DOT changed how Boracay is counted (Caticlan jetty port from 2021). |
-| Units changed between 2019 and 2024 | A unit created, split, merged or counted differently by DOT gets `comparable_to_2019 = false` for each year after the change; those years are excluded from the recovery and BQ2 views, while earlier years stay usable. |
+| Boracay | Boracay is printed at DOT level 1 but is a sub-area of Aklan (Malay). Whether Aklan includes it changes by year (OI-4): **2019-2020** Aklan excludes Boracay, so Boracay is **added to Aklan**; **2021-2022** Aklan equals Boracay, so Boracay is **not loaded**; **2023-2024** Aklan includes Boracay (Malay), so Boracay is **not loaded**. Aklan has `comparable_to_2019 = false` for 2021-2024 (and `true` for 2020) because DOT changed how Boracay is counted (Caticlan jetty port from 2021). |
+| Units changed between 2019 and 2024 | A unit created, split, merged or counted differently by DOT gets `comparable_to_2019 = false` for each year after the change; those years are excluded from the supporting recovery and 2019-to-2023 change metrics, while earlier years and single-year metrics stay usable. |
 | Region assignment | Region is taken from the PSGC 2Q 2026 snapshot for all years. |
 | PSA hierarchy markers | Leading dots differ in depth between PSA tables. Rows are classified by cleaned name matched to `dim_province`, not by dot depth. |
 | Encoding | The Unicode replacement character in PSA names (for example `Las Pi\ufffdas`) is repaired in a cleaned name column. |
@@ -266,19 +298,19 @@ Views: `vw_tourism_concentration`, `vw_tourism_intensity`, `vw_province_recovery
 | --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 | DOT overnight travelers | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | PSA GDP, GDP per capita, A&F GVA (DS_27, DS_28, DS_29, DS_31, DS_32) | ✓ | ✓ | ✓ | ✓ | ✓ | | |
-| PSA projected population (DS_18: Excel 2015–2025 by province; PDF 2020–2025 by city/municipality) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| PSA projected population (DS_18: Excel 2015-2025 by province; PDF 2020-2025 by city/municipality) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 - **Geography:** one PSGC snapshot (2Q 2026) applies to all years.
-- **Years required:** 2019 (baseline), 2022 and 2023 (recovery), and 2019 to 2023 for BQ2. All are covered by DOT and DS_27 to DS_32. All sources overlap in 2019 to 2023.
-- **Population:** DS_18 comes from two compatible PSA projection files whose province totals match exactly. The Excel gives province totals for 2015–2025, but each province total includes its HUCs. The PDF lists every city and municipality for 2020–2025, so it is used to separate HUCs from their provinces. HUCs are not published for 2019, so their 2019 values are estimated from each HUC's projected 2020–2021 growth (DL-021, 7.4). Tourism intensity is therefore available from 2019 (AQ1.1). PSGC population is reference only.
+- **Years required:** 2019 to 2023 for the trend and the leading destinations, and 2023 for AQ2 to AQ4. The supporting recovery tables use 2019 as the baseline and 2022 and 2023 as comparison years. All sources overlap in 2019 to 2023; DOT and population also cover 2024, so Gold keeps 2019 to 2024.
+- **Population:** DS_18 comes from two compatible PSA projection files whose province totals match exactly. The Excel gives province totals for 2015-2025, but each province total includes its HUCs. The PDF lists every city and municipality for 2020-2025, so it is used to separate HUCs from their provinces. HUCs are not published for 2019, so their 2019 values are estimated from each HUC's projected 2020-2021 growth (DL-021, 7.4). Tourism intensity is therefore available from 2019. PSGC population is reference only.
 - **Price basis:** growth uses constant prices; shares use current prices. The two are never combined in one ratio.
-- **Missing values:** NULL means not published. The DOT `-` marker depends on where it appears (DL-019). A `-` **cell** in a row whose total is printed is loaded as 0 and marked `traveler_value_status = 'dash_as_zero'`, because row and regional totals only reconcile that way (about 1,200–1,900 cells per year). A row whose **total** is `-` is missing, not 0 (DL-009): its unit-year is `not_reported` (NULL) when every DOT row for that unit is `-`, and `reported_partial` when only some are (NCR in every year; Sorsogon 2019). 28 unit-years are `not_reported`, including Olongapo 2019 and Abra 2023.
+- **Missing values:** NULL means not published. The DOT `-` marker depends on where it appears (DL-019). A `-` **cell** in a row whose total is printed is loaded as 0 and marked `traveler_value_status = 'dash_as_zero'`, because row and regional totals only reconcile that way (about 1,200-1,900 cells per year). A row whose **total** is `-` is missing, not 0 (DL-009): its unit-year is `not_reported` (NULL) when every DOT row for that unit is `-`, and `reported_partial` when only some are (NCR in every year; Sorsogon 2019). 28 unit-years are `not_reported`, including Olongapo 2019 and Abra 2023.
 
 ---
 
 ## 7. Source-to-target mappings
 
-Bronze remains as printed. Cleaning and mapping occur in Silver, and the star schema and views are built in Gold.
+Bronze remains as printed. Cleaning and mapping occur in Silver, the star schema is built in Gold, and metrics are computed in Analytics (4.4).
 
 ### 7.1 PSGC to `dim_province`
 
@@ -296,10 +328,10 @@ Bronze remains as printed. Cleaning and mapping occur in Silver, and the star sc
 
 | Source | Target | Transformation |
 | --- | --- | --- |
-| `area_label`, `parent_label`, `indent_level` (levels 0 and 1) | `province_psgc` | Trim; join to `03_silver.map_dot_area_to_psgc` on (`dot_indent_level`, `dot_parent_label`, `dot_area_label`) with the year between `valid_from_year` and `valid_to_year`; `province_psgc` = the map's `unit_psgc_code`. Apply each row's `row_role` (see 7.5): `province_unit` loaded, `add_to_parent` summed into its unit (Boracay 2019–2020, Clark Freeport Zone 2023–2024 into Pampanga, Masbate City, Sorsogon City, NCR cities into NCR), `exclude` not loaded (Boracay 2021–2024, SBMA / Subic Bay Freeport Zone, Cotabato City), `region_total` / `national_total` used only for validation rule 5 |
+| `area_label`, `parent_label`, `indent_level` (levels 0 and 1) | `province_psgc` | Trim; join to `03_silver.map_dot_area_to_psgc` on (`dot_indent_level`, `dot_parent_label`, `dot_area_label`) with the year between `valid_from_year` and `valid_to_year`; `province_psgc` = the map's `unit_psgc_code`. Apply each row's `row_role` (see 7.5): `province_unit` loaded, `add_to_parent` summed into its unit (Boracay 2019-2020, Clark Freeport Zone 2023-2024 into Pampanga, Masbate City, Sorsogon City, NCR cities into NCR), `exclude` not loaded (Boracay 2021-2024, SBMA / Subic Bay Freeport Zone, Cotabato City), `region_total` / `national_total` used only for validation rule 5 |
 | `source_year` | `year` | Cast to integer |
 | `foreign_travelers`, `overseas_filipinos`, `domestic_travelers`, `total_travelers` | Same names, plus `traveler_value_status` | Remove thousands separators; cast to bigint. Per DL-019: a `-` cell in a row with a printed total → 0; a row whose total is `-` contributes NULL. Unit-year status: `reported` (all rows printed), `dash_as_zero` (all row totals printed, some cells `-`), `reported_partial` (some row totals `-`; value = sum of printed rows), `not_reported` (every row `-`, or the unit is not in DOT, e.g. BARMM and Sulu; value NULL) |
-| `breaks_comparability` of the map rows loaded or excluded into the unit that year | `comparable_to_2019` | `false` when any map row for the unit in that year has `breaks_comparability = true` (DOT counts the unit differently from 2019); otherwise `true`. 2019 is always `true`. The flag is `true` for units DOT does not report, so use it with `traveler_value_status`. With the current seed only Aklan is `false`, for 2021–2024 (DL-013) |
+| `breaks_comparability` of the map rows loaded or excluded into the unit that year | `comparable_to_2019` | `false` when any map row for the unit in that year has `breaks_comparability = true` (DOT counts the unit differently from 2019); otherwise `true`. 2019 is always `true`. The flag is `true` for units DOT does not report, so use it with `traveler_value_status`. With the current seed only Aklan is `false`, for 2021-2024 (DL-013) |
 | `foreign_includes_overseas_filipinos` | `foreign_includes_overseas_filipinos` | Carried from the Silver DOT unit-year; `true` for Batanes, Cagayan, Isabela, Nueva Vizcaya and Quirino, 2019 to 2024, otherwise `false`. DOT prints the foreign and overseas Filipino counts for these units but includes overseas Filipinos in foreign |
 
 ### 7.3 PSA to fact columns
@@ -333,8 +365,8 @@ From the Excel, only the `Total` rows are kept (not the age groups or Male/Femal
 
 | Table | Grain | Key | Main fields |
 | --- | --- | --- | --- |
-| `map_dot_area_to_psgc` | One printed DOT label (region rows at indent level 0, province-level rows at level 1) per validity period | (`dot_indent_level`, `dot_parent_label`, `dot_area_label`, `valid_from_year`) | `valid_to_year` (NULL = still in use), `row_role` (`province_unit`, `add_to_parent`, `exclude`, `region_total`, `national_total`), `unit_psgc_code` (unit the travelers are loaded to), `area_psgc_code` (the printed area itself, e.g. Malay for Boracay), `exclude_reason` (`double_count`, `no_psgc_unit`, `outside_dot_coverage`), `breaks_comparability` (`true` only on rows treated differently from 2019: Boracay 2021–2024), `match_method`, `match_status`, `notes`, `reviewed_by`, `reviewed_on`. Built by `01_silver_geography` from the seed `resources/seeds/map_dot_area_to_psgc.csv` (#47) |
-| `map_psa_area_to_psgc` | One PSA row label, the same 134 labels in DS_27 to DS_32 | (`psa_label`) | `psa_region_code` (region the row is printed under; PSA uses 17 regions in 2019–2023), `row_role` (`unit`, `add_to_unit`, `ncr_component`, `region_total`), `unit_psgc_code`, `area_psgc_code`, `area_psgc_name`, `reviewed_by`, `reviewed_on`, `notes`. Built by `03_silver_psa_economy` from the seed `resources/seeds/map_psa_area_to_psgc.csv` |
+| `map_dot_area_to_psgc` | One printed DOT label (region rows at indent level 0, province-level rows at level 1) per validity period | (`dot_indent_level`, `dot_parent_label`, `dot_area_label`, `valid_from_year`) | `valid_to_year` (NULL = still in use), `row_role` (`province_unit`, `add_to_parent`, `exclude`, `region_total`, `national_total`), `unit_psgc_code` (unit the travelers are loaded to), `area_psgc_code` (the printed area itself, e.g. Malay for Boracay), `exclude_reason` (`double_count`, `no_psgc_unit`, `outside_dot_coverage`), `breaks_comparability` (`true` only on rows treated differently from 2019: Boracay 2021-2024), `match_method`, `match_status`, `notes`, `reviewed_by`, `reviewed_on`. Built by `01_silver_geography` from the seed `resources/seeds/map_dot_area_to_psgc.csv` (#47) |
+| `map_psa_area_to_psgc` | One PSA row label, the same 134 labels in DS_27 to DS_32 | (`psa_label`) | `psa_region_code` (region the row is printed under; PSA uses 17 regions in 2019-2023), `row_role` (`unit`, `add_to_unit`, `ncr_component`, `region_total`), `unit_psgc_code`, `area_psgc_code`, `area_psgc_name`, `reviewed_by`, `reviewed_on`, `notes`. Built by `03_silver_psa_economy` from the seed `resources/seeds/map_psa_area_to_psgc.csv` |
 | `map_psa_population_area_to_psgc` | One DS_18 label, Excel or PDF | (`source_table`, `block_label`, `area_label`) | `ds18_area` (the Excel label of the same area, to compare Excel and PDF), `row_role` (Excel: `unit`, `not_a_unit`, `region_total`, `national_total`; PDF: `check_total`, `region_total`, `huc`), `unit_psgc_code`, `from_unit_psgc_code` (for an HUC, the province it is subtracted from), `area_psgc_code`, `area_psgc_name`, `notes`, `reviewed_by`, `reviewed_on`. Built by `04_silver_population` from the seed `resources/seeds/map_psa_population_area_to_psgc.csv` |
 | `ref_indicator` | One PSA measure | (`measure`) | `dataset_id`, `bronze_table`, `psa_table`, `title`, `unit`, `price_basis`, `additivity`. Records the unit and price basis once, from the table titles (D17). Built by `03_silver_psa_economy` |
 
@@ -348,7 +380,7 @@ From the Excel, only the `Total` rows are kept (not the age groups or Male/Femal
 6. PSA: province-level sums agree with region or national rows within a stated tolerance; differences are listed.
 7. For every unit and comparison year (2022, 2023) with `comparable_to_2019 = true`, tourism columns are non-NULL for 2019 and that year, and economic columns are non-NULL for 2019 and 2023; failures are listed with the reason (REVIEW). Expected under DL-019: Olongapo City (2019, 2022), Angeles City (2022), Davao Occidental (2022) and Abra (2023) are `not_reported`.
 8. Shares use current-price columns only; growth uses constant-price columns only.
-9. Population: every PDF province total equals the Excel total for 2020–2025 (checked: all 83 provinces and independent cities match exactly); for each province with an HUC, the province unit plus its HUCs equals the DS_18 province total in every year; the 2019 HUC estimates are listed for review (REVIEW).
+9. Population: every PDF province total equals the Excel total for 2020-2025 (checked: all 83 provinces and independent cities match exactly); for each province with an HUC, the province unit plus its HUCs equals the DS_18 province total in every year; the 2019 HUC estimates are listed for review (REVIEW).
 
 ---
 
@@ -363,13 +395,13 @@ From the Excel, only the `Total` rows are kept (not the age groups or Male/Femal
 | D5 | One PSGC snapshot applies to all years, with no history tracking. | One consistent geography. |
 | D6 | Bronze is kept as printed; cleaning, padding, casting and unpivoting occur in Silver. | Bronze guide and lineage. |
 | D7 | Name-to-PSGC mappings are reviewed tables, not fuzzy matching in code. | Every mapping is explainable and signed off. |
-| D8 | Boracay is added to Aklan for 2019–2020 and excluded for 2021–2024. Aklan is not comparable to 2019 from 2021 (`comparable_to_2019 = false` for 2021–2024). | DOT counts Boracay separately in 2019–2020 (Aklan 217,367 vs Boracay 2,034,599 in 2019) and inside Aklan from 2021 (OI-4). Excluding it every year would remove about 2 million travelers from Aklan's 2019 baseline. |
-| D9 | Tourism measures come from DOT level-1 rows. A `-` cell in a row with a printed total is 0 (`dash_as_zero`); a row whose total is `-` is missing; a unit-year is `not_reported` (NULL) if all its rows are `-` and `reported_partial` if some are (DL-019). | Totals reconcile only when `-` cells count as 0, but a whole-row `-` is not a credible zero (Angeles City: 70,476 in 2019, `-` in 2020–22, 157,666 in 2023), and DL-009 says missing is never 0. |
+| D8 | Boracay is added to Aklan for 2019-2020 and excluded for 2021-2024. Aklan is not comparable to 2019 from 2021 (`comparable_to_2019 = false` for 2021-2024). | DOT counts Boracay separately in 2019-2020 (Aklan 217,367 vs Boracay 2,034,599 in 2019) and inside Aklan from 2021 (OI-4). Excluding it every year would remove about 2 million travelers from Aklan's 2019 baseline. |
+| D9 | Tourism measures come from DOT level-1 rows. A `-` cell in a row with a printed total is 0 (`dash_as_zero`); a row whose total is `-` is missing; a unit-year is `not_reported` (NULL) if all its rows are `-` and `reported_partial` if some are (DL-019). | Totals reconcile only when `-` cells count as 0, but a whole-row `-` is not a credible zero (Angeles City: 70,476 in 2019, `-` in 2020-22, 157,666 in 2023), and DL-009 says missing is never 0. |
 | D10 | The model is a star with one fact and two dimensions. Mapping tables and the full PSGC list stay in Silver. | Simple to explain and to query. |
 | D11 | NULL means not published and is never 0. The fact has a row for every unit and year from 2019 to 2024. | Keeps gaps visible and the grain complete; 2025 has no tourism or economic data. |
-| D12 | Only the PSA tables required by the business questions are included (DS_18 Excel and PDF, DS_27, DS_28, DS_29, DS_31, DS_32), plus DS_26 for reconciliation. | Keeps the model small; DS_28 is needed to compare A&F growth with overall GDP growth at constant prices. |
+| D12 | Only the PSA tables required by the business questions are included (DS_18 Excel and PDF, DS_27, DS_28, DS_29, DS_31, DS_32), plus DS_26 for reconciliation. | Keeps the model small; DS_28 keeps a constant-price GDP alongside the constant-price A&F GVA. |
 | D13 | PSA rows are classified by cleaned name matched to `dim_province`, not by leading-dot depth. | Dot depth differs between PSA tables. |
-| D14 | Ratios are not stored in the fact; they are defined once in Gold views. Growth uses constant prices, shares use current prices, a ratio is NULL where its 2019 base is 0 or missing, and direction uses the unrounded value: increased (> 0 growth, or index > 100), decreased (< 0, or < 100), unchanged (= 0, or = 100). | Ratios cannot be summed or averaged; one definition serves every question. |
-| D15 | `comparable_to_2019` is set per unit and year, so 2019→2022 and 2019→2023 are judged separately. Recovery and BQ2 views use a unit-year only when it is comparable to 2019; a ratio is still NULL when either value is missing (D14). | A change that only affects later years should not remove an earlier valid result; a `not_reported` year (DL-019) has no value to compare. |
-| D16 | Per-capita GDP is taken from DS_29 as published, including the NCR row. The only exception is Quezon, whose per-capita value is recomputed for 2019 to 2023 after Lucena is added. Population comes from DS_18 for the same year: the Excel for province totals and the PDF to separate HUCs (2020–2024); the 2019 HUC split is estimated from each HUC's projected 2020–2021 growth (`population_source = 'estimated_from_2020_trend'` for the HUC and `'ds18_excel_minus_estimated_huc'` for its province, DL-021). Intensity is available from 2019. PSGC population is reference only. | Published values follow PSA's own method; DS_18 province totals include HUCs, but DOT reports HUCs separately; 2019 has no published HUC values, and without them the 2019 baseline intensity (AQ1.1) would be missing for most major city destinations. |
+| D14 | Ratios are not stored in the fact; they are computed once in `05_analytics` (4.4), and the 2023 profile once in `ds_profile` (4.5). Growth uses constant prices, shares use current prices, a ratio is NULL where its base is 0 or missing, and direction uses the unrounded value: up (> 0 growth, or index > 100), down (< 0, or < 100), unchanged (= 0, or = 100). | Ratios cannot be summed or averaged; one definition serves every page. |
+| D15 | `comparable_to_2019` is set per unit and year, so 2019→2022 and 2019→2023 are judged separately. Recovery and 2019-to-2023 change metrics use a unit-year only when it is comparable to 2019; a ratio is still NULL when either value is missing (D14). | A change that only affects later years should not remove an earlier valid result; a `not_reported` year (DL-019) has no value to compare. |
+| D16 | Per-capita GDP is taken from DS_29 as published, including the NCR row. The only exception is Quezon, whose per-capita value is recomputed for 2019 to 2023 after Lucena is added. Population comes from DS_18 for the same year: the Excel for province totals and the PDF to separate HUCs (2020-2024); the 2019 HUC split is estimated from each HUC's projected 2020-2021 growth (`population_source = 'estimated_from_2020_trend'` for the HUC and `'ds18_excel_minus_estimated_huc'` for its province, DL-021). Intensity is available from 2019. PSGC population is reference only. | Published values follow PSA's own method; DS_18 province totals include HUCs, but DOT reports HUCs separately; 2019 has no published HUC values, and without them 2019 intensity would be missing for most major city destinations. |
 | D17 | Units and price basis are recorded in `ref_indicator` and the Gold column comments, taken from each PSA table title (e.g. "In thousand PhP, at constant prices"). | #39 skips the CSV title row on load, so the title text is captured once in `ref_indicator` instead of in Bronze. |

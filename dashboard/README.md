@@ -4,13 +4,13 @@ A Databricks AI/BI dashboard on tourism across the 100 reporting units. It shows
 
 **Business question:** How can tourism and economic data across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development? (See `docs/business-and-analytical-questions.md`.)
 
-**Rule:** every chart and KPI reads the Analytics tables in `tuklas_dev.05_analytics`. Dataset queries only rename, label, reshape and filter, with one exception: the leading destinations, their yearly share, and the 2023 province profile (output per visitor, medians, groups, lagging). That logic lives in `dashboard/datasets/` (`01`, `04` and `05`–`08`), follows the definitions in `docs/business-and-analytical-questions.md` and decision log DL-031 to DL-037, and is the same in every file that uses it (the build script checks this). Any other new number goes into `notebooks/04_analytics/01_build_analytics` first.
+**Rule:** every chart and KPI reads the Analytics tables in `tuklas_dev.05_analytics`. Dataset queries only rename, label, reshape and filter, with one exception: the leading destinations, their yearly share, and the 2023 province profile (output per visitor, medians, groups, lagging). That logic lives in `dashboard/datasets/` (`01`, `04`, `05`, `07` and `08`), follows the definitions in `docs/business-and-analytical-questions.md` and decision log DL-031 to DL-037, and is the same in every file that uses it (the build script checks this). Any other new number goes into `notebooks/04_analytics/01_build_analytics` first.
 
-## Why the pages changed (Oct 19 refocus and mentor feedback)
+## Design choices
 
-- The business question was finalised after the Oct 19 refocus, with one analytical question (AQ) per page.
-- Roselle's feedback: keep a question the data can answer, show rather than prescribe, name the quadrants, and tell the "before ProvInsights" story. So page 4 shows **what the data shows** and **what to look at**, not recommended actions or lead agencies. The data can't speak to access, infrastructure, investment or governance.
-- Group names are the descriptive ones agreed in the final document (Established, Busy but low-output, Small but high-output, Limited activity). "Emerging" was dropped because the data doesn't show growth: of the 21 provinces in that group, 11 are above their 2019 level and 10 below.
+- One analytical question (AQ) per page, in the order of the business question (DL-031).
+- The dashboard shows rather than prescribes (DL-037). Page 4 shows **what the data shows** and **what to look at**, not recommended actions or lead agencies, because the data can't speak to access, infrastructure, investment or governance.
+- Group names are descriptive (Established, Busy but low-output, Small but high-output, Limited activity; DL-034). "Emerging" is not used because the data doesn't show growth: of the 21 provinces in that group, 11 are above their 2019 level and 10 below.
 - The earlier recovery pages are kept as **Appendix A and B** for context. They are not part of the four AQs.
 
 ## Status
@@ -28,7 +28,7 @@ A Databricks AI/BI dashboard on tourism across the 100 reporting units. It shows
 
 ## Build and update
 
-The shared dashboard lives in Databricks and keeps one link. It is **not** deployed by the bundle: the `refresh_dashboard` job task (#85) refreshes it at the end of every pipeline run, using `dashboard_id` and `warehouse_id` in `databricks.yml`. This folder keeps the exported JSON and the dataset SQL so the queries are versioned and reviewable.
+The shared dashboard lives in Databricks as **PROVINSIGHTS DASHBOARD** (open it from **Dashboards** in the workspace) and keeps one link. The workspace URL is not committed to the repo. It is **not** deployed by the bundle: the `refresh_dashboard` job task (#85) refreshes it at the end of every pipeline run, using `dashboard_id` and `warehouse_id` in `databricks.yml`. This folder keeps the exported JSON and the dataset SQL so the queries are versioned and reviewable.
 
 1. **Change a query:** edit the file in `datasets/`, then paste the same SQL into that dataset on the shared dashboard's **Data** tab and publish. Run `python dashboard/tools/build_lvdash.py` so the JSON here matches.
 2. **Change the layout or text:** edit the shared dashboard in Databricks and publish. Then **⋮ → Export dashboard**, save the file as `dashboard/provinsights.lvdash.json`, and run `python dashboard/tools/build_lvdash.py --check`.
@@ -51,7 +51,7 @@ One file per dataset. **Keep it to 10 datasets or fewer:** on the Free Edition e
 | `10_appx_recovery.sql` | `ds_appx_recovery` | unit × comparison year (200) | `tourism_recovery` | Appendix A |
 | `11_appx_segments.sql` | `ds_appx_segments` | unit × traveler type (156) | `traveler_segment_recovery` | Appendix B |
 
-Files 05, 07 and 08 carry the same 2023-profile block. `build_lvdash.py` stops if they differ, so change them together. Row counts are from a local run on the current `05_analytics`.
+Files 05, 07 and 08 carry the same 2023-profile block. `build_lvdash.py` stops if they differ, so change them together. Row counts are from Analytics build `analytics_20261021_005954_d19b1b91`.
 
 ## Filters
 
@@ -113,14 +113,14 @@ Wording on every page: "moves with", "stands out", "warrants a closer look". Nev
 
 ## Test-unit reconciliation
 
-Check these in the dashboard against `05_analytics`. The expected values come from a local run on the current tables.
+Check these in the dashboard against `05_analytics` after a data change. The expected values are from Analytics build `analytics_20261021_005954_d19b1b91` (see [analytics run evidence](../docs/analytics-run-evidence.md) and [dashboard evidence](../docs/dashboard-evidence.md)). If a new build changes them, update this section in the same PR.
 
 | Unit | Type | 2023 travelers | 2023 rank | Intensity / 1,000 | Leading? | Group (page 2) | Output per visitor (₱) | A&F share | Lagging | High output per visitor | Recovery 2023 (App. A) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Quezon | Province | 1,264,181 | 12 | 543.0 | Yes | Established | 10,449 | 4.05% | Yes | Yes | 97.1 |
 | Pampanga | Province | 1,655,887 | 5 | 671.6 | Yes | Established | 10,288 | 2.65% | No | Yes | 181.8 |
 | Aklan | Province | 2,200,138 | 4 | 3,544.4 | Yes | Busy but low-output | 1,222 | 3.24% | Yes | No | not assessed |
-| Basilan | Province | blank | — | blank | No | Insufficient data | blank | 0.10% | Yes | — | not assessed |
+| Basilan | Province | blank | - | blank | No | Insufficient data | blank | 0.10% | Yes | - | not assessed |
 | City of Angeles | HUC | 157,666 | 66 | 277.1 | No | Small but high-output | 52,368 | 5.17% | No | Yes | 223.7 |
 | City of Isabela | Independent city | 101,238 | 76 | 748.2 | No | Limited activity | 467 | 0.33% | Yes | No | 667.8 |
 | NCR | NCR | 7,027,445 | 1 | 492.7 | Yes | Established | 13,890 | 1.29% | No | Yes | 231.4 |

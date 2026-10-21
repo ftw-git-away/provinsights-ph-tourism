@@ -1,9 +1,10 @@
 # ProvInsights Runbook
 
-How to set up, run, check and fix the ProvInsights pipeline. For how the pieces fit together, see [architecture.md](architecture.md).
+How to set up, run, check and fix the ProvInsights pipeline. For how the pieces fit together, see [architecture.md](architecture.md). For what each table and column means, see the [data dictionary](data-dictionary.md).
 
 ## Contents
 
+0. [Hand-off: set up in a new workspace](#0-hand-off-set-up-in-a-new-workspace)
 1. [Before you start](#1-before-you-start)
 2. [Configuration reference](#2-configuration-reference)
 3. [Run the full pipeline](#3-run-the-full-pipeline)
@@ -12,6 +13,80 @@ How to set up, run, check and fix the ProvInsights pipeline. For how the pieces 
 6. [When something fails](#6-when-something-fails)
 7. [Roll back a table](#7-roll-back-a-table)
 8. [Common changes](#8-common-changes)
+
+---
+
+## 0. Hand-off: set up in a new workspace
+
+Do this once, when ProvInsights is handed to a new owner or moved to a workspace where it has never run. Steps 0.1 to 0.7 set it up; 0.8 lists what to transfer from the current team. In the current workspace everything below already exists, so skip to [section 1](#1-before-you-start).
+
+The version being handed over is the `v1.0-handoff` tag on `main`. Start from that tag, not from a later commit.
+
+### 0.1 What the new workspace needs
+
+- A Databricks workspace with Unity Catalog and serverless compute for notebooks and jobs
+- A SQL warehouse (serverless is fine) for the dashboard refresh
+- A Google account that can read the three source folders listed in the [Bronze ingestion guide](bronze-ingestion-guide.md#source-access)
+- Admin access to the GitHub repository, to set the environments in 0.6
+
+### 0.2 Create the catalog and the two ingestion schemas
+
+The notebooks use the catalog name `tuklas_dev`. The setup tasks create `03_silver`, `04_gold`, `05_analytics` and `06_data_quality`, but `00_ingestion_setup` only checks that `01_ingestion` exists and stops if it doesn't, and the ingestion notebooks write to `02_bronze` without creating it. Run this once in a SQL editor:
+
+```sql
+CREATE CATALOG IF NOT EXISTS tuklas_dev;
+CREATE SCHEMA IF NOT EXISTS tuklas_dev.`01_ingestion`;
+CREATE SCHEMA IF NOT EXISTS tuklas_dev.`02_bronze`;
+```
+
+Then give the team `USE CATALOG`, `CREATE SCHEMA` and write access on `tuklas_dev` (section 1, "Access you need").
+
+To use a different catalog name, change `CATALOG = "tuklas_dev"` at the top of every notebook and the catalog set on every dashboard dataset, in one pull request.
+
+### 0.3 Create the Google Drive connection
+
+1. In **Catalog Explorer → External data → Connections**, create a Google Drive connection named exactly **`capstone_gdrive`** and sign in with the Google account from 0.1. The name is hard-coded in the ingestion notebooks.
+2. Grant the people and the job's run-as user permission to use the connection.
+3. Check it: open `03_ingest_dot`, run the cells up to the folder listing, and confirm it lists the six DOT PDFs.
+
+No keys or tokens go into the notebooks or the repository. Access is controlled only through this connection.
+
+### 0.4 Check the source files
+
+The notebooks find each file by its Google Drive file ID (`SOURCE_FILES` and `*_FOLDER` at the top of each ingestion notebook). If the files are copied to new folders, the IDs change: update those settings in a pull request. File names and dataset IDs must follow the [naming convention](bronze-ingestion-guide.md#file-naming).
+
+### 0.5 Create the dashboard and set the bundle variables
+
+1. Import the dashboard: **Dashboards → Create dashboard → ⋮ → Import dashboard from file**, using `dashboard/provinsights.lvdash.json`. Set each dataset's catalog and schema to `tuklas_dev.05_analytics` if they aren't set.
+2. Publish it with the SQL warehouse from 0.1, and give the job's run-as user at least **Can Run** on it.
+3. Copy the dashboard ID (from its URL) and the warehouse ID (**SQL Warehouses → Connection details**), and set them as the defaults of `dashboard_id` and `warehouse_id` in `databricks.yml` in a pull request.
+
+The dashboard shows no data until the first pipeline run finishes in 0.7.
+
+### 0.6 Set up GitHub
+
+Create the two GitHub environments, `development` (deployment branch `main` only) and `ci-validate`, each with `DATABRICKS_HOST`, `DATABRICKS_TOKEN` and `DATABRICKS_ALERT_EMAIL`. The values, and why there are two environments, are in [`.github/workflows/README.md`](../.github/workflows/README.md#required-github-configuration). Use a validate-only token for `ci-validate`.
+
+### 0.7 First deploy and run
+
+1. Merge the pull requests from 0.4 and 0.5, or run **Actions → CD - Deploy ProvInsights PH to Databricks → Run workflow**. This deploys the job and the seed files.
+2. Run the pipeline with **run_pipeline** ticked, or with Option A or B in [section 3](#3-run-the-full-pipeline). The setup tasks create the remaining schemas and control tables on the first run.
+3. Check the run with [section 5](#5-check-that-a-run-succeeded). On the current sources, a complete run gives 100 units, 600 fact rows and 958 Analytics rows, with no BLOCK failures.
+4. Open the dashboard and compare the test units in [`dashboard/README.md`](../dashboard/README.md#test-unit-reconciliation).
+
+### 0.8 What to transfer
+
+These are tied to a person on the current team, so they don't move with the repository. Transfer or replace each one before the team's access ends.
+
+| Item | Why it matters | What to do |
+| --- | --- | --- |
+| `capstone_gdrive` connection | It signs in with one person's Google account. If that account loses access, ingestion fails. | Re-create or re-authorize it with the new owner's Google account (0.3), and transfer ownership of the connection in Unity Catalog. |
+| Google Drive source folders | The connection can only read folders shared with its account. | Share the three folders with the new owner, or copy them and update the file IDs (0.4). |
+| Shared dashboard | Owned by the person who created it, and published with their credentials. | Transfer ownership to the new owner and republish. Check that `dashboard_id` in `databricks.yml` is unchanged. |
+| Databricks job | Runs as the person who last deployed it. | Redeploy from the new owner's account (0.7), so the job runs as them. |
+| GitHub tokens | `DATABRICKS_TOKEN` in both GitHub environments is a personal access token. | Create new tokens from the new owner's account, update both environments (0.6), and revoke the old tokens. |
+| Failure emails | Go to the address in `DATABRICKS_ALERT_EMAIL`. | Change it to the new owner's address. |
+| Repository access | Reviews and merges need write access. | Add the new owners on GitHub and keep `main` protected. |
 
 ---
 
