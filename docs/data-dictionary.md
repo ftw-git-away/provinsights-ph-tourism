@@ -463,9 +463,9 @@ The dashboard dataset `ds_profile` (`dashboard/datasets/05_profile_2023.sql`) de
 | `small_base_2023` | **Small base**: fewer than 10,000 travelers in 2023, shown as "Check before naming" (DL-036). |
 | `afs_share_of_gdp_pct` | Tourism share of the economy, %, for context. |
 | `gdp_per_capita_thousand` | 2023 GDP per capita in thousand PhP, 1 decimal. |
-| `is_lagging` | **Lower-income**: 2023 GDP per capita below the median of all 100 units (PHP 140,165 in 2023, DL-035). |
+| `is_lagging` | **Lower-income**: 2023 GDP per capita below the median of all 100 units (₱140,165 in 2023, DL-035). |
 | `wealth_group` | `Lagging (below-median GDP per capita)` or `Not lagging`. |
-| `is_high_output` | Output per visitor at or above the 2023 median (PHP 8,652). |
+| `is_high_output` | Output per visitor at or above the 2023 median (₱8,652). |
 | `group_label` | **Province group** against the 2023 medians of travelers (279,150) and output per visitor (DL-034). See [value lists](#8-value-lists). |
 | `map_group` | `Leading destination` for leading destinations, otherwise `group_label`. |
 | `what_the_data_shows` | The group in words, for example "Few visitors, but high output per visitor". |

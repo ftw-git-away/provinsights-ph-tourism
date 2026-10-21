@@ -261,7 +261,7 @@ The 2023 province profile used by AQ2 to AQ4 is derived in the dashboard dataset
 | --- | --- | --- |
 | Leading destinations | Average annual travelers over each unit's eligible years, 2019-2023; the top 10 by that average | DL-032 |
 | Output per visitor | `afs_gva_current_2023 × 1,000 ÷ travelers_2023` (A&F GVA is published in thousand PhP). NULL when 2023 travelers are not reported or 0, or A&F GVA is missing | DL-033 |
-| Medians | 2023 travelers and output per visitor, over units with both values (279,150 and PHP 8,652 in 2023); GDP per capita over all 100 units (PHP 140,165) | DL-034, DL-035 |
+| Medians | 2023 travelers and output per visitor, over units with both values (279,150 and ₱8,652 in 2023); GDP per capita over all 100 units (₱140,165) | DL-034, DL-035 |
 | Province group | Established (both high), Busy but low-output, Small but high-output, Limited activity (both low). At or above the median counts as high | DL-034 |
 | Lower-income | 2023 GDP per capita below its median | DL-035 |
 | Small base | Fewer than 10,000 travelers in 2023, shown as "Check before naming" | DL-036 |

@@ -151,7 +151,7 @@ Bronze tables have fixed names and are written with Delta `overwrite`, so a reru
 | `03_ingest_dot` | The years in `YEARS_TO_RUN` (`"all"` or a list such as `["2024"]`); other years are untouched |
 | `04_ingest_psa_ds18_pdf` | Both of its tables |
 
-**Changed files.** Every notebook stores the file's SHA-256 fingerprint. The DOT and DS_18 PDF notebooks compare it with the fingerprint from the previous load and write a warning to the `file_manifest` notes when the file changed. `01_ingest_psa` also stops if a file changes while it is being read. To load a new year of data, follow "Load a new year of source data" in the [runbook](runbook.md).
+**Changed files.** Every notebook stores the file's SHA-256 fingerprint. The DOT and DS_18 PDF notebooks compare it with the fingerprint from the previous load and write a warning to the `file_manifest` notes when the file changed. `01_ingest_psa` also stops if a file changes while it is being read. To load a new year of data, follow "Load a new year of source data" in [making changes](making-changes.md#load-a-new-year-of-source-data).
 
 ## Checking a run
 

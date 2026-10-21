@@ -1,19 +1,56 @@
 # ProvInsights Business and Analytical Questions
 
+**Audience:** business readers: planners, reviewers and anyone who needs to know what ProvInsights answers and what the data can say. No coding knowledge needed; dataset IDs such as `DS_05` appear only as lookup keys. Technical details are in the [documentation index](README.md#part-b-for-technical-readers).
+
 ## Contents
 
+- [The problem](#the-problem)
 - [Business question](#business-question)
+- [Data at a glance](#data-at-a-glance)
+- [Glossary](#glossary)
 - [Scope and definitions](#scope-and-definitions)
 - [Analytical questions](#analytical-questions)
 - [Province groups](#province-groups)
 - [Out of scope](#out-of-scope)
 - [Caveats](#caveats)
 
+## The problem
+
+Tourism is concentrated in a few places: in 2023 the 10 leading destinations received **43.7%** of all overnight travelers. The DOT's [National Tourism Development Plan 2023-2028](https://www.visitcentralluzon.com/wp-content/uploads/2026/02/DOT-NTDP-23-00043-Department-of-Tourism-National-Tourism-Development-Plan-2023-2028.pdf) (Goal 4) aims to spread tourism to more provinces, but the evidence needed to compare provinces is scattered: visitor counts come from DOT as yearly PDFs, economic and population data from PSA in different formats, and place codes from PSGC. The sources cover different years and name places differently, so provinces can't be compared directly. ProvInsights puts them on one consistent province-by-year basis.
+
 ## Business question
 
 > **How can tourism and economic data across Philippine provinces be analysed to identify destinations that may warrant greater attention for tourism development?**
 
 ProvInsights shows *where to look closer*. It does not prescribe interventions, investments or lead agencies (DL-031, DL-037).
+
+## Data at a glance
+
+What each source measures, and what it can and cannot tell us. Identifiers and source issues are in [Data sources](consolidated-data-sources.md).
+
+| What we need | Source | Measures | Years used | Level | Used for | What it can't tell us |
+| --- | --- | --- | --- | --- | --- | --- |
+| How many visitors | DOT Regional Distribution of Overnight Travelers (DS_05) | Overnight stays in accommodation establishments | 2019-2023 (2024 loaded) | Province, HUC, NCR | AQ1 to AQ4 | Unique visitors or day-trippers; places DOT doesn't report (BARMM provinces, Sulu, Abra in 2023) |
+| Tourism-related output | PSA provincial accounts: accommodation and food services (A&F) gross value added (DS_31) | Hotel and restaurant output, current prices | 2023 (2019-2023 loaded) | Province, HUC, NCR | Output per visitor (AQ2 to AQ4) | Tourist spending alone: it includes residents' and business spending, and misses transport, tours and shopping |
+| Income level | PSA GDP per capita (DS_29) | Provincial GDP per person, current prices | 2023 | Province, HUC, NCR | Lower-income flag (AQ3, AQ4) | Poverty or household income |
+| Size of the local economy | PSA GDP (DS_27) | Provincial GDP, current prices | 2023 | Province, HUC, NCR | Tourism share of the economy (context) | Anything tourism-specific: it covers every sector |
+| Population | PSA projected mid-year population (DS_18) | Residents | 2019-2023 | Province, HUC, NCR | Travelers per 1,000 residents (AQ1) | Exact 2019 HUC population (estimated, DL-021) |
+| Where each place is | PSGC 2Q 2026 (DS_34) | Official codes and names | One snapshot for all years | Every place | Joins all sources; region of each unit | Boundary changes over time: one 2Q 2026 snapshot is used for every year (D5) |
+
+## Glossary
+
+Business terms in plain language. Each one links to the decision that set it.
+
+| Term | Plain meaning |
+| --- | --- |
+| **Province (reporting unit)** | One of 100 areas we compare: 82 provinces, 16 cities DOT reports separately (HUCs), the City of Isabela and NCR (DL-010). |
+| **Leading destinations** | The 10 provinces with the most overnight travelers on average, 2019-2023 (DL-032). |
+| **Output per visitor** | Hotel and restaurant output divided by overnight travelers, 2023, in pesos (DL-033). A proxy, not tourist spending. |
+| **High / low** | At or above / below the 2023 median among provinces with data (DL-034). Relative, not a national target. |
+| **Lower-income (lagging)** | 2023 GDP per capita below the median of all 100 provinces (₱140,165, DL-035). An income indicator, not a poverty measure. |
+| **Small base** | Fewer than 10,000 travelers in 2023; marked "Check before naming" because a small count can inflate output per visitor (DL-036). |
+| **Province groups** | Established, Busy but low-output, Small but high-output, Limited activity (see [Province groups](#province-groups)). |
+| **What to look at** | A question each group raises for local follow-up, not a recommendation (DL-037). |
 
 ## Scope and definitions
 
