@@ -47,8 +47,9 @@ flowchart LR
 ```
 Update this diagram whenever tasks or `depends_on` change in `resources/jobs/tourism_pipeline.yml`.
 
-The job runs in layers. Each layer starts with its setup task, which waits for the whole
-previous layer, so each task depends only on the step directly before it. Tasks in the same
+The job runs in layers. Ingestion, Silver and Gold each start with a setup task, which waits
+for the whole previous layer. Analytics starts after `gold_run_evidence`. Each task depends
+only on the step directly before it. Tasks in the same
 step run in parallel.
 
 If you remove a setup task, add direct dependencies on the tables each task reads, or the

@@ -26,7 +26,7 @@ ProvInsights shows *where to look closer*. It does not prescribe interventions, 
 | **Visitors (overnight travelers)** | Travelers reported by DOT as staying overnight in accommodation establishments (`total_travelers`). They count stays, not unique people, and exclude day-trippers. |
 | **Leading destinations (top 10 destinations)** | The 10 provinces with the highest average annual overnight travelers, 2019-2023, averaged over the years each province has data (DL-032). |
 | **Tourism-related output** | Accommodation and food services (A&F) gross value added, current prices (`afs_gva_current_2023`). Our tourism-related economic proxy (DL-007). |
-| **Output per visitor** | A&F GVA ÷ overnight travelers, 2023, in PhP (DL-033). |
+| **Output per visitor** | A&F GVA (published in thousand PhP, so × 1,000) ÷ overnight travelers, 2023, in PhP (DL-033). |
 | **Higher/lower income** | 2023 GDP per capita at or above/below the median of all reporting units with 2023 GDP per capita (DL-035). |
 | **Small base** | Fewer than 10,000 overnight travelers in 2023. Output per visitor may be inflated by the small count, so these provinces are marked "Check before naming" (DL-036). |
 
