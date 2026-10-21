@@ -7,6 +7,12 @@ include:
 variables:
   alert_email:
     description: Email address that receives pipeline failure notifications
+  warehouse_id:
+    description: SQL warehouse that runs the dashboard queries
+    default: 957e4742462068cf
+  dashboard_id:
+    description: Shared AI/BI dashboard refreshed at the end of the pipeline
+    default: 01f1cce3ab3a196c90b5fdc0a8a478a6
 
 targets:
   dev:
