@@ -1,7 +1,7 @@
 # Dashboard
 
 ProvInsights PH shared AI/BI dashboard (PROVINSIGHTS DASHBOARD):
-https://dbc-5e346557-03d4.cloud.databricks.com/dashboardsv3/01f1ccbbc06f127d9d59222d52271516/published
+https://dbc-5e346557-03d4.cloud.databricks.com/dashboardsv3/01f1cce3ab3a196c90b5fdc0a8a478a6/published
 
 The pipeline job refreshes it with the task `refresh_dashboard`, which runs after
 `analytics_run_evidence`, so it always shows the latest validated data.
