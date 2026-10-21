@@ -1,83 +1,74 @@
 # Tests and Validation
 
-Tests and validation are responsible for **checking that the resulting data is correct and meets the project's rules**.
+Tests and validation check that the pipeline's data is correct and follows the project's rules. There are two kinds:
 
-## Validation by Pipeline Layer
+| Kind | Where it runs | What it needs | When |
+| --- | --- | --- | --- |
+| **Unit tests** (`tests/unit/`) | GitHub Actions (CI) | Repository files only: no Databricks, no network | Every push and pull request |
+| **Data-quality checks** (in the pipeline notebooks) | Databricks job `tourism_pipeline` | The tables in `tuklas_dev` | Every pipeline run |
 
-Validation is organized by the layer or component being checked.
+## Unit tests (`tests/unit/`)
 
-| Scope      | Validation                                                  |
-| ---------- | ----------------------------------------------------------- |
-| Ingestion  | Source availability, file/API response, required metadata   |
-| Bronze     | Schema, record ingestion, duplicates, source tracking       |
-| Silver     | Data types, required fields, transformations, relationships |
-| Gold       | Table grain, keys, joins, measures, business rules          |
-| Analytics  | Metrics, calculations, expected outputs                     |
-| End-to-end | Complete pipeline and final data-quality checks             |
+| File | Checks | What it covers |
+| --- | --- | --- |
+| `test_job_definition.py` | YAML | `resources/jobs/tourism_pipeline.yml`: unique task keys, every notebook path exists, every `depends_on` points to a real task, no cycles, each layer (by notebook folder) starts only after every task of the previous layer, every task has a timeout, retries only on `ingest_*` tasks, failure emails and one run at a time; the Tasks table and Run order diagram in `resources/README.md` list the same tasks as the job |
+| `test_notebook_python.py` | Python | Every notebook is valid JSON with valid cell types and a markdown cell; every Python cell compiles (including notebooks without a `%python` magic); `CATALOG` is `tuklas_dev`; no tokens or passwords; every `dq(...)` call uses a documented severity (`BLOCK`, `REVIEW`, `LOG`), passed by position or as `severity=` |
+| `test_notebook_sql.py` | SQL | Every `%sql` cell and every `spark.sql("...")` literal parses as Databricks SQL (`sqlglot`) |
+| `test_seeds.py` | CSV data | The four seeds in `resources/seeds/`: row counts and columns, unique keys, allowed `row_role` values, 10-digit PSGC codes, every unit code (and every HUC's `from_unit_psgc_code`) is one of the 100 reporting units, coordinates inside the Philippines, DOT validity years in order |
+| `test_docs_alignment.py` | Docs | Silver checks match both ways: every `dq("ID", ...)` call in a Silver notebook is a row in section 6 of `docs/data-quality-rules.md`, and every row there is run by a Silver notebook. Mentions in markdown or comments do not count |
 
+Run them locally (versions are pinned in `tests/requirements.txt`, the same file CI uses):
 
-## Validation Principles
-
-### 1. Validate each layer
-
-A problem should be detected as close as possible to where it is introduced.
-
-```text
-Source
-  ↓
-Ingestion ──→ Validate
-  ↓
-Bronze ─────→ Validate
-  ↓
-Silver ─────→ Validate
-  ↓
-Gold ───────→ Validate
-  ↓
-Analytics ──→ Validate
-  ↓
-End-to-End → Validate
+```bash
+python -m pip install -r tests/requirements.txt
+python -m unittest discover -s tests/unit -t tests/unit -v
 ```
 
-### 2. Separate creation from validation
+**Limits of the static checks**
 
-Do not hide important quality checks inside transformation logic to make it easier to understand **what the pipeline does** and **how we know it worked**.
+- `spark.sql(variable)` calls are not checked, because the SQL is only known at run time. Only string and f-string literals are parsed.
+- Statements that `sqlglot` cannot model (currently only `SHOW`) are allowed through unparsed. Any other statement it cannot parse fails the test.
+- Gold `dq(...)` checks are not matched against a document yet.
 
+When a test fails, the message names the file, task, cell or seed row. Fix the code, or, if the change is intended (for example a new task or seed row), update the test and the matching README in the same pull request.
 
-For example:
+## Data-quality checks by layer
 
-```text
-03_silver/
-└── tourism.py              # Creates Silver table
+A problem should be caught as close as possible to where it is introduced, so each layer checks its own output.
 
-tests/
-└── test_tourism.py         # Checks Silver table
-```
+| Layer | What is checked | Where |
+| --- | --- | --- |
+| Ingestion | Source file found, extraction reconciles with printed totals, required metadata | Ingestion notebooks (`notebooks/01_ingestion_bronze/`) |
+| Bronze | Every file's status (`INGESTED`, `SKIPPED`, `FAILED`), technical failures and required source-lineage metadata | Ingestion-control tables written by the ingestion notebooks ([guide](../docs/bronze-ingestion-guide.md)) |
+| Silver | Data types, required fields, crosswalk matches, one row per unit and year | `DQ-COM-*`, `DQ-DOT-*`, `DQ-PSA-*`, `DQ-POP-*` checks in each Silver notebook ([rules](../docs/data-quality-rules.md)) |
+| Gold | Table grain, keys, joins, measures | `DQ-GLD-*` checks in each Gold notebook, summarised by `gold_run_evidence` ([evidence](../docs/gold-run-evidence.md)) |
+| Analytics | Metrics, calculations, expected outputs | `notebooks/04_analytics/02_analytics_validation`, summarised by `analytics_run_evidence` ([evidence](../docs/analytics-run-evidence.md)) |
 
+Every check writes one row to `tuklas_dev.06_data_quality.dq_results` with its ID, severity and status. A failed `BLOCK` check fails its task, and the job skips every task after it, so bad data never reaches the next layer.
 
-### 3. Test important behavior
+| Severity | When it fails |
+| --- | --- |
+| `BLOCK` | The task fails and the pipeline stops |
+| `REVIEW` | The run continues; the result must be reviewed |
+| `LOG` | Recorded for information only |
 
-Tests should cover areas such as:
+### Important behaviour and where it is covered
 
-* Schema and data types
-* Required fields
-* Primary/business keys
-* Duplicate records
-* Null or invalid values
-* Source-to-target mappings
-* Geographic relationships
-* Time periods
-* Business rules
-* Rerun/idempotency behavior
-* Final analytical outputs
+| Behaviour | Covered by |
+| --- | --- |
+| Schema and data types | Types set when each table is built; `DQ-COM` checks in Silver |
+| Required fields, null or invalid values | Silver `DQ-*` checks (e.g. `DQ-COM-06`, `DQ-COM-07`) |
+| Primary/business keys, duplicates | One row per unit and year (`DQ-COM-03`); unique seed keys (`test_seeds.py`) |
+| Source-to-target mappings | Seed crosswalks checked by `test_seeds.py`; new or renamed source labels fail `DQ-DOT-03`, `DQ-PSA-01`, `DQ-POP-01/02`; mapping documented in [`docs/schema-and-source-to-target-mapping.md`](../docs/schema-and-source-to-target-mapping.md) |
+| Geographic relationships | PSGC units and crosswalks (`DQ-GEO-*`, `DQ-XW-*`); unit codes and coordinates in `test_seeds.py` |
+| Time periods | Seed validity years (`test_seeds.py`); year checks in each Silver notebook |
+| Business rules | Silver checks per source; Gold `DQ-GLD-*`; analytics validation |
+| Rerun / idempotency | Silver notebooks overwrite each whole table (`write_silver`), so a rerun gives the same result. Not tested automatically yet |
+| Final analytical outputs | `02_analytics_validation` and `analytics_run_evidence` |
 
+### Creation and validation
 
-Tests requiring Databricks data or external services can be executed in the appropriate development or integration environment.
-
-## End-to-End Quality Gate
-
-The final pipeline should have a consolidated quality check that verifies the important requirements for the completed data product. A failed critical validation should cause the pipeline to fail.
-
-The specific framework used for the end-to-end quality gate will be documented once selected.
+Checks run inside the notebook that builds the table, just before it is written, so a bad table is never saved. Their results are kept separate from the data in `dq_results`, and each check is documented with its ID, so it is always clear what was checked and whether it passed.
 
 ## Goal
 

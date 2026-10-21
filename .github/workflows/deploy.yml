@@ -25,7 +25,6 @@ on:
       - databricks.yml
       - resources/**
       - notebooks/**
-      - src/**
       - tests/**
       - dashboard/**
       - .github/workflows/deploy.yml
