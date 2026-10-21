@@ -138,10 +138,11 @@ docs/
   architecture.md                 # placeholder
   runbook.md                      # placeholder
 notebooks/
-  01_ingestion/                   # sources to Bronze
+  01_ingestion_bronze/                   # sources to Bronze
   02_silver/
   03_gold/
   04_analytics/                   # build, validation, run evidence
+  99_maintenance/                 # one-off maintenance, run by hand (not in the job)
 resources/
   jobs/tourism_pipeline.yml       # end-to-end Databricks job
   seeds/                          # reviewed crosswalk files

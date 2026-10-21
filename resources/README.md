@@ -23,48 +23,75 @@ Job name in Databricks: **ProvInsights PH - End-to-End Pipeline**
 
 ### Run order
 
-```text
-ingestion_setup
- ├─ ingest_psa ──────────┐
- ├─ ingest_psgc ─────────┤
- ├─ ingest_dot ──────────┤
- └─ ingest_psa_ds18_pdf ─┤
-silver_setup ────────────┴─ silver_geography (PSGC + DOT)
-                             ├─ silver_dot
-                             ├─ silver_psa_economy
-                             └─ silver_population (+ PSA DS-18 PDF rows)
-gold_setup ─┬─ gold_dim_province ─┐
-            └─ gold_dim_year ─────┴─ gold_fact_province_year ─ gold_run_evidence
-                                                                      │
-                     analytics ─ analytics_validation ─ analytics_run_evidence
+```mermaid
+flowchart LR
+  subgraph ingestion["Ingestion"]
+    ingestion_setup --> ingest_psa & ingest_psgc & ingest_dot & ingest_psa_ds18_pdf
+  end
+  subgraph silver["Silver"]
+    silver_setup --> silver_geography --> silver_dot & silver_psa_economy & silver_population
+  end
+  subgraph gold["Gold"]
+    gold_setup --> gold_dim_province & gold_dim_year --> gold_fact_province_year --> gold_run_evidence
+  end
+  subgraph analytics_layer["Analytics"]
+    analytics --> analytics_validation --> analytics_run_evidence
+  end
+    subgraph dashboard_layer["Dashboard"]
+    refresh_dashboard
+  end
+  ingest_psa & ingest_psgc & ingest_dot & ingest_psa_ds18_pdf --> silver_setup
+  silver_dot & silver_psa_economy & silver_population --> gold_setup
+  gold_run_evidence --> analytics
+  analytics_run_evidence --> refresh_dashboard
 ```
+Update this diagram whenever tasks or `depends_on` change in `resources/jobs/tourism_pipeline.yml`.
+
+The job runs in layers. Each layer starts with its setup task, which waits for the whole
+previous layer, so each task depends only on the step directly before it. Tasks in the same
+step run in parallel.
+
+If you remove a setup task, add direct dependencies on the tables each task reads, or the
+layers can run out of order.
 
 ### Tasks
 
 | Layer | Task | Notebook | Runs after |
 | --- | --- | --- | --- |
-| 01 Ingestion | `ingestion_setup` | `notebooks/01_ingestion/00_ingestion_setup.ipynb` | — |
-| 01 Ingestion | `ingest_psa` | `notebooks/01_ingestion/01_ingest_psa.ipynb` | `ingestion_setup` |
-| 01 Ingestion | `ingest_psgc` | `notebooks/01_ingestion/02_ingest_psgc.ipynb` | `ingestion_setup` |
-| 01 Ingestion | `ingest_dot` | `notebooks/01_ingestion/03_ingest_dot.ipynb` | `ingestion_setup` |
-| 01 Ingestion | `ingest_psa_ds18_pdf` | `notebooks/01_ingestion/04_ingest_psa_ds18_pdf.ipynb` | `ingestion_setup` |
-| 03 Silver | `silver_setup` | `notebooks/03_silver/00_silver_setup.ipynb` | `ingestion_setup` |
-| 03 Silver | `silver_geography` | `notebooks/03_silver/01_silver_geography.ipynb` | `silver_setup`, `ingest_psgc`, `ingest_dot` |
-| 03 Silver | `silver_dot` | `notebooks/03_silver/02_silver_dot.ipynb` | `silver_geography`, `ingest_dot` |
-| 03 Silver | `silver_psa_economy` | `notebooks/03_silver/03_silver_psa_economy.ipynb` | `silver_geography`, `ingest_psa` |
-| 03 Silver | `silver_population` | `notebooks/03_silver/04_silver_population.ipynb` | `silver_geography`, `ingest_psa`, `ingest_psa_ds18_pdf` |
-| 04 Gold | `gold_setup` | `notebooks/04_gold/00_gold_setup.ipynb` | `ingestion_setup` |
-| 04 Gold | `gold_dim_province` | `notebooks/04_gold/01_gold_dim_province.ipynb` | `gold_setup`, `silver_geography` |
-| 04 Gold | `gold_dim_year` | `notebooks/04_gold/02_gold_dim_year.ipynb` | `gold_setup`, `silver_dot`, `silver_psa_economy`, `silver_population` |
-| 04 Gold | `gold_fact_province_year` | `notebooks/04_gold/03_gold_fact_province_year.ipynb` | `gold_dim_province`, `gold_dim_year`, `silver_dot`, `silver_psa_economy`, `silver_population` |
-| 04 Gold | `gold_run_evidence` | `notebooks/04_gold/04_gold_run_evidence.ipynb` | `gold_fact_province_year` |
-| 05 Analytics | `analytics` | `notebooks/05_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
-| 05 Analytics | `analytics_validation` | `notebooks/05_analytics/02_analytics_validation.ipynb` | `analytics` |
-| 05 Analytics | `analytics_run_evidence` | `notebooks/05_analytics/03_analytics_run_evidence.ipynb` | `analytics_validation` |
+| 01 Ingestion | `ingestion_setup` | `notebooks/01_ingestion_bronze/00_ingestion_setup.ipynb` | — |
+| 01 Ingestion | `ingest_psa` | `notebooks/01_ingestion_bronze/01_ingest_psa.ipynb` | `ingestion_setup` |
+| 01 Ingestion | `ingest_psgc` | `notebooks/01_ingestion_bronze/02_ingest_psgc.ipynb` | `ingestion_setup` |
+| 01 Ingestion | `ingest_dot` | `notebooks/01_ingestion_bronze/03_ingest_dot.ipynb` | `ingestion_setup` |
+| 01 Ingestion | `ingest_psa_ds18_pdf` | `notebooks/01_ingestion_bronze/04_ingest_psa_ds18_pdf.ipynb` | `ingestion_setup` |
+| 02 Silver | `silver_setup` | `notebooks/02_silver/00_silver_setup.ipynb` | `ingest_psa`, `ingest_psgc`, `ingest_dot`, `ingest_psa_ds18_pdf` |
+| 02 Silver | `silver_geography` | `notebooks/02_silver/01_silver_geography.ipynb` | `silver_setup` |
+| 02 Silver | `silver_dot` | `notebooks/02_silver/02_silver_dot.ipynb` | `silver_geography` |
+| 02 Silver | `silver_psa_economy` | `notebooks/02_silver/03_silver_psa_economy.ipynb` | `silver_geography` |
+| 02 Silver | `silver_population` | `notebooks/02_silver/04_silver_population.ipynb` | `silver_geography` |
+| 03 Gold | `gold_setup` | `notebooks/03_gold/00_gold_setup.ipynb` | `silver_dot`, `silver_psa_economy`, `silver_population` |
+| 03 Gold | `gold_dim_province` | `notebooks/03_gold/01_gold_dim_province.ipynb` | `gold_setup` |
+| 03 Gold | `gold_dim_year` | `notebooks/03_gold/02_gold_dim_year.ipynb` | `gold_setup` |
+| 03 Gold | `gold_fact_province_year` | `notebooks/03_gold/03_gold_fact_province_year.ipynb` | `gold_dim_province`, `gold_dim_year` |
+| 03 Gold | `gold_run_evidence` | `notebooks/03_gold/04_gold_run_evidence.ipynb` | `gold_fact_province_year` |
+| 04 Analytics | `analytics` | `notebooks/04_analytics/01_build_analytics.ipynb` | `gold_run_evidence` |
+| 04 Analytics | `analytics_validation` | `notebooks/04_analytics/02_analytics_validation.ipynb` | `analytics` |
+| 04 Analytics | `analytics_run_evidence` | `notebooks/04_analytics/03_analytics_run_evidence.ipynb` | `analytics_validation` |
+| Dashboard | `refresh_dashboard` | Shared dashboard (`dashboard_id` variable in `databricks.yml`) | `analytics_run_evidence` |
 
-There is no `02_bronze` folder: the ingestion notebooks in `01_ingestion` write the Bronze
-tables themselves, so the layer numbers go from `01` to `03`. The `02` prefix stays reserved
-so the folder numbers keep matching the medallion layers (Bronze = 02, Silver = 03, Gold = 04).
+### Folders and schemas
+
+Notebook folders are numbered by pipeline step, and each writes to its own schema in
+`tuklas_dev`. The schema numbers did not change when the folders were renamed:
+
+| Notebook folder | Writes to schema(s) |
+| --- | --- |
+| `01_ingestion_bronze` | `01_ingestion` (run metadata), `02_bronze` (raw source data) |
+| `02_silver` | `03_silver` |
+| `03_gold` | `04_gold` |
+| `04_analytics` | `05_analytics` |
+| `99_maintenance` | none: one-off notebooks run by hand, not part of the job (e.g. dropping stale `02_bronze` tables) |
+
+Data-quality results from every layer go to `06_data_quality`.
 
 Silver notebooks run their own
 data-quality checks before writing; results go to `06_data_quality.dq_results`, and a failed
@@ -75,8 +102,8 @@ data-quality checks before writing; results go to `06_data_quality.dq_results`, 
 | Setting | Value | Why |
 | --- | --- | --- |
 | `max_concurrent_runs` | `1` | Two runs never write the same tables at the same time |
-| `timeout_seconds` (job) | `7200` (2 h) | Stops a stuck run; review after the first full run |
-| `timeout_seconds` (task) | 600–2100 | Every task has its own limit; analytics limits are ~3× the longest observed run |
+| `timeout_seconds` (job) | `10800` (3 h) | Stops a stuck run; review after the first full run |
+| `timeout_seconds` (task) | 900–2700 | Every task has its own limit; analytics limits are ~3× the longest observed run. Setup, run-evidence and dashboard refresh tasks get 1800 s to allow for serverless compute waits |
 | Retries | 2 retries, 30 s apart | Ingestion tasks only, since they call external sources |
 | Failure emails | `${var.alert_email}` | See below |
 | Skipped / cancelled runs | No alert | Avoids noise from manual cancels |
@@ -102,8 +129,9 @@ addresses under `on_failure:` in `tourism_pipeline.yml` (one `- email` per line)
 3. Set:
    - `task_key`: unique, lowercase, e.g. `silver_<table>`
    - `notebook_path`: relative to `resources/jobs/`, so it starts with `../../`
-     (e.g. `../../notebooks/03_silver/05_silver_example.ipynb`)
-   - `depends_on`: every task whose tables the notebook reads
+     (e.g. `../../notebooks/02_silver/05_silver_example.ipynb`)
+   - `depends_on`: the step directly before it in its layer (the layer's setup task if it's
+     the first one). Don't add dependencies on earlier layers; the setup tasks already cover them.
    - `timeout_seconds`: always; add retries only for tasks that call external sources
 4. Validate:
 
@@ -113,8 +141,8 @@ addresses under `on_failure:` in `tourism_pipeline.yml` (one `- email` per line)
 
 5. Open a small PR. After it merges, the deploy workflow updates the job automatically.
 
-Layer folders use underscores: `01_ingestion`, `03_silver`, `04_gold`, `05_analytics`,
-`06_data_quality`. There is no `02_bronze` folder, because Bronze is written during ingestion.
+Layer folders use underscores: `01_ingestion_bronze`, `02_silver`, `03_gold`, `04_analytics`.
+Schema names are different; see the folder-to-schema table under Tasks.
 
 ## Testing the job in your own dev folder
 

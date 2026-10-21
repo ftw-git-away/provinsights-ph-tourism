@@ -516,6 +516,8 @@ The Excel source is structured Bronze data.
 
 The PDF is stored as a separate binary/unstructured Bronze table. No PDF-to-table analytical extraction is performed in this notebook.
 
+`psa_ds_18_pdf` (the binary file, with its SHA-256) is written on every run and is kept. The parsed rows are in `psa_ds_18_pdf_rows`, written by `04_ingest_psa_ds18_pdf`.
+
 ### DS_26 to DS_32
 
 ```text
@@ -841,3 +843,18 @@ The current PSA implementation processes:
 ```
 
 The same pattern should now be reused for PSGC and DOT ingestion.
+
+## Removed Bronze tables
+
+On 2026-10-21 eight early PSGC tables with a `psa_psgc_` prefix were dropped from `tuklas_dev.02_bronze` with `notebooks/99_maintenance/drop_stale_bronze_tables.ipynb`, to free Unity Catalog metastore quota. They predate `02_ingest_psgc`, no notebook writes or reads them, and lineage showed no downstream consumers. Each has a `psgc_` replacement:
+
+| Dropped | Replaced by |
+| --- | --- |
+| `psa_psgc_report_text` | `psgc_report_text` |
+| `psa_psgc_source_files` | `psgc_source_files` |
+| `psa_psgc_ds_33_provincial_summary` | `psgc_ds_33_provincial_summary` |
+| `psa_psgc_ds_34_metadata` | `psgc_ds_34_metadata` |
+| `psa_psgc_ds_34_psgc` | `psgc_ds_34_psgc` |
+| `psa_psgc_ds_34_notes` | `psgc_ds_34_notes` |
+| `psa_psgc_ds_34_national_summary` | `psgc_ds_34_national_summary` |
+| `psa_psgc_ds_34_prov_sum` | `psgc_ds_34_prov_sum` |
