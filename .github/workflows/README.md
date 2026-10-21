@@ -35,7 +35,7 @@ Runs without Databricks credentials and never connects to live DOT, PSA or Datab
 | --- | --- |
 | Required files and directories | `README.md`, `docs/`, `notebooks/`, `resources/` or `tests/` is missing, or `README.md` is empty |
 | Notebooks directory contents | `notebooks/` contains anything other than `.ipynb` files and `README.md` files |
-| Run unit tests | Any test in `tests/unit/` fails: job definition, notebook Python and SQL syntax, seed data rules, or Silver DQ docs alignment (see [`tests/README.md`](../../tests/README.md)) |
+| Run unit tests | Any test in `tests/unit/` fails: job definition, notebook Python and SQL syntax, seed data rules, or DQ docs alignment for Silver, Gold and Analytics (see [`tests/README.md`](../../tests/README.md)) |
 
 Test dependencies are pinned in `tests/requirements.txt`.
 
