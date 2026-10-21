@@ -147,36 +147,39 @@ The Databricks AI/BI dashboard answers one analytical question per page.
 
 ## Repository guide
 
+## Repository guide
+
 ```text
 .github/
   PULL_REQUEST_TEMPLATE.md
-  workflows/                      # ci.yml, deploy.yml
+  workflows/                      # ci.yml (validate + unit tests), deploy.yml (deploy bundle)
 docs/
-  business-and-analytical-questions.md
-  consolidated-data-sources.md
-  data-sources.md
-  schema-and-source-to-target-mapping.md
-  bronze-ingestion-guide.md
-  gold-run-evidence.md
-  analytics-run-evidence.md
-  project-decision-log.md
-  architecture.md                 # placeholder
-  runbook.md                      # placeholder
+  business-and-analytical-questions.md   # business question, AQ1-AQ4, definitions, province groups
+  project-decision-log.md         # approved decisions (DL-001 onwards)
+  architecture.md                 # architecture, design decisions, limitations
+  architecture.png                # architecture diagram
+  runbook.md                      # how to run, check and fix the pipeline
+  consolidated-data-sources.md    # sources, identifiers and limitations
+  bronze-ingestion-guide.md       # Google Drive folders, file IDs, ingestion control tables
+  schema-and-source-to-target-mapping.md # Gold star schema and column mappings
+  data-quality-rules.md           # BLOCK / REVIEW policy and every check ID
+  gold-run-evidence.md            # latest Gold run results
+  analytics-run-evidence.md       # latest Analytics run results
 notebooks/
-  01_ingestion_bronze/                   # sources to Bronze
-  02_silver/
-  03_gold/
+  01_ingestion_bronze/            # sources to Bronze, via the capstone_gdrive connection
+  02_silver/                      # cleaning and PSGC mapping, with DQ checks
+  03_gold/                        # star schema, with DQ checks and run evidence
   04_analytics/                   # build, validation, run evidence
   99_maintenance/                 # one-off maintenance, run by hand (not in the job)
 resources/
-  jobs/tourism_pipeline.yml       # end-to-end Databricks job
-  seeds/                          # reviewed crosswalk files
-databricks.yml                    # Databricks bundle
-src/                              # folder guidance; pipeline logic lives in the notebooks
+  jobs/tourism_pipeline.yml       # end-to-end Databricks job, ends with the dashboard refresh
+  seeds/                          # reviewed crosswalk and coordinate files
+databricks.yml                    # Databricks bundle (alert_email, dashboard_id, warehouse_id)
 tests/
-  README.md                       # validation guidance, no automated tests yet
+  unit/                           # unit tests run in CI: job, notebooks, SQL, seeds, docs
+  requirements.txt                # pinned test dependencies
 dashboard/
-  README.md                       # placeholder
+  README.md                       # shared dashboard link, refresh and editing
 ```
 
 ## Databricks deployment
