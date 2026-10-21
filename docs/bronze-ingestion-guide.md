@@ -176,17 +176,19 @@ Responsibility:
 - records actual technical failures;
 - finalizes the run as `SUCCESS`, `PARTIAL_SUCCESS`, or `FAILED`.
 
-### Planned Next Notebooks
+### Ingestion Notebooks
 
-The next ingestion notebooks should reuse the same control framework:
+All ingestion notebooks in `notebooks/01_ingestion_bronze/` use the same control framework:
 
 ```text
+00_ingestion_setup.ipynb
+01_ingest_psa.ipynb
 02_ingest_psgc.ipynb
 03_ingest_dot.ipynb
-04_bronze_validation.ipynb
+04_ingest_psa_ds18_pdf.ipynb
 ```
 
-Do not create a second ingestion-control framework for PSGC or DOT.
+Bronze is validated inside these notebooks through the ingestion-control tables below. There is no separate Bronze validation notebook. New sources should reuse this framework rather than create a second one.
 
 ---
 
