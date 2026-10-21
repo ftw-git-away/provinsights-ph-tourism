@@ -12,6 +12,7 @@ ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Departme
 | Understand the question and definitions | [Business and analytical questions](docs/business-and-analytical-questions.md) |
 | See how the system is built and why | [Architecture](docs/architecture.md) |
 | Set up, run, check and fix the pipeline | [Runbook](docs/runbook.md) |
+| Hand off the project or set it up in a new workspace | [Runbook, section 0](docs/runbook.md#0-hand-off-set-up-in-a-new-workspace) |
 | Look up tables and columns | [Data dictionary](docs/data-dictionary.md), [Schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md) |
 | See the checks and the latest results | [Data-quality rules](docs/data-quality-rules.md), [Analytics run evidence](docs/analytics-run-evidence.md), [Dashboard evidence](docs/dashboard-evidence.md) |
 | Understand past choices | [Decision log](docs/project-decision-log.md) |
