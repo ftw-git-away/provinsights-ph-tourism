@@ -10,7 +10,7 @@ RESOURCES_README = REPO_ROOT / "resources" / "README.md"
 
 
 def layer_of(task):
-    """Layer folder of a task's notebook, e.g. '03_silver'."""
+    """Layer folder of a task's notebook, e.g. '02_silver'."""
     return task["notebook_task"]["notebook_path"].split("/")[-2]
 
 
@@ -75,7 +75,7 @@ class JobDefinitionTests(unittest.TestCase):
     def test_each_layer_starts_after_the_whole_previous_layer(self):
         """The first task(s) of every layer must (directly or indirectly) wait for every task of the layer before.
 
-        Layers come from the notebook folders (01_ingestion, 03_silver, 04_gold, 05_analytics), so adding a task
+        Layers come from the notebook folders (01_ingestion_bronze, 02_silver, 03_gold, 04_analytics), so adding a task
         to a layer needs no change here, but a task that the next layer does not wait for fails.
         """
         layers = {}
