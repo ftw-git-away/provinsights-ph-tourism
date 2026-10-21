@@ -23,6 +23,21 @@ ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Departme
 
 **Who it is for:** DOT and its regional offices (national planning), provincial and city tourism offices (local planning), DTI (local businesses), and development planners (NEDA/DEPDev).
 
+## Key terms
+
+| Term | Definition |
+| --- | --- |
+| **Overnight travelers (visitors)** | Travelers reported by DOT as staying overnight in accommodation establishments. The figure counts stays, not unique persons, and excludes day-trippers. |
+| **Tourism activity** | The number of overnight travelers recorded in a province in a given year. |
+| **Leading destinations** | The 10 provinces with the highest average annual overnight travelers across the years with reported data in 2019-2023 (DL-032). |
+| **Tourism-related output** | Accommodation and food services (A&F) gross value added at current prices, used as a proxy for tourism-related economic activity (DL-007). |
+| **Output per visitor** | A&F gross value added divided by overnight travelers for 2023, in PHP. A&F GVA is published in thousand PHP and multiplied by 1,000 before division (DL-033). |
+| **Lower GDP per capita** | A 2023 GDP per capita (current prices) below the median of all reporting units that have a 2023 value (DL-035). |
+| **Tourism share of the economy** | A&F gross value added divided by GDP, both at current prices, multiplied by 100, for 2023. |
+| **Small base** | A province with fewer than 10,000 overnight travelers in 2023. Its output per visitor may be inflated by the small denominator (DL-036). |
+
+**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. **A&F (hotels and restaurants) is a proxy for tourism's economic output**, because PSA publishes tourism's value added only at the national level. It also includes spending by residents, so it describes tourism-related patterns, not exact tourist spending. Findings support further study, not causal or investment-return claims (DL-008). A missing value is never treated as zero (DL-009).
+
 ## Business question
 
 > **How can tourism and economic data across Philippine provinces be analyzed to identify destinations that warrant closer attention for tourism development?**
@@ -46,20 +61,6 @@ The questions build the answer in order: **find the gap** (AQ1), **compare** out
 
 The trend period is **2019-2023**, with 2020 and 2021 identified as COVID-19 years. AQ2 to AQ4 use **2023**, the latest year with both DOT and PSA provincial data.
 
-## Key terms
-
-| Term | Definition |
-| --- | --- |
-| **Overnight travelers (visitors)** | Travelers reported by DOT as staying overnight in accommodation establishments. The figure counts stays, not unique persons, and excludes day-trippers. |
-| **Tourism activity** | The number of overnight travelers recorded in a province in a given year. |
-| **Leading destinations** | The 10 provinces with the highest average annual overnight travelers across the years with reported data in 2019-2023 (DL-032). |
-| **Tourism-related output** | Accommodation and food services (A&F) gross value added at current prices, used as a proxy for tourism-related economic activity (DL-007). |
-| **Output per visitor** | A&F gross value added divided by overnight travelers for 2023, in PHP. A&F GVA is published in thousand PHP and multiplied by 1,000 before division (DL-033). |
-| **Lower GDP per capita** | A 2023 GDP per capita (current prices) below the median of all reporting units that have a 2023 value (DL-035). |
-| **Tourism share of the economy** | A&F gross value added divided by GDP, both at current prices, multiplied by 100, for 2023. |
-| **Small base** | A province with fewer than 10,000 overnight travelers in 2023. Its output per visitor may be inflated by the small denominator (DL-036). |
-
-**Tourism activity means reported overnight travelers.** It is not a count of unique people or all visitors. **A&F (hotels and restaurants) is a proxy for tourism's economic output**, because PSA publishes tourism's value added only at the national level. It also includes spending by residents, so it describes tourism-related patterns, not exact tourist spending. Findings support further study, not causal or investment-return claims (DL-008). A missing value is never treated as zero (DL-009).
 
 ## Province groups
 
@@ -132,20 +133,6 @@ The Databricks job [`tourism_pipeline`](resources/jobs/tourism_pipeline.yml) run
 
 Run evidence: [Gold](docs/gold-run-evidence.md) and [Analytics](docs/analytics-run-evidence.md). Task order, settings and how to add a task are in [`resources/README.md`](resources/README.md).
 
-  
-## Dashboard
-
-The Databricks AI/BI dashboard answers one analytical question per page.
-
-| Page | Answers |
-| --- | --- |
-| 1. Where visitors go | AQ1: highest and lowest tourism activity |
-| 2. Output per visitor | AQ2: visitors and tourism-related output per visitor |
-| 3. Tourism and GDP per capita | AQ3: whether high output per visitor is limited to higher-GDP provinces |
-| 4. Provinces to look at | AQ4: provinces outside the leading destinations that warrant closer attention |
-| Definitions | Key terms and the proxy note |
-
-## Repository guide
 
 ## Repository guide
 
@@ -181,6 +168,19 @@ tests/
 dashboard/
   README.md                       # shared dashboard link, refresh and editing
 ```
+  
+## Dashboard
+
+The Databricks AI/BI dashboard answers one analytical question per page.
+
+| Page | Answers |
+| --- | --- |
+| 1. Where visitors go | AQ1: highest and lowest tourism activity |
+| 2. Output per visitor | AQ2: visitors and tourism-related output per visitor |
+| 3. Tourism and GDP per capita | AQ3: whether high output per visitor is limited to higher-GDP provinces |
+| 4. Provinces to look at | AQ4: provinces outside the leading destinations that warrant closer attention |
+| Definitions | Key terms and the proxy note |
+
 
 ## Databricks deployment
 
