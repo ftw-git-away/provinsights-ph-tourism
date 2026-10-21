@@ -38,9 +38,9 @@ The canonical questions, definitions and rules are in [docs/business-and-analyti
 | Analytical question | Purpose | NTDP link | Analytics tables |
 | --- | --- | --- | --- |
 | **AQ1:** Which provinces have the highest and lowest tourism activity, and how is it distributed across provinces? | Shows how unevenly tourism is distributed, how much is concentrated in the leading destinations, and which provinces record the fewest visitors | Goal 4; Obj. 2.2 | `tourism_activity`, `tourism_concentration` |
-| **AQ2:** How do provinces compare in both the number of visitors and the tourism-related output per visitor? | Examines whether provinces with similar visitor numbers generate similar output per visitor | Obj. 4.1 | `tourism_economy` |
-| **AQ3:** Is high tourism-related output per visitor observed only in provinces with higher GDP per capita? | Tests whether the AQ2 pattern extends beyond GDP per capita | Goal 4 | `tourism_economy` |
-| **AQ4:** Which provinces outside the leading destinations warrant closer attention, and what gap does the data show for each? | A named list of provinces, each with the gap indicated by the data | Obj. 4.1, 4.2 | `tourism_economy`, `tourism_activity` |
+| **AQ2:** How do provinces compare on both the number of visitors and the tourism-related output per visitor? | Examines whether provinces with similar visitor numbers generate similar output per visitor | Obj. 4.1 | `tourism_economy` |
+| **AQ3:** Is high tourism-related output per visitor found only in higher-income provinces? | Tests whether the AQ2 pattern extends beyond GDP per capita | Goal 4 | `tourism_economy` |
+| **AQ4:** Which provinces beyond the top 10 destinations warrant closer attention, and what does the data show for each? | A named list of provinces, each with the gap indicated by the data | Obj. 4.1, 4.2 | `tourism_economy`, `tourism_activity` |
 
 The questions build the answer in order: **find the gap** (AQ1), **compare** output per visitor (AQ2), **check** whether the pattern is explained by GDP per capita (AQ3), then **identify** where closer attention is warranted (AQ4).
 
