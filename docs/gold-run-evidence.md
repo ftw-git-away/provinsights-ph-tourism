@@ -6,6 +6,7 @@ This document records the successful Databricks execution of the Gold layer (`tu
 | --- | --- |
 | **Run date** | 11 October 2026 |
 | **Run by** | Charlene Mae Orogo |
+| **Commit** | Not recorded (run before the job's first full run). Later full job runs, tied to a commit, are in [pipeline-evidence.md](pipeline-evidence.md). |
 | **Notebooks** | `00_gold_setup`, `01_gold_dim_province`, `02_gold_dim_year`, `03_gold_fact_province_year` |
 
 ## Summary

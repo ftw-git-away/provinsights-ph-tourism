@@ -12,6 +12,7 @@ This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analy
 | **Build run** | `analytics_20261021_005954_d19b1b91` (SUCCESS) |
 | **Validation run** | `analytics_validation_20261021_011314_56fc46bd` (SUCCESS) |
 | **Gold versions** | fact_province_year `v152`, dim_province `v167`, dim_year `v109` |
+| **Commit** | Not recorded for this build. The next build, `analytics_20261021_071113_8fe3b68b`, came from job run `1038597319533082` at commit `3c992d11f55b82f4f3eee2bd35eeabce4fb191bd`, with the same 5 tables, 958 rows and 148 validation checks (see [pipeline-evidence.md](pipeline-evidence.md)). |
 
 ## Summary
 
