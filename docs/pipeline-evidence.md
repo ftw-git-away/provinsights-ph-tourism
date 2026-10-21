@@ -214,8 +214,8 @@ Both Databricks tokens expire (deploy token on 2027-01-02, CI token on 2027-01-2
 | Job run | Run `1038597319533082` (job `680308985921105`): all 19 tasks succeeded, from ingestion to `refresh_dashboard` |
 | Duration | About 55 minutes (21 Oct 2026, 2:27 to 3:22 PM). Longest tasks: `ingest_psa` 12m 38s, `gold_setup` 11m 20s (includes the serverless start-up wait), `silver_psa_economy` 10m 1s, `refresh_dashboard` 9m 32s |
 | Code | `3c992d11f55b82f4f3eee2bd35eeabce4fb191bd` (#99), deployed by CD before the run started. #100 and #102 were also deployed while the run was in progress (2:45 and 2:51 PM); both changed Markdown files only, so the notebooks and job definition used by the run did not change |
-| Analytics | Build `analytics_20261021_071113_8fe3b68b`: 5 tables, 958 rows, 36 checks, 0 BLOCK failures, 0 REVIEW flags. Validation `analytics_validation_20261021_071512_94e6d474`: 148 checks, 0 BLOCK failures. Same 5 tables, 958 rows and 148 validation checks as the earlier build `analytics_20261021_005954_d19b1b91` that the layer evidence docs describe |
-| Data quality | Every `BLOCK` check passed in Silver, Gold and Analytics. REVIEW flags: <!-- confirm --> `DQ-DOT-11` only (3 unit-years with a year-over-year change above 5×), documented and non-blocking |
+| Analytics | Build `analytics_20261021_071113_8fe3b68b`: 5 tables, 958 rows, every check passed (0 BLOCK failures, 0 REVIEW flags). Validation `analytics_validation_20261021_071512_94e6d474`: 148 checks, 0 BLOCK failures. Same 5 tables, 958 rows and 148 validation checks as the earlier build `analytics_20261021_005954_d19b1b91` that the layer evidence docs describe |
+| Data quality | Every `BLOCK` check passed in Silver, Gold and Analytics. REVIEW flags: `DQ-DOT-11` only (3 unit-years with a year-over-year change above 5×), documented and non-blocking |
 | Dashboard | Refreshed by `refresh_dashboard` as the last task of the run |
 
 ![Successful job run: timeline](images/job-run-graph.png)

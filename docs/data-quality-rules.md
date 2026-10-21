@@ -10,7 +10,7 @@ Every Silver, Gold and Analytics table is checked before it is written, and ever
 
 | Severity | What happens when the check fails | When to use it |
 | --- | --- | --- |
-| **BLOCK** | The notebook writes its check results, writes **no** Silver table, logs the run as `FAILED` and raises an error. The previous Silver tables stay as they were, and the job stops. | The output would be wrong or misleading (double counting, broken keys, missing shown as zero, totals that do not reconcile). |
+| **BLOCK** | The notebook writes its check results, writes **no** table, logs the run as `FAILED` and raises an error. The previous version of the table stays as it was, and the job stops. | The output would be wrong or misleading (double counting, broken keys, missing shown as zero, totals that do not reconcile). |
 | **REVIEW** | The run continues and is logged as `SUCCESS_WITH_REVIEW`. The job does not pause: later layers still run. The flag must be reviewed before the results are presented or the run evidence is updated, and it is disclosed in the run evidence. | The data may be valid but needs a person to decide (outliers, a source that changed, an unexpected flag). |
 | **LOG** | Recorded only; always `PASS`. Used to list things for the record. | Known, documented conditions (derived values, estimates, unused seed rows). |
 

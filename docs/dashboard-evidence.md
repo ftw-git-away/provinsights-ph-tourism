@@ -7,6 +7,7 @@ This document records the ProvInsights dashboard (Databricks AI/BI, `PROVINSIGHT
 | **Screenshot date** | 20 October 2026 |
 | **Taken by** | Gabs Torres |
 | **Analytics build** | `analytics_20261020_154218_e39cccad` (built 2026-10-20 03:43 PM). Page 4 order and Definitions screenshots were retaken on 21 October after DL-037. The expected values in `dashboard/README.md` come from build `analytics_20261021_005954_d19b1b91` and are the same as the values shown here. |
+| **Commit** | Not recorded for these screenshots. The dashboard definition is versioned in `dashboard/`; the latest refresh was by job run `1038597319533082` at commit `3c992d11f55b82f4f3eee2bd35eeabce4fb191bd` (see [pipeline-evidence.md](pipeline-evidence.md)). |
 | **Source schema** | `tuklas_dev.05_analytics` (`tourism_activity`, `tourism_concentration`, `tourism_economy`, `tourism_recovery`, `traveler_segment_recovery`) |
 | **Filters** | Defaults: Year = 2023 on page 1; all other filters = All |
 
