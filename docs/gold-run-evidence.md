@@ -15,6 +15,7 @@ This document records the successful Databricks execution of the Gold layer (`tu
 - The latest run of each notebook ended as `SUCCESS`, with no BLOCK failures.
 - REVIEW flags: none. The only REVIEW check, `DQ-GLD-09` (total travelers is at least each component), passed with 0 violations.
 - The fact table matches Silver row by row: 600 of 600 rows for DOT, 500 of 500 for PSA economy and 600 of 600 for population.
+- DQ-GLD-01g (unit coordinates) was added after this run, so it is not in these counts.
 
 ## Results
 
