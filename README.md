@@ -26,7 +26,7 @@ ProvInsights is GitAway's FTW Batch 12 LT3 capstone. It brings together Departme
 
 ## Business question
 
-> **How can tourism and economic data across Philippine provinces be analyzed to identify destinations beyond the leading tourist destinations that warrant closer attention for tourism development?**
+> **How can tourism and economic data across Philippine provinces be analyzed to identify destinations that warrant closer attention for tourism development?**
 
 - **Closer attention** means a province shows a gap on the data (few visitors, low output per visitor, or both) that justifies further study. It is not a recommendation to invest.
 - **Equalized tourism development** is the NTDP's Goal 4: opening more of the Philippines to tourism and supporting destinations beyond the established ones. The NTDP describes it as a direction, not a numeric target. ProvInsights supports it by showing where tourism is concentrated (AQ1) and which provinces warrant closer attention (AQ2 to AQ4).
@@ -93,9 +93,9 @@ See [Source assessment](docs/consolidated-data-sources.md) and [Data sources](do
 ```text
 Government source files
     → Ingestion and Bronze      (notebooks/01_ingestion)
-    → Silver                    (notebooks/03_silver)
-    → Gold                      (notebooks/04_gold)
-    → Analytics                 (notebooks/05_analytics)
+    → Silver                    (notebooks/02_silver)
+    → Gold                      (notebooks/03_gold)
+    → Analytics                 (notebooks/04_analytics)
     → Dashboard
 ```
 
@@ -139,9 +139,9 @@ docs/
   runbook.md                      # placeholder
 notebooks/
   01_ingestion/                   # sources to Bronze
-  03_silver/
-  04_gold/
-  05_analytics/                   # build, validation, run evidence
+  02_silver/
+  03_gold/
+  04_analytics/                   # build, validation, run evidence
 resources/
   jobs/tourism_pipeline.yml       # end-to-end Databricks job
   seeds/                          # reviewed crosswalk files
