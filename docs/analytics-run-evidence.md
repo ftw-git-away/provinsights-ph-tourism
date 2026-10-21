@@ -7,7 +7,7 @@ This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analy
 | | |
 | --- | --- |
 | **Run date** | 21 October 2026 (UTC) |
-| **Run by** | `Haze` |
+| **Run by** | `Haze/Nella` |
 | **Notebooks** | `01_build_analytics`, `02_analytics_validation`, `03_analytics_run_evidence` |
 | **Build run** | `analytics_20261021_005954_d19b1b91` (SUCCESS) |
 | **Validation run** | `analytics_validation_20261021_011314_56fc46bd` (SUCCESS) |
@@ -18,9 +18,9 @@ This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analy
 - **Build:** SUCCESS. 36 BLOCK checks and 6 REVIEW checks, all passed: 0 failures, 0 REVIEW findings. 5 tables, 958 rows written.
 - **Validation:** SUCCESS. 148 BLOCK checks, all passed: 0 failures, 0 REVIEW findings.
 - **Lineage:** all five tables carry the latest build run ID and the same Gold versions (v152 / v167 / v109); validation ran after the build.
-- **Edge cases match the source files:** 80 of 80 values and 8 of 8 tourism–economy patterns.
-- **Headline counts:** in 2023, 39 units are above 2019, 52 below and 9 not compared; 43 of 91 eligible units show tourism and A&F GVA moving in opposite directions.
-- **Segment coverage (2023 below-2019 cohort of 52 units):** domestic 52/52, foreign 47/52, overseas Filipino 26/52.
+- **Edge cases match the source files (from the 15 October run):** 80 of 80 values and 8 of 8 tourism–economy patterns.
+- **Headline counts (confirmed for this run):** in 2023, 39 units are above 2019, 52 below and 9 not compared; 43 of 91 eligible units show tourism and A&F GVA moving in opposite directions.
+- **Segment coverage (2023 below-2019 cohort of 52 units, confirmed for this run):** domestic 52/52, foreign 47/52, overseas Filipino 26/52.
 
 ## Results
 
