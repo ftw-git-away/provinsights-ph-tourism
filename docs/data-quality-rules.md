@@ -247,26 +247,26 @@ Gold results are summarised in the [Gold run evidence](gold-run-evidence.md).
 
 | ID | Notebook | Check | Severity |
 | --- | --- | --- | --- |
-| DQ-ANL-01 | build | Gold inputs valid (`dim_province`, `dim_year`, `fact_province_year`) | BLOCK |
-| DQ-ANL-02 | build | Required Gold columns present | BLOCK / REVIEW |
-| DQ-ANL-03 | build | Candidate table passes structure checks (keys, row count, eligibility) | BLOCK |
-| DQ-ANL-04 | build | Activity shares sum to 100% per year | BLOCK |
-| DQ-ANL-05 | build | A&F share of GDP not above 100% | REVIEW |
-| DQ-ANL-06 | build | Usual strong destination flag (DL-026) | BLOCK / REVIEW |
-| DQ-ANL-07 | build | Small-base flags (DL-028) | BLOCK |
-| DQ-ANL-08 | build | Baseline under review (DL-029) | BLOCK |
-| DQ-ANL-09 | build | Destination label (DL-006, DL-028, DL-029) | BLOCK |
-| DQ-ANL-10 | build | Cross-table consistency | BLOCK |
-| DQ-ANL-11 | build | Gold versions unchanged during the run | REVIEW |
-| DQ-ANL-20 | validation | Lineage columns non-NULL | BLOCK |
-| DQ-ANL-21 | validation | One value per lineage column per table | BLOCK |
-| DQ-ANL-22 | validation | Lineage identical across tables | BLOCK |
-| DQ-ANL-23 | validation | Natural keys unique | BLOCK |
-| DQ-ANL-24 | validation | Base-value columns present | BLOCK |
-| DQ-ANL-25 | validation | Expected row counts | BLOCK |
-| DQ-ANL-26 | validation | Recorded Gold versions exist and are readable | BLOCK |
-| DQ-ANL-27 | validation | Derived metrics recompute from stored inputs | BLOCK |
-| DQ-ANL-28 | validation | Stored base values reconcile to Gold | BLOCK |
+| DQ-ANL-01 | `01_build_analytics` | Gold inputs valid (`dim_province`, `dim_year`, `fact_province_year`) | BLOCK |
+| DQ-ANL-02 | `01_build_analytics` | Required Gold columns present | BLOCK / REVIEW |
+| DQ-ANL-03 | `01_build_analytics` | Candidate table passes structure checks (keys, row count, eligibility) | BLOCK |
+| DQ-ANL-04 | `01_build_analytics` | Activity shares sum to 100% per year | BLOCK |
+| DQ-ANL-05 | `01_build_analytics` | A&F share of GDP not above 100% | REVIEW |
+| DQ-ANL-06 | `01_build_analytics` | Usual strong destination flag (DL-026) | BLOCK / REVIEW |
+| DQ-ANL-07 | `01_build_analytics` | Small-base flags (DL-028) | BLOCK |
+| DQ-ANL-08 | `01_build_analytics` | Baseline under review (DL-029) | BLOCK |
+| DQ-ANL-09 | `01_build_analytics` | Destination label (DL-006, DL-028, DL-029) | BLOCK |
+| DQ-ANL-10 | `01_build_analytics` | Cross-table consistency | BLOCK |
+| DQ-ANL-11 | `01_build_analytics` | Gold versions unchanged during the run | REVIEW |
+| DQ-ANL-20 | `02_analytics_validation` | Lineage columns non-NULL | BLOCK |
+| DQ-ANL-21 | `02_analytics_validation` | One value per lineage column per table | BLOCK |
+| DQ-ANL-22 | `02_analytics_validation` | Lineage identical across tables | BLOCK |
+| DQ-ANL-23 | `02_analytics_validation` | Natural keys unique | BLOCK |
+| DQ-ANL-24 | `02_analytics_validation` | Base-value columns present | BLOCK |
+| DQ-ANL-25 | `02_analytics_validation` | Expected row counts | BLOCK |
+| DQ-ANL-26 | `02_analytics_validation` | Recorded Gold versions exist and are readable | BLOCK |
+| DQ-ANL-27 | `02_analytics_validation` | Derived metrics recompute from stored inputs | BLOCK |
+| DQ-ANL-28 | `02_analytics_validation` | Stored base values reconcile to Gold | BLOCK |
 
 ## 7. Known exceptions register
 
@@ -319,7 +319,7 @@ The first version of this document (Issue #5) proposed some IDs that are not che
 ## 10. Adding or changing a check
 
 1. Pick the next free number in the right prefix (never reuse an ID).
-2. Add the `dq(...)` call **before** the write step, with a clear `expected` and `observed`, and up to 20 sample keys. In the Analytics notebooks, checks are recorded with `assert_block(...)` or `record_check(...)` instead; add the check's name to `DQ_ID_BUILD` (build) or make sure it matches a prefix in `DQ_ID_RULES` (validation); a check without an ID stops the notebook before results are written.
+2. Add the `dq(...)` call **before** the write step, with a clear `expected` and `observed`, and up to 20 sample keys. In the Analytics notebooks, checks are recorded with `assert_block(...)` or `record_check(...)` instead; add the check's name to `DQ_ID_BUILD` (build) or make sure it matches a prefix in `DQ_ID_RULES` (validation); a check without an ID stops the notebook when the check is recorded. Tables from earlier phases may already be replaced, and no check results are saved for that run.
 3. Add the check to the notebook's check table **and** to section 6 here.
 4. If it encodes an expected exception, put the expected list or tolerance in the Configuration cell, and add a row to section 5 (and section 7 if it is a documented exception).
 5. Run the notebook and paste its results into the PR.

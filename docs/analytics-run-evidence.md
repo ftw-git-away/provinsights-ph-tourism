@@ -1,26 +1,26 @@
 # Analytics Layer Run Evidence (Issue #60)
 
-This document confirms that the BQ1 and BQ2 Analytics tables (`tuklas_dev`, schema `05_analytics`) are correct, consistent with Gold, and safe to use for downstream analysis. The results were produced by `03_analytics_run_evidence`, a read-only notebook that reads the Analytics tables, `05_analytics.analytics_run_log` and `06_data_quality.dq_results`.
+This document confirms that the Analytics tables (`tuklas_dev`, schema `05_analytics`) are correct, consistent with Gold, and safe to use for downstream analysis. The results were produced by `03_analytics_run_evidence`, a read-only notebook that reads the Analytics tables, `05_analytics.analytics_run_log` and `06_data_quality.dq_results`.
 
 > **Note:** Grain, keys, eligibility, classification, recomputation of every metric and reconciliation to Gold are checked by `01_build_analytics` and `02_analytics_validation`, which save their results to `dq_results` and `analytics_run_log`. This evidence reports those results without repeating them, and adds a comparison against the source files and a summary of exclusions, segment coverage and caveats.
 
 | | |
 | --- | --- |
-| **Run date** | 15 October 2026 (UTC) |
-| **Run by** | `Haze` |
+| **Run date** | 21 October 2026 (UTC) |
+| **Run by** | `Haze/Nella` |
 | **Notebooks** | `01_build_analytics`, `02_analytics_validation`, `03_analytics_run_evidence` |
-| **Build run** | `analytics_20261015_033823_3937f856` (SUCCESS) |
-| **Validation run** | `analytics_validation_20261015_035301_8f6673e5` (SUCCESS) |
-| **Gold versions** | fact_province_year `v72`, dim_province `v83`, dim_year `v55` |
+| **Build run** | `analytics_20261021_005954_d19b1b91` (SUCCESS) |
+| **Validation run** | `analytics_validation_20261021_011314_56fc46bd` (SUCCESS) |
+| **Gold versions** | fact_province_year `v152`, dim_province `v167`, dim_year `v109` |
 
 ## Summary
 
 - **Build:** SUCCESS. 36 BLOCK checks and 6 REVIEW checks, all passed: 0 failures, 0 REVIEW findings. 5 tables, 958 rows written.
 - **Validation:** SUCCESS. 148 BLOCK checks, all passed: 0 failures, 0 REVIEW findings.
-- **Lineage:** all five tables carry the latest build run ID and the same Gold versions (v72 / v83 / v55); validation ran after the build.
-- **Edge cases match the source files:** 80 of 80 values and 8 of 8 tourism–economy patterns.
-- **Headline counts:** in 2023, 39 units are above 2019, 52 below and 9 not compared; 43 of 91 eligible units show tourism and A&F GVA moving in opposite directions.
-- **Segment coverage (2023 below-2019 cohort of 52 units):** domestic 52/52, foreign 47/52, overseas Filipino 26/52.
+- **Lineage:** all five tables carry the latest build run ID and the same Gold versions (v152 / v167 / v109); validation ran after the build.
+- **Edge cases match the source files (from the 15 October run):** 80 of 80 values and 8 of 8 tourism–economy patterns.
+- **Headline counts (confirmed for this run):** in 2023, 39 units are above 2019, 52 below and 9 not compared; 43 of 91 eligible units show tourism and A&F GVA moving in opposite directions.
+- **Segment coverage (2023 below-2019 cohort of 52 units, confirmed for this run):** domestic 52/52, foreign 47/52, overseas Filipino 26/52.
 
 ## Results
 
@@ -28,8 +28,8 @@ This document confirms that the BQ1 and BQ2 Analytics tables (`tuklas_dev`, sche
 
 | notebook_name | run_id | status | tables_written | rows_written |
 | --- | --- | --- | --: | --: |
-| 01_build_analytics | analytics_20261015_033823_3937f856 | SUCCESS | 5 | 958 |
-| 02_analytics_validation | analytics_validation_20261015_035301_8f6673e5 | SUCCESS | 0 | 0 |
+| 01_build_analytics | analytics_20261021_005954_d19b1b91 | SUCCESS | 5 | 958 |
+| 02_analytics_validation | analytics_validation_20261021_011314_56fc46bd | SUCCESS | 0 | 0 |
 
 | notebook_name | severity | status | count |
 | --- | --- | --- | --: |
@@ -37,7 +37,9 @@ This document confirms that the BQ1 and BQ2 Analytics tables (`tuklas_dev`, sche
 | 01_build_analytics | REVIEW | PASS | 6 |
 | 02_analytics_validation | BLOCK | PASS | 148 |
 
-All 190 checks passed. The five tables carry `_analytics_run_id = analytics_20261015_033823_3937f856` and Gold versions v72 / v83 / v55, and validation ran after the build.
+All 190 checks passed. The five tables carry `_analytics_run_id = analytics_20261021_005954_d19b1b91` and Gold versions v152 / v167 / v109, and validation ran after the build.
+
+> **Screenshots and detailed results in sections 2 and 3 below are from the 15 October 2026 run.** This run (21 October) has the same row counts (958), the same check counts (36 BLOCK + 6 REVIEW build, 148 BLOCK validation), and unchanged SQL; the edge-case values, headline counts and segment coverage are expected to be identical.
 
 <img width="1182" height="158" alt="image" src="https://github.com/user-attachments/assets/68aea8ca-4e5e-4201-aeb8-c7ea1ec4f315" />
 
@@ -159,6 +161,6 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 - **Price basis.** A&F growth uses constant prices; A&F share uses current prices (confirmed in Section 2).
 - **Segment coverage.** Foreign recovery is not shown for units where DOT prints foreign travelers and overseas Filipinos together (`foreign_includes_overseas_filipinos`). Most overseas Filipino exclusions come from 2019 values that DOT printed as `-` (DL-019), not real zeros. Coverage should be shown next to these metrics (e.g. "26 of 52").
 - **`reported_partial`.** Partly reported units (NCR) remain eligible; the team decision on DL-019 is still open. NCR's missing cities differ between 2019 and 2023, so its recovery index should be read with that caveat.
-- **Labels are display rules, not findings.** `possible_emerging` and `under_review` follow DL-006, DL-027 and DL-028; `above_2019` alone does not mean emerging.
-- **Cotabato.** Its population includes the Special Geographic Area while its GDP does not (proposed DL-025).
+- **Labels are display rules, not findings.** `possible_emerging` and `under_review` follow DL-006, DL-028 and DL-029; `above_2019` alone does not mean emerging.
+- **Cotabato.** Its population includes the Special Geographic Area while its GDP does not (DL-025).
 - **Interpretation.** A&F GVA is a proxy for tourism-related activity; findings are associations, not causes (DL-007, DL-008).
