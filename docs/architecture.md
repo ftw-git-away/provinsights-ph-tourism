@@ -2,7 +2,7 @@
 
 This document explains how ProvInsights turns government source files into a province-level dashboard: the components, how data flows between them, where quality is enforced, and why the main design choices were made.
 
-For the business questions see [business-and-analytical-questions.md](business-and-analytical-questions.md). For table-level columns see [schema-and-source-to-target-mapping.md](schema-and-source-to-target-mapping.md). For how to run the pipeline see [runbook.md](runbook.md).
+For the business questions see [business-and-analytical-questions.md](business-and-analytical-questions.md). For every table and column see the [data dictionary](data-dictionary.md), and for how Gold columns are mapped from the sources see [schema-and-source-to-target-mapping.md](schema-and-source-to-target-mapping.md). For how to run the pipeline see [runbook.md](runbook.md).
 
 ## Contents
 
@@ -214,10 +214,10 @@ The shared Databricks AI/BI dashboard (PROVINSIGHTS DASHBOARD) reads **only** th
 | 2. Visitors and output per visitor | AQ2: the four province groups |
 | 3. Output and income | AQ3 |
 | 4. Provinces to watch | AQ4: provinces beyond the leading destinations, with what the data shows and what to look at |
-| Definitions and Limitations | Terms, the proxy note and caveats |
+| Definitions | Terms, data notes, out of scope and lineage |
 | Appendix A and B | Recovery tables, reference only |
 
-The job's last task, `refresh_dashboard`, refreshes the dashboard after the Analytics run evidence, so it always shows the latest validated data. The link, refresh settings and editing rules are in [dashboard/README.md](../dashboard/README.md). Screenshots checked against the Analytics tables are in [dashboard-evidence.md](dashboard-evidence.md).
+The job's last task, `refresh_dashboard`, refreshes the dashboard after the Analytics run evidence, so it always shows the latest validated data. Opening, refreshing and editing it are covered in [dashboard/README.md](../dashboard/README.md). Screenshots checked against the Analytics tables are in [dashboard-evidence.md](dashboard-evidence.md).
 
 ## 5. Data quality and governance
 
@@ -343,7 +343,10 @@ All decisions, with dates and the pull requests that approved them, are in the [
 
 **Architecture limitations** (planned improvements):
 
+- The pipeline runs in a single development target (`dev`, catalog `tuklas_dev`). There is no separate production target or catalog yet.
 - The job is triggered manually. It has no schedule, because the sources are published yearly.
-- Source files are placed in Google Drive by hand. There is no automatic download from DOT or PSA due to the publishing schedule difference of government sources.
+- Source files are placed in Google Drive by hand. There is no automatic download from DOT or PSA, because they publish on different schedules and in different formats.
+- There is no single end-to-end quality gate task. Each notebook enforces its own checks, and the run evidence notebooks summarize them.
+- There is no automated rerun test that confirms two runs give identical tables.
 - CI tests the repository files only. It does not run the notebooks or the dashboard queries against data, and it matches the Silver, Gold, and Analytics check IDs against the rules document.
 - The metastore has a 500-table quota. Stale Bronze tables are dropped by hand with `notebooks/99_maintenance/drop_stale_bronze_tables` (DL-038).
