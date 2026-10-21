@@ -64,7 +64,7 @@ Everything runs on **Databricks** with **Unity Catalog** and **Delta Lake**, in 
 flowchart LR
     subgraph SRC["Sources (Google Drive)"]
         DOT["DOT DS_05<br/>overnight travelers<br/>PDF, 2019-2024"]
-        PSA["PSA DS_26 to DS_32<br/>GDP, GDP per capita, A and F GVA<br/>Excel"]
+        PSA["PSA DS_26 to DS_32<br/>GDP, GDP per capita, A and F GVA<br/>CSV"]
         POP["PSA DS_18<br/>population projections<br/>Excel and PDF"]
         PSGC["PSGC 2Q 2026<br/>DS_33, DS_34<br/>Excel"]
     end
@@ -144,7 +144,7 @@ flowchart LR
 | Source | Dataset | Format | Used for |
 | --- | --- | --- | --- |
 | DOT Regional Distribution of Overnight Travelers | DS_05, 2019-2024 | PDF, one per year | Tourism activity; recovery and traveler segments (supporting) |
-| PSA Provincial Accounts | DS_27 to DS_32 (DS_26 for reconciliation) | Excel | GDP, GDP per capita, A&F GVA (current and constant 2018 prices) |
+| PSA Provincial Accounts | DS_27 to DS_32 (DS_26 for reconciliation) | CSV | GDP, GDP per capita, A&F GVA (current and constant 2018 prices) |
 | PSA Projected Mid-Year Population | DS_18 | Excel and PDF | Population denominator for tourism intensity |
 | PSA Philippine Standard Geographic Code | DS_33, DS_34 (2Q 2026) | Excel | The geographic key shared by every table |
 
@@ -236,7 +236,8 @@ flowchart LR
 | Severity | Meaning | Effect |
 | --- | --- | --- |
 | **BLOCK** | The output would be wrong (duplicate keys, orphan keys, totals that don't reconcile, values changed between layers) | The notebook stops before writing that table. Downstream tasks don't run, and the job sends a failure email. |
-| **REVIEW** | Something unusual that a person should look at (for example a jump that may be a small base or a doubtful 2019 count) | The table is written, the run is marked `SUCCESS_WITH_REVIEW`, and the flag is disclosed in run evidence. |
+| **REVIEW** | Something unusual that a person should look at (for example a jump that may be a small base or a doubtful 2019 count) | The run continues and is logged as `SUCCESS_WITH_REVIEW`; later layers still run. The flag must be reviewed before the results are presented or the run evidence is updated, and it is disclosed in the run evidence. |
+| **LOG** | A known, documented condition kept for the record (derived values, estimates, unused seed rows) | Always `PASS`. Nothing changes in the run. |
 
 - **Where results go.** Every check writes one row to `06_data_quality.dq_results` with `run_id`, `notebook_name`, `check_id`, `table_name`, `severity`, `status`, `failed_rows`, `expected`, `observed`, `sample_keys` and `notes`. Each layer also has a run log (`silver_run_log`, `gold_run_log`, `analytics_run_log`) that records `STARTED`, `SUCCESS`, `SUCCESS_WITH_REVIEW` or `FAILED`.
 - **Documented check IDs.** Every check has an ID: `DQ-COM`, `DQ-DOT`, `DQ-PSA` and `DQ-POP` in Silver, `DQ-GLD` in Gold and `DQ-ANL` in Analytics. In the Analytics notebooks, a check without an ID stops the notebook as soon as it is recorded.
@@ -268,7 +269,7 @@ gold_setup ─┬─ gold_dim_province ─┐
 analytics ─ analytics_validation ─ analytics_run_evidence ─ refresh_dashboard
 ```
 
-- Each layer starts with a setup task that waits for the whole previous layer, so a layer never reads half-finished inputs.
+- Ingestion, Silver and Gold each start with a setup task that waits for the whole previous layer, so a layer never reads half-finished inputs. Analytics has no setup task: `analytics` starts after `gold_run_evidence`, which runs only after every Gold task has succeeded.
 - Only one run at a time (`max_concurrent_runs: 1`) and a three-hour job timeout.
 - Every task has its own timeout. Setup, run-evidence and dashboard tasks allow 1800 s for serverless compute and warehouse start-up. Analytics tasks are about three times their longest observed run, and the Gold dimension tasks keep 2700 s.
 - Ingestion tasks retry twice, because they call external sources. Other tasks don't retry.
