@@ -287,7 +287,7 @@ flowchart LR
     CD -. manual run with run_pipeline .-> JOB["Run tourism_pipeline"]
 ```
 
-- **CI** ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) checks the repository structure and runs the unit tests in [`tests/unit/`](../tests/README.md): the job definition (task keys, notebook paths, dependencies, layer order, timeouts, retries), notebook structure and Python cells, Databricks SQL syntax, the seed files, and that the Silver checks match the rules document. It then runs `databricks bundle validate` with a validate-only token.
+- **CI** ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) checks the repository structure and runs the unit tests in [`tests/unit/`](../tests/README.md): the job definition (task keys, notebook paths, dependencies, layer order, timeouts, retries), notebook structure and Python cells, Databricks SQL syntax, the seed files, and that the Silver, Gold and Analytics check IDs match the rules document. It then runs `databricks bundle validate` with a validate-only token.
 - **CD** ([`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)) deploys the bundle when a merge to `main` touches pipeline files. Deploying updates the job but doesn't run it. A manual run with `run_pipeline` set also starts the job.
 - The workspace URL and tokens live in GitHub environment settings, never in the repository.
 
@@ -348,5 +348,5 @@ All decisions, with dates and the pull requests that approved them, are in the [
 - Source files are placed in Google Drive by hand. There is no automatic download from DOT or PSA, because they publish on different schedules and in different formats.
 - There is no single end-to-end quality gate task. Each notebook enforces its own checks, and the run evidence notebooks summarize them.
 - There is no automated rerun test that confirms two runs give identical tables.
-- CI tests the repository files only. It does not run the notebooks or the dashboard queries against data, and it matches the Silver, Gold, and Analytics check IDs against the rules document.
+- CI tests the repository files only. It does not run the notebooks or the dashboard queries against data, and it only checks that check IDs match the rules document, not what each check does.
 - The metastore has a 500-table quota. Stale Bronze tables are dropped by hand with `notebooks/99_maintenance/drop_stale_bronze_tables` (DL-038).
