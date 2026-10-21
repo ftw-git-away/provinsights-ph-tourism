@@ -71,7 +71,7 @@ Tables are named by schema in this dictionary, for example `05_analytics.tourism
 
 Created by `00_ingestion_setup`.
 
-**`ingestion_run_log`**: one row per ingestion notebook run.
+**`ingestion_run_log`**: one row per ingestion notebook run. Key: `run_id` (the row is inserted as `STARTED` and updated at the end, never appended twice).
 
 | Column | Description |
 | --- | --- |
@@ -84,7 +84,7 @@ Created by `00_ingestion_setup`.
 | `status` | `STARTED`, `SUCCESS`, `PARTIAL_SUCCESS` or `FAILED`. |
 | `notes` | Free text. |
 
-**`file_manifest`**: one row per source file (and sheet) and Bronze table, per run.
+**`file_manifest`**: one row per source file (and sheet) and Bronze table, per run. Key: (`run_id`, `source_dataset_id`, `source_file`, `source_sheet`, `destination_table`), the same columns its `MERGE INTO` matches on.
 
 | Column | Description |
 | --- | --- |
@@ -97,7 +97,7 @@ Created by `00_ingestion_setup`.
 | `discovered_at`, `ingested_at` | Timestamps. |
 | `notes` | Includes a warning when a file's SHA-256 fingerprint changed since the last run. |
 
-**`ingestion_errors`**: one row per failure. Same source columns as `file_manifest`, plus `error_type`, `error_message`, `error_timestamp` and `notes`.
+**`ingestion_errors`**: one row per failure. No unique key: a run can log several errors for one file; find them by `run_id` and `source_file`. Same source columns as `file_manifest`, plus `error_type`, `error_message`, `error_timestamp` and `notes`.
 
 ### 2.2 `02_bronze`: source data as printed
 
@@ -170,9 +170,9 @@ Silver turns each source into clean, typed values for the 100 reporting units. E
 | `contributing_rows`, `dash_total_rows`, `dash_cells_in_printed_rows` | integer | How many DOT rows fed the unit, how many had a `-` total, and how many `-` cells were inside printed rows. |
 | `dot_labels` | STRING | The DOT labels summed into the unit. |
 
-**`dot_travelers_row`**: one cleaned DOT region or province-level row per year, with its crosswalk role. For tracing and reconciliation.
+**`dot_travelers_row`**: one cleaned DOT region or province-level row per year, with its crosswalk role. For tracing and reconciliation. No enforced key: one row per printed DOT row and year.
 
-**`dot_excluded_rows`**: one row per DOT row not loaded into any unit (SBMA, Cotabato City, Boracay double counts), with `exclude_reason`, `belongs_to_unit`, the traveler values and the source position (DL-013, DL-015, DL-016).
+**`dot_excluded_rows`**: one row per DOT row not loaded into any unit (SBMA, Cotabato City, Boracay double counts), with `exclude_reason`, `belongs_to_unit`, the traveler values and the source position (DL-013, DL-015, DL-016). Logical key: (`year`, `area_label`, `parent_label`).
 
 ### 3.3 Economy (`03_silver_psa_economy`)
 
@@ -190,9 +190,9 @@ Silver turns each source into clean, typed values for the 100 reporting units. E
 | `derived_values` | STRING | | Measures derived from a region total instead of published (DL-024). NULL when none. |
 | `per_capita_recomputed` | BOOLEAN | | `true` when per-capita GDP was recomputed (Quezon with Lucena, DL-011). |
 
-**`ref_indicator`**: one row per economy measure, with `measure`, `dataset_id`, `bronze_table`, `psa_table`, `title`, `unit`, `price_basis` and `additivity`. Gold uses it to write the unit into each column's comment.
+**`ref_indicator`**: one row per economy measure, with `measure`, `dataset_id`, `bronze_table`, `psa_table`, `title`, `unit`, `price_basis` and `additivity`. Gold uses it to write the unit into each column's comment. Key: `measure`.
 
-**`psa_economy_row`**: one PSA value per dataset, printed row and year, with its role. For tracing and reconciliation. **`map_psa_area_to_psgc`**: the reviewed PSA crosswalk seed.
+**`psa_economy_row`**: one PSA value per dataset, printed row and year, with its role. For tracing and reconciliation. No enforced key: one row per dataset, printed row and year. **`map_psa_area_to_psgc`**: the reviewed PSA crosswalk seed.
 
 ### 3.4 Population (`04_silver_population`)
 
@@ -207,11 +207,11 @@ Silver turns each source into clean, typed values for the 100 reporting units. E
 | `population_note` | STRING | For provinces with HUCs, which HUCs were subtracted and their total. |
 | `source_reference` | STRING | Every DS_18 row used for the value. |
 
-**`population_row`**: one DS_18 value used, per source table, printed row and year. **`map_psa_population_area_to_psgc`**: the reviewed population crosswalk seed.
+**`population_row`**: one DS_18 value used, per source table, printed row and year. No enforced key: one row per source table, printed row and year. **`map_psa_population_area_to_psgc`**: the reviewed population crosswalk seed.
 
 ### 3.5 `silver_run_log`
 
-One row per Silver notebook run: `run_id`, `notebook_name`, `started_at`, `completed_at`, `tables_written`, `rows_written`, `dq_checks_run`, `dq_block_failures`, `dq_review_flags`, `status` (`STARTED`, `SUCCESS`, `SUCCESS_WITH_REVIEW` or `FAILED`) and `notes`.
+Key: `run_id` (one row per notebook run). One row per Silver notebook run: `run_id`, `notebook_name`, `started_at`, `completed_at`, `tables_written`, `rows_written`, `dq_checks_run`, `dq_block_failures`, `dq_review_flags`, `status` (`STARTED`, `SUCCESS`, `SUCCESS_WITH_REVIEW` or `FAILED`) and `notes`.
 
 ---
 
@@ -273,7 +273,7 @@ One row per unit and year (100 × 6 = 600 rows). Key: (`province_psgc`, `year`).
 
 ### 4.4 `gold_run_log`
 
-One row per Gold notebook run. Same columns as `silver_run_log`.
+Key: `run_id` (one row per notebook run). One row per Gold notebook run. Same columns as `silver_run_log`.
 
 ---
 
@@ -444,7 +444,7 @@ For each segment (`domestic`, `foreign`, `overseas_filipino`):
 
 ### 5.7 `analytics_run_log`
 
-One row per Analytics notebook run, with the same fields in the same order as `silver_run_log` (run ID, notebook, start, end, tables written, rows written, checks run, BLOCK failures, REVIEW flags, status, notes). `01_build_analytics` writes to it but doesn't create it, so check the column names with `DESCRIBE TABLE`.
+Key: `run_id` (one row per notebook run). One row per Analytics notebook run, with the same fields in the same order as `silver_run_log` (run ID, notebook, start, end, tables written, rows written, checks run, BLOCK failures, REVIEW flags, status, notes). `01_build_analytics` writes to it but doesn't create it, so check the column names with `DESCRIBE TABLE`.
 
 ---
 
@@ -479,7 +479,7 @@ The travelers and output-per-visitor medians are taken over units with both valu
 
 ### `dq_results`
 
-One row per check per run, from every Silver, Gold and Analytics notebook.
+No unique key: several rows can share a `run_id` and `check_id` (for example one row per recomputed column in Analytics). A row is identified by (`run_id`, `check_id`, `table_name`, `notes`). One row per check per run, from every Silver, Gold and Analytics notebook.
 
 | Column | Type | Description |
 | --- | --- | --- |

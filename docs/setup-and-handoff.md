@@ -14,7 +14,7 @@
 
 Do this once, when ProvInsights is handed to a new owner or moved to a workspace where it has never run. Steps 1.1 to 1.7 set it up; 1.8 lists what to transfer from the current team. In the current workspace everything below already exists, so you only need the [runbook](runbook.md).
 
-The version being handed over is the `v1.0-handoff` tag on `main`. Start from that tag, not from a later commit, and confirm the commit with `git rev-parse v1.0-handoff`.
+The version being handed over is the `v1.0-handoff` tag on `main`. Start from that tag, not from a later commit, and confirm the commit with `git rev-parse v1.0-handoff`. The commit SHA is also on the [`v1.0-handoff` release page](https://github.com/ftw-git-away/provinsights-ph-tourism/releases/tag/v1.0-handoff).
 
 ### 1.1 What the new workspace needs
 
