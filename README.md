@@ -95,7 +95,7 @@ Government source files
     → Silver                    (notebooks/02_silver)
     → Gold                      (notebooks/03_gold)
     → Analytics                 (notebooks/04_analytics)
-    → Dashboard
+    → Dashboard                 (refreshed by the job's last task, refresh_dashboard)
 ```
 
 - **Silver** cleans each source and maps places to PSGC units. Each Silver notebook runs its own data-quality checks and fails on a BLOCK error.
@@ -110,6 +110,8 @@ The job in [`resources/jobs/tourism_pipeline.yml`](resources/jobs/tourism_pipeli
 ## Dashboard
 
 The Databricks AI/BI dashboard answers one analytical question per page.
+
+The pipeline refreshes it at the end of every run. Link, refresh and editing rules are in [`dashboard/README.md`](dashboard/README.md).
 
 | Page | Answers |
 | --- | --- |
@@ -137,7 +139,7 @@ docs/
   architecture.md                 # placeholder
   runbook.md                      # placeholder
 notebooks/
-  01_ingestion_bronze/                   # sources to Bronze
+  01_ingestion_bronze/            # sources to Bronze
   02_silver/
   03_gold/
   04_analytics/                   # build, validation, run evidence
@@ -145,17 +147,18 @@ notebooks/
 resources/
   jobs/tourism_pipeline.yml       # end-to-end Databricks job
   seeds/                          # reviewed crosswalk files
-databricks.yml                    # Databricks bundle
-src/                              # folder guidance; pipeline logic lives in the notebooks
-tests/
-  README.md                       # validation guidance, no automated tests yet
 dashboard/
-  README.md                       # placeholder
+  README.md                       # shared dashboard link, refresh and editing
+databricks.yml                    # Databricks bundle
+tests/
+  README.md                       # what is tested and where
+  unit/                           # unit tests run by CI (job, notebooks, SQL, seeds, docs)
+  requirements.txt                # pinned test dependencies
 ```
 
 ## Databricks deployment
 
-The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It needs one variable, `alert_email`, which receives failure emails. No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)).
+The pipeline is deployed to Databricks as a bundle defined in [`databricks.yml`](databricks.yml). It uses three variables: `alert_email` (receives failure emails, supplied by GitHub), and `warehouse_id` and `dashboard_id` (SQL warehouse and shared dashboard for the refresh task, with defaults in `databricks.yml`). No workspace URL or token is stored in the repository. GitHub Actions supplies them from the GitHub environments (see [`.github/workflows/README.md`](.github/workflows/README.md)). 
 
 **How changes reach Databricks**
 
@@ -189,7 +192,7 @@ databricks bundle run -t dev -p <profile> tourism_pipeline --var="alert_email=<y
 
 Use the [Decision log](docs/project-decision-log.md) for approved choices. Preserve original source artifacts and keep credentials out of Git.
 
-CI checks repository structure, Python files under `src/`, notebook structure, syntax in marked Python and SQL cells, and the Databricks bundle. It does not run the notebooks or validate source data.
+CI runs on every push and pull request. **Validate repository** checks the required folders and runs the unit tests in [`tests/unit/`](tests/unit/) (job definition and task order, notebook structure, Python and SQL syntax, seeds, and alignment of Silver checks with the rules doc). **Validate Databricks bundle** runs `databricks bundle validate`. Both checks are required, so a pull request cannot be merged until they pass and the branch is up to date with `main`. CI does not run the notebooks or read source data; data quality is checked inside the pipeline (see [`tests/README.md`](tests/README.md)).
 
 ## Team GitAway
 
