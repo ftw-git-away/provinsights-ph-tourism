@@ -97,6 +97,8 @@ flowchart LR
         PSGC["PSGC<br/>official place codes<br/>Excel"]
     end
 
+    CONN{{"Unity Catalog connection<br/>capstone_gdrive<br/>no keys in the repo"}}
+
     subgraph DBX["Databricks: catalog tuklas_dev"]
         BR["Ingestion and Bronze<br/>01_ingestion_bronze<br/>kept exactly as printed"]
         SV["Silver<br/>02_silver<br/>cleaned, one row per province and year"]
@@ -108,9 +110,10 @@ flowchart LR
     SEED[("resources/seeds<br/>reviewed crosswalks")]
     DASH["AI/BI dashboard<br/>AQ1 to AQ4"]
 
-    DOT --> BR
-    PSA --> BR
-    PSGC --> BR
+    DOT --> CONN
+    PSA --> CONN
+    PSGC --> CONN
+    CONN --> BR
     BR --> SV --> GD --> AN --> DASH
     SEED --> SV
     SV -. checks .-> DQ
@@ -120,7 +123,8 @@ flowchart LR
 
 The Databricks job [`tourism_pipeline`](resources/jobs/tourism_pipeline.yml) runs every layer in order and ends by refreshing the dashboard. A BLOCK failure stops the run before bad data is written, and a failure email goes to `alert_email`.
 
-- **Bronze** keeps every source value exactly as printed, with its file, page and row, so any number can be traced back to the original document.
+- **Source access:** the DOT, PSA and PSGC files sit in shared Google Drive folders. The ingestion notebooks read them directly through the Unity Catalog connection `capstone_gdrive`, listing each folder with `list_files(..., connection => 'capstone_gdrive')`. The connection holds the Google Drive credentials, so no service-account keys, tokens or passwords are stored in the notebooks or the repository, and access is controlled by who can use the connection in Unity Catalog. Each original file is also stored as binary in Bronze with a SHA-256 fingerprint (`_source_sha256`), so a replaced or edited source file is flagged in `01_ingestion.file_manifest`. Folder links and file IDs are in the [Bronze ingestion guide](docs/bronze-ingestion-guide.md).
+-  **Bronze** keeps every source value exactly as printed, with its file, page and row, so any number can be traced back to the original document.
 - **Silver** cleans each source and maps every place to a PSGC reporting unit using the reviewed crosswalks in `resources/seeds/`. Each Silver notebook runs its own data-quality checks and fails on a BLOCK error.
 - **Gold** is a star schema: `dim_province`, `dim_year` and `fact_province_year` (see [schema and source-to-target mapping](docs/schema-and-source-to-target-mapping.md)).
 - **Analytics** calculates the business metrics once, in `tuklas_dev.05_analytics`. Every row carries the Analytics run ID and the exact Gold Delta versions it was built from. `tourism_recovery` and `traveler_segment_recovery` are also built as supporting tables, but they are not used to answer the business question.
