@@ -237,7 +237,7 @@ databricks bundle run -t dev -p <profile> tourism_pipeline --var="alert_email=<y
 
 Use the [Decision log](docs/project-decision-log.md) for approved choices. Preserve original source artifacts and keep credentials out of Git.
 
-CI runs on pull requests to `main` and on pushes to `main` and to `feature/`, `chore/`, `docs/`, `fix/`, `test/` and `ci/` branches. **Validate repository** checks the required folders and runs the unit tests in [`tests/unit/`](tests/unit/) (job definition and task order, notebook structure, Python and SQL syntax, seeds, and alignment of Silver checks with the rules doc). **Validate Databricks bundle** runs `databricks bundle validate`. Both checks are required, so a pull request cannot be merged until they pass and the branch is up to date with `main`. CI does not run the notebooks or read source data; data quality is checked inside the pipeline (see [`tests/README.md`](tests/README.md)).
+CI runs on pull requests to `main` and on pushes to `main` and to `feature/`, `chore/`, `docs/`, `fix/`, `test/` and `ci/` branches. **Validate repository** checks the required folders and runs the unit tests in [`tests/unit/`](tests/unit/) (job definition and task order, notebook structure, Python and SQL syntax, seeds, and alignment of the Silver, Gold and Analytics check IDs with the rules doc). **Validate Databricks bundle** runs `databricks bundle validate`. Both checks are required, so a pull request cannot be merged until they pass and the branch is up to date with `main`. CI does not run the notebooks or read source data; data quality is checked inside the pipeline (see [`tests/README.md`](tests/README.md)).
 
 ## Team GitAway
 

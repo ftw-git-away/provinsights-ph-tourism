@@ -15,7 +15,7 @@ Tests and validation check that the pipeline's data is correct and follows the p
 | `test_notebook_python.py` | Python | Every notebook is valid JSON with valid cell types and a markdown cell; every Python cell compiles (including notebooks without a `%python` magic); `CATALOG` is `tuklas_dev`; no tokens or passwords; every `dq(...)` call uses a documented severity (`BLOCK`, `REVIEW`, `LOG`), passed by position or as `severity=` |
 | `test_notebook_sql.py` | SQL | Every `%sql` cell and every `spark.sql("...")` literal parses as Databricks SQL (`sqlglot`) |
 | `test_seeds.py` | CSV data | The four seeds in `resources/seeds/`: row counts and columns, unique keys, allowed `row_role` values, 10-digit PSGC codes, every unit code (and every HUC's `from_unit_psgc_code`) is one of the 100 reporting units, coordinates inside the Philippines, DOT validity years in order |
-| `test_docs_alignment.py` | Docs | Silver checks match both ways: every `dq("ID", ...)` call in a Silver notebook is a row in section 6 of `docs/data-quality-rules.md`, and every row there is run by a Silver notebook. Mentions in markdown or comments do not count |
+| `test_docs_alignment.py` | Docs | Silver, Gold and Analytics checks match both ways: every check ID used in a layer's notebooks is a row in section 6 of `docs/data-quality-rules.md`, and every row there is used by a notebook of the same layer. Silver IDs come from `dq("ID", ...)` calls; Gold and Analytics IDs from string literals that are exactly an ID (they also pass IDs through helpers and lookup tables such as `DQ_ID_BUILD`). Mentions in markdown or comments do not count |
 
 Run them locally (versions are pinned in `tests/requirements.txt`, the same file CI uses):
 
@@ -28,7 +28,7 @@ python -m unittest discover -s tests/unit -t tests/unit -v
 
 - `spark.sql(variable)` calls are not checked, because the SQL is only known at run time. Only string and f-string literals are parsed.
 - Statements that `sqlglot` cannot model (currently only `SHOW`) are allowed through unparsed. Any other statement it cannot parse fails the test.
-- Gold `dq(...)` checks are not matched against a document yet.
+- A check ID built at run time (for example `f"DQ-GLD-{n:02d}"`) is not seen by `test_docs_alignment.py`. Write IDs as plain strings.
 
 When a test fails, the message names the file, task, cell or seed row. Fix the code, or, if the change is intended (for example a new task or seed row), update the test and the matching README in the same pull request.
 
