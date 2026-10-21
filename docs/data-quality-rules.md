@@ -2,7 +2,7 @@
 
 Every Silver, Gold and Analytics table is checked before it is written, and every check has an ID, a severity and a pre-agreed action when it fails. A failure is never handled ad hoc. This document lists the checks the Silver, Gold and Analytics notebooks run today, so the IDs in `06_data_quality.dq_results` can be looked up here (Issue #5).
 
-**Covers:** `00_silver_setup`, `01_silver_geography`, `02_silver_dot`, `03_silver_psa_economy`, `04_silver_population`, `01_gold_dim_province`, `02_gold_dim_year`, `03_gold_fact_province_year`, `01_build_analytics` and `02_analytics_validation`. Bronze validation is not in place yet.
+**Covers:** `00_silver_setup`, `01_silver_geography`, `02_silver_dot`, `03_silver_psa_economy`, `04_silver_population`, `01_gold_dim_province`, `02_gold_dim_year`, `03_gold_fact_province_year`, `01_build_analytics` and `02_analytics_validation`. Ingestion and Bronze have no `DQ-` checks: the ingestion notebooks record each file's status in `01_ingestion.file_manifest` and failures in `ingestion_errors` ([Bronze ingestion guide](bronze-ingestion-guide.md)), and source totals are reconciled in Silver (DQ-DOT-15, DQ-PSA-03, DQ-POP-04).
 
 ---
 
@@ -11,7 +11,7 @@ Every Silver, Gold and Analytics table is checked before it is written, and ever
 | Severity | What happens when the check fails | When to use it |
 | --- | --- | --- |
 | **BLOCK** | The notebook writes its check results, writes **no** Silver table, logs the run as `FAILED` and raises an error. The previous Silver tables stay as they were, and the job stops. | The output would be wrong or misleading (double counting, broken keys, missing shown as zero, totals that do not reconcile). |
-| **REVIEW** | The run continues and is logged as `SUCCESS_WITH_REVIEW`. The failure must be looked at before Gold is published. | The data may be valid but needs a person to decide (outliers, a source that changed, an unexpected flag). |
+| **REVIEW** | The run continues and is logged as `SUCCESS_WITH_REVIEW`. The job does not pause: later layers still run. The flag must be reviewed before the results are presented or the run evidence is updated, and it is disclosed in the run evidence. | The data may be valid but needs a person to decide (outliers, a source that changed, an unexpected flag). |
 | **LOG** | Recorded only; always `PASS`. Used to list things for the record. | Known, documented conditions (derived values, estimates, unused seed rows). |
 
 * A BLOCK check is downgraded only through a decision-log entry.
