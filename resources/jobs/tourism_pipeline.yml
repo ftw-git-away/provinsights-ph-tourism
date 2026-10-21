@@ -119,14 +119,14 @@ resources:
             notebook_path: ../../notebooks/03_gold/00_gold_setup.ipynb
 
         - task_key: gold_dim_province
-          timeout_seconds: 2700   # temporary; set to ~3x real runtime after first successful run
+          timeout_seconds: 2700   # kept high: Gold dims wait for serverless compute after Silver; review if runs stay well under this
           depends_on:
             - task_key: gold_setup
           notebook_task:
             notebook_path: ../../notebooks/03_gold/01_gold_dim_province.ipynb
 
         - task_key: gold_dim_year
-          timeout_seconds: 2700   # temporary; set to ~3x real runtime after first successful run
+          timeout_seconds: 2700   # kept high: Gold dims wait for serverless compute after Silver; review if runs stay well under this
           depends_on:
             - task_key: gold_setup
           notebook_task:
