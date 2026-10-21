@@ -160,7 +160,7 @@ No unit is exactly at 2019 (`unchanged`). Ineligible units stay NULL and are not
 - **Non-comparable years are kept and flagged.** Aklan 2022 and 2023 stay in `tourism_recovery` with `recovery_eligible = false` and a reason (DL-013, DL-020).
 - **Price basis.** A&F growth uses constant prices; A&F share uses current prices (confirmed in Section 2).
 - **Segment coverage.** Foreign recovery is not shown for units where DOT prints foreign travelers and overseas Filipinos together (`foreign_includes_overseas_filipinos`). Most overseas Filipino exclusions come from 2019 values that DOT printed as `-` (DL-019), not real zeros. Coverage should be shown next to these metrics (e.g. "26 of 52").
-- **`reported_partial`.** Partly reported units (NCR) remain eligible; the team decision on DL-019 is still open. NCR's missing cities differ between 2019 and 2023, so its recovery index should be read with that caveat.
+- **`reported_partial`.** Partly reported units (NCR every year, Sorsogon 2019) remain eligible, with the status kept as a caveat (DL-039). NCR's missing cities differ between 2019 and 2023, so its recovery index should be read with that caveat.
 - **Labels are display rules, not findings.** `possible_emerging` and `under_review` follow DL-006, DL-028 and DL-029; `above_2019` alone does not mean emerging.
 - **Cotabato.** Its population includes the Special Geographic Area while its GDP does not (DL-025).
 - **Interpretation.** A&F GVA is a proxy for tourism-related activity; findings are associations, not causes (DL-007, DL-008).

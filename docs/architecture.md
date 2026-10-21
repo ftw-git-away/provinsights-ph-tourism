@@ -344,7 +344,7 @@ All decisions, with dates and the pull requests that approved them, are in the [
 
 **Architecture limitations** (planned improvements):
 
-- The pipeline runs in a single development target (`dev`, catalog `tuklas_dev`). There is no separate production target or catalog yet.
+- The pipeline runs in a single development target (`dev`, catalog `tuklas_dev`). There is no separate production target or catalog yet. This is a recorded decision (DL-040).
 - The job is triggered manually. It has no schedule, because the sources are published yearly.
 - Source files are placed in Google Drive by hand. There is no automatic download from DOT or PSA, because they publish on different schedules and in different formats.
 - There is no single end-to-end quality gate task. Each notebook enforces its own checks, and the run evidence notebooks summarize them.
