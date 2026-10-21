@@ -28,7 +28,7 @@ python -m unittest discover -s tests/unit -t tests/unit -v
 
 - `spark.sql(variable)` calls are not checked, because the SQL is only known at run time. Only string and f-string literals are parsed.
 - Statements that `sqlglot` cannot model (currently only `SHOW`) are allowed through unparsed. Any other statement it cannot parse fails the test.
-  - Gold `dq(...)` checks are not matched against a document yet.
+- Gold `dq(...)` checks are not matched against a document yet.
 
 When a test fails, the message names the file, task, cell or seed row. Fix the code, or, if the change is intended (for example a new task or seed row), update the test and the matching README in the same pull request.
 
@@ -38,11 +38,11 @@ A problem should be caught as close as possible to where it is introduced, so ea
 
 | Layer | What is checked | Where |
 | --- | --- | --- |
-| Ingestion | Source file found, extraction reconciles with printed totals, required metadata | Ingestion notebooks (`notebooks/01_ingestion/`) |
+| Ingestion | Source file found, extraction reconciles with printed totals, required metadata | Ingestion notebooks (`notebooks/01_ingestion_bronze/`) |
 | Bronze | Every file's status (`INGESTED`, `SKIPPED`, `FAILED`), technical failures and required source-lineage metadata | Ingestion-control tables written by the ingestion notebooks ([guide](../docs/bronze-ingestion-guide.md)) |
 | Silver | Data types, required fields, crosswalk matches, one row per unit and year | `DQ-COM-*`, `DQ-DOT-*`, `DQ-PSA-*`, `DQ-POP-*` checks in each Silver notebook ([rules](../docs/data-quality-rules.md)) |
 | Gold | Table grain, keys, joins, measures | `DQ-GLD-*` checks in each Gold notebook, summarised by `gold_run_evidence` ([evidence](../docs/gold-run-evidence.md)) |
-| Analytics | Metrics, calculations, expected outputs | `05_analytics/02_analytics_validation`, summarised by `analytics_run_evidence` ([evidence](../docs/analytics-run-evidence.md)) |
+| Analytics | Metrics, calculations, expected outputs | `notebooks/04_analytics/02_analytics_validation`, summarised by `analytics_run_evidence` ([evidence](../docs/analytics-run-evidence.md)) |
 
 Every check writes one row to `tuklas_dev.06_data_quality.dq_results` with its ID, severity and status. A failed `BLOCK` check fails its task, and the job skips every task after it, so bad data never reaches the next layer.
 
